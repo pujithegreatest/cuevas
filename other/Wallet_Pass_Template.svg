@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 2400" width="1600" height="2400">
+  <defs>
+    <!-- Styles -->
+    <style>
+      .title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 700; fill: #1D1D1F; }
+      .section-title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; fill: #1D1D1F; }
+      .label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 600; fill: #1D1D1F; }
+      .sublabel { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 10px; fill: #666666; }
+      .dimension { font-family: 'SF Mono', Monaco, 'Courier New', monospace; font-size: 11px; fill: #999999; }
+      .note { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 9px; fill: #666666; }
+      .artboard { fill: #F5F5F7; stroke: #1D1D1F; stroke-width: 2; }
+      .artboard-alt { fill: #E8E8ED; stroke: #1D1D1F; stroke-width: 2; }
+      .guide { stroke: #FF3B30; stroke-width: 0.5; stroke-dasharray: 4,2; }
+      .safe-area { stroke: #34C759; stroke-width: 1.5; stroke-dasharray: 5,3; fill: none; }
+      .center-guide { stroke: #007AFF; stroke-width: 0.5; stroke-dasharray: 2,2; }
+    </style>
+    
+    <!-- Corner marks pattern -->
+    <symbol id="corner-marks" viewBox="0 0 100 100">
+      <line x1="0" y1="0" x2="10" y2="0" stroke="#FF3B30" stroke-width="0.5"/>
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#FF3B30" stroke-width="0.5"/>
+    </symbol>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1600" height="2400" fill="#FFFFFF"/>
+  
+  <!-- Header -->
+  <text x="50" y="50" class="title">Apple &amp; Google Wallet Pass Template</text>
+  <text x="50" y="75" class="sublabel">All artboards at @3x resolution • Export as PNG • Dimensions in pixels</text>
+  
+  <!-- ==================== STRIP IMAGE - UNIVERSAL (Works for both) ==================== -->
+  <g id="strip-universal" transform="translate(50, 110)">
+    <text x="0" y="0" class="section-title">STRIP / HERO IMAGE (Universal)</text>
+    <text x="0" y="18" class="sublabel">Works for both Apple Wallet &amp; Google Wallet</text>
+    
+    <!-- Artboard: 1125 x 432 (Coupon/Google size - largest) -->
+    <rect x="0" y="35" width="1125" height="432" class="artboard"/>
+    
+    <!-- Corner marks -->
+    <line x1="0" y1="35" x2="15" y2="35" stroke="#FF3B30" stroke-width="1"/>
+    <line x1="0" y1="35" x2="0" y2="50" stroke="#FF3B30" stroke-width="1"/>
+    <line x1="1125" y1="35" x2="1110" y2="35" stroke="#FF3B30" stroke-width="1"/>
+    <line x1="1125" y1="35" x2="1125" y2="50" stroke="#FF3B30" stroke-width="1"/>
+    <line x1="0" y1="467" x2="15" y2="467" stroke="#FF3B30" stroke-width="1"/>
+    <line x1="0" y1="467" x2="0" y2="452" stroke="#FF3B30" stroke-width="1"/>
+    <line x1="1125" y1="467" x2="1110" y2="467" stroke="#FF3B30" stroke-width="1"/>
+    <line x1="1125" y1="467" x2="1125" y2="452" stroke="#FF3B30" stroke-width="1"/>
+    
+    <!-- Center guides -->
+    <line x1="562.5" y1="35" x2="562.5" y2="467" class="center-guide"/>
+    <line x1="0" y1="251" x2="1125" y2="251" class="center-guide"/>
+    
+    <!-- Dimension labels -->
+    <text x="562.5" y="255" class="dimension" text-anchor="middle">1125 × 432 px</text>
+    <text x="562.5" y="270" class="note" text-anchor="middle">Google Hero / Apple Coupon Strip</text>
+    
+    <!-- Apple variant guides -->
+    <line x1="0" y1="103" x2="1125" y2="103" class="guide"/>
+    <text x="1130" y="107" class="note">← 369px (Standard strip)</text>
+    
+    <line x1="0" y1="73" x2="1125" y2="73" stroke="#007AFF" stroke-width="0.5" stroke-dasharray="4,2"/>
+    <text x="1130" y="77" class="note" fill="#007AFF">← 294px (Event ticket strip)</text>
+    
+    <!-- Labels -->
+    <text x="0" y="490" class="label">1125 × 432 px</text>
+    <text x="0" y="505" class="sublabel">Use this size for maximum compatibility</text>
+    <text x="0" y="520" class="note">• Apple will crop to 369px or 294px depending on pass type</text>
+    <text x="0" y="532" class="note">• Google uses full 432px height</text>
+    <text x="0" y="544" class="note">• Keep important content in center area</text>
+  </g>
+  
+  <!-- ==================== LOGO SECTION ==================== -->
+  <g id="logos" transform="translate(50, 700)">
+    <text x="0" y="0" class="section-title">LOGOS</text>
+    
+    <!-- Apple Logo -->
+    <g transform="translate(0, 25)">
+      <text x="0" y="0" class="label">Apple Wallet Logo</text>
+      <text x="0" y="15" class="sublabel">480 × 150 px (@3x) • Top-left of pass</text>
+      
+      <rect x="0" y="30" width="480" height="150" class="artboard"/>
+      <line x1="240" y1="30" x2="240" y2="180" class="center-guide"/>
+      <line x1="0" y1="105" x2="480" y2="105" class="center-guide"/>
+      <text x="240" y="110" class="dimension" text-anchor="middle">480 × 150 px</text>
+      
+      <text x="0" y="200" class="note">• Keep narrower than max for best display</text>
+      <text x="0" y="212" class="note">• Transparent background recommended</text>
+    </g>
+    
+    <!-- Google Logo -->
+    <g transform="translate(550, 25)">
+      <text x="0" y="0" class="label">Google Wallet Logo</text>
+      <text x="0" y="15" class="sublabel">660 × 660 px • Gets circle-masked</text>
+      
+      <!-- Square artboard -->
+      <rect x="0" y="30" width="330" height="330" class="artboard-alt" transform="scale(1)"/>
+      <rect x="0" y="30" width="330" height="330" fill="#E8E8ED" stroke="#1D1D1F" stroke-width="2"/>
+      
+      <!-- Safe area circle (85% = 280.5px diameter in this scaled view) -->
+      <circle cx="165" cy="195" r="140" class="safe-area"/>
+      
+      <!-- Mask preview circle -->
+      <circle cx="165" cy="195" r="165" fill="none" stroke="#007AFF" stroke-width="1" stroke-dasharray="3,3"/>
+      
+      <!-- Center -->
+      <line x1="165" y1="30" x2="165" y2="360" class="center-guide"/>
+      <line x1="0" y1="195" x2="330" y2="360" class="center-guide"/>
+      
+      <text x="165" y="195" class="dimension" text-anchor="middle">660 × 660 px</text>
+      <text x="165" y="210" class="note" text-anchor="middle">(shown at 50% scale)</text>
+      
+      <!-- Legend -->
+      <text x="0" y="385" class="note" fill="#34C759">● Green dashed = Safe area (85%)</text>
+      <text x="0" y="400" class="note" fill="#007AFF">● Blue dashed = Circle mask edge</text>
+      <text x="0" y="415" class="note">• Keep all content inside green circle</text>
+      <text x="0" y="430" class="note">• Don't pre-mask - upload as square</text>
+    </g>
+  </g>
+  
+  <!-- ==================== ICON & THUMBNAIL ==================== -->
+  <g id="icons" transform="translate(50, 1180)">
+    <text x="0" y="0" class="section-title">ICON &amp; THUMBNAIL (Apple Only)</text>
+    
+    <!-- Icon -->
+    <g transform="translate(0, 25)">
+      <text x="0" y="0" class="label">Icon</text>
+      <text x="0" y="15" class="sublabel">114 × 114 px • Lock screen &amp; notifications</text>
+      
+      <rect x="0" y="30" width="114" height="114" class="artboard"/>
+      <line x1="57" y1="30" x2="57" y2="144" class="center-guide"/>
+      <line x1="0" y1="87" x2="114" y2="87" class="center-guide"/>
+      <text x="57" y="92" class="dimension" text-anchor="middle">114 × 114</text>
+      
+      <text x="0" y="165" class="note">• Simple, bold design</text>
+      <text x="0" y="177" class="note">• Visible at small sizes</text>
+    </g>
+    
+    <!-- Thumbnail -->
+    <g transform="translate(200, 25)">
+      <text x="0" y="0" class="label">Thumbnail</text>
+      <text x="0" y="15" class="sublabel">270 × 270 px (@3x) • Generic passes</text>
+      
+      <rect x="0" y="30" width="270" height="270" class="artboard-alt"/>
+      <line x1="135" y1="30" x2="135" y2="300" class="center-guide"/>
+      <line x1="0" y1="165" x2="270" y2="165" class="center-guide"/>
+      <text x="135" y="170" class="dimension" text-anchor="middle">270 × 270 px</text>
+      
+      <text x="0" y="320" class="note">• Aspect ratio 2:3 to 3:2</text>
+      <text x="0" y="332" class="note">• Displayed next to fields</text>
+    </g>
+    
+    <!-- Background -->
+    <g transform="translate(550, 25)">
+      <text x="0" y="0" class="label">Background (Optional)</text>
+      <text x="0" y="15" class="sublabel">540 × 660 px (@3x) • Full pass background</text>
+      
+      <rect x="0" y="30" width="270" height="330" class="artboard" transform="scale(1)"/>
+      <rect x="0" y="30" width="270" height="330" fill="#F5F5F7" stroke="#1D1D1F" stroke-width="2"/>
+      <line x1="135" y1="30" x2="135" y2="360" class="center-guide"/>
+      <line x1="0" y1="195" x2="270" y2="195" class="center-guide"/>
+      <text x="135" y="195" class="dimension" text-anchor="middle">540 × 660 px</text>
+      <text x="135" y="210" class="note" text-anchor="middle">(shown at 50% scale)</text>
+      
+      <text x="0" y="385" class="note">• Gets cropped &amp; blurred</text>
+      <text x="0" y="397" class="note">• Use subtle patterns</text>
+    </g>
+  </g>
+  
+  <!-- ==================== QUICK REFERENCE TABLE ==================== -->
+  <g id="reference" transform="translate(50, 1620)">
+    <text x="0" y="0" class="section-title">QUICK REFERENCE</text>
+    
+    <!-- Table header -->
+    <rect x="0" y="20" width="1000" height="30" fill="#E8E8ED"/>
+    <text x="10" y="40" class="label">Image Type</text>
+    <text x="200" y="40" class="label">Apple Size (@3x)</text>
+    <text x="400" y="40" class="label">Google Size</text>
+    <text x="580" y="40" class="label">Format</text>
+    <text x="700" y="40" class="label">Notes</text>
+    
+    <!-- Table rows -->
+    <g class="sublabel">
+      <line x1="0" y1="50" x2="1000" y2="50" stroke="#E8E8ED" stroke-width="1"/>
+      <text x="10" y="70">Strip / Hero</text>
+      <text x="200" y="70">1125 × 432 px</text>
+      <text x="400" y="70">1125 × 432 px</text>
+      <text x="580" y="70">PNG</text>
+      <text x="700" y="70">Universal - use for both platforms</text>
+      
+      <line x1="0" y1="80" x2="1000" y2="80" stroke="#E8E8ED" stroke-width="1"/>
+      <text x="10" y="100">Strip (Standard)</text>
+      <text x="200" y="100">1125 × 369 px</text>
+      <text x="400" y="100">—</text>
+      <text x="580" y="100">PNG</text>
+      <text x="700" y="100">Store cards, generic passes</text>
+      
+      <line x1="0" y1="110" x2="1000" y2="110" stroke="#E8E8ED" stroke-width="1"/>
+      <text x="10" y="130">Strip (Event)</text>
+      <text x="200" y="130">1125 × 294 px</text>
+      <text x="400" y="130">—</text>
+      <text x="580" y="130">PNG</text>
+      <text x="700" y="130">Event tickets only</text>
+      
+      <line x1="0" y1="140" x2="1000" y2="140" stroke="#E8E8ED" stroke-width="1"/>
+      <text x="10" y="160">Logo</text>
+      <text x="200" y="160">480 × 150 px</text>
+      <text x="400" y="160">660 × 660 px</text>
+      <text x="580" y="160">PNG</text>
+      <text x="700" y="160">Google uses square (circle-masked)</text>
+      
+      <line x1="0" y1="170" x2="1000" y2="170" stroke="#E8E8ED" stroke-width="1"/>
+      <text x="10" y="190">Icon</text>
+      <text x="200" y="190">114 × 114 px</text>
+      <text x="400" y="190">—</text>
+      <text x="580" y="190">PNG</text>
+      <text x="700" y="190">Apple only - lock screen</text>
+      
+      <line x1="0" y1="200" x2="1000" y2="200" stroke="#E8E8ED" stroke-width="1"/>
+      <text x="10" y="220">Thumbnail</text>
+      <text x="200" y="220">270 × 270 px</text>
+      <text x="400" y="220">—</text>
+      <text x="580" y="220">PNG</text>
+      <text x="700" y="220">Apple generic passes only</text>
+      
+      <line x1="0" y1="230" x2="1000" y2="230" stroke="#E8E8ED" stroke-width="1"/>
+      <text x="10" y="250">Background</text>
+      <text x="200" y="250">540 × 660 px</text>
+      <text x="400" y="250">—</text>
+      <text x="580" y="250">PNG</text>
+      <text x="700" y="250">Apple only - gets blurred</text>
+    </g>
+    <line x1="0" y1="260" x2="1000" y2="260" stroke="#E8E8ED" stroke-width="1"/>
+  </g>
+  
+  <!-- ==================== EXPORT CHECKLIST ==================== -->
+  <g id="checklist" transform="translate(50, 1920)">
+    <text x="0" y="0" class="section-title">EXPORT CHECKLIST</text>
+    
+    <g class="note" transform="translate(0, 25)">
+      <text x="0" y="0">☐ Design at @3x resolution (largest size)</text>
+      <text x="0" y="18">☐ Export as PNG format</text>
+      <text x="0" y="36">☐ Create @2x and @1x versions (scale down)</text>
+      <text x="0" y="54">☐ Use transparent backgrounds for logos</text>
+      <text x="0" y="72">☐ Keep Google logo content in 85% safe area</text>
+      <text x="0" y="90">☐ No text embedded in images</text>
+      <text x="0" y="108">☐ Test on actual devices</text>
+    </g>
+    
+    <g class="note" transform="translate(350, 25)">
+      <text x="0" y="0" class="label">File Naming:</text>
+      <text x="0" y="20" font-family="monospace" font-size="9">strip.png (375×123) strip@2x.png (750×246) strip@3x.png (1125×369)</text>
+      <text x="0" y="38" font-family="monospace" font-size="9">logo.png (160×50)  logo@2x.png (320×100)  logo@3x.png (480×150)</text>
+      <text x="0" y="56" font-family="monospace" font-size="9">icon.png (29×29)   icon@2x.png (58×58)    icon@3x.png (87×87)</text>
+    </g>
+  </g>
+  
+  <!-- ==================== INDIVIDUAL ARTBOARDS (for easy selection) ==================== -->
+  <g id="artboards" transform="translate(50, 2100)">
+    <text x="0" y="0" class="section-title">ARTBOARD SIZES (Select &amp; Copy)</text>
+    <text x="0" y="18" class="sublabel">Each rectangle is exact pixel size - select in Illustrator and copy to new document</text>
+    
+    <!-- Row of individual artboards -->
+    <g transform="translate(0, 40)">
+      <!-- 1125x432 -->
+      <rect x="0" y="0" width="281.25" height="108" fill="#F5F5F7" stroke="#1D1D1F" stroke-width="1"/>
+      <text x="140.6" y="50" class="dimension" text-anchor="middle">1125×432</text>
+      <text x="140.6" y="65" class="note" text-anchor="middle">÷4 scale</text>
+      
+      <!-- Logo -->
+      <rect x="300" y="0" width="120" height="37.5" fill="#E8E8ED" stroke="#1D1D1F" stroke-width="1"/>
+      <text x="360" y="22" class="dimension" text-anchor="middle">480×150</text>
+      
+      <!-- Icon -->
+      <rect x="440" y="0" width="28.5" height="28.5" fill="#F5F5F7" stroke="#1D1D1F" stroke-width="1"/>
+      <text x="454" y="18" class="dimension" text-anchor="middle" font-size="7">114²</text>
+      
+      <!-- Thumbnail -->
+      <rect x="490" y="0" width="67.5" height="67.5" fill="#E8E8ED" stroke="#1D1D1F" stroke-width="1"/>
+      <text x="524" y="38" class="dimension" text-anchor="middle" font-size="8">270²</text>
+      
+      <!-- Google Logo -->
+      <rect x="580" y="0" width="82.5" height="82.5" fill="#F5F5F7" stroke="#1D1D1F" stroke-width="1"/>
+      <circle cx="621.25" cy="41.25" r="35" class="safe-area"/>
+      <text x="621" y="45" class="dimension" text-anchor="middle" font-size="8">660²</text>
+    </g>
+  </g>
+  
+  <!-- Footer -->
+  <text x="800" y="2380" class="note" text-anchor="middle">Template for react-native-wallet • Apple PassKit &amp; Google Wallet API</text>
+</svg>

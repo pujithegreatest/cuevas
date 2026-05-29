@@ -1,0 +1,27 @@
+import wixData from "wix-data";
+
+/**
+ * Wix backend helper for the Cybernetic collection.
+ * This file is intended to be copied into your Wix Velo backend (`backend/posts.jsw`).
+ */
+
+export async function getCyberneticPosts(limit = 50) {
+  const res = await wixData
+    .query("Cybernetic")
+    .descending("datePublished")
+    .limit(limit)
+    .find({ suppressAuth: true });
+
+  return res.items || [];
+}
+
+export async function createCyberneticPost(data) {
+  const insertData = {
+    ...data,
+    datePublished: data?.datePublished || new Date().toISOString(),
+  };
+
+  return await wixData.insert("Cybernetic", insertData, { suppressAuth: true });
+}
+
+
