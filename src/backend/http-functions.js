@@ -36,7 +36,7 @@ const jsonHeaders = {
 // -------------------- VERSION MARKER (confirm deploy) --------------------
 // Change this string whenever you paste/publish so Wix logs prove the running version.
 // Bump this whenever you paste into Wix and Publish, so logs prove which version is live.
-const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1";
+const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1.uploadFolders.v1";
 
 // Coin icon provided by you (embedded so the pkpass is self-contained).
 // You can also override with a Wix Secret: WALLET_COIN_ICON_PNG_BASE64.
@@ -96,6 +96,47 @@ function normalizeFileName(value) {
   } catch (e) {
     return null;
   }
+}
+
+const UPLOAD_FOLDER_PATHS = {
+  "post-image": "/Cuevas App/User Uploads/Posts/Images",
+  "post-video": "/Cuevas App/User Uploads/Posts/Videos",
+  "post-audio": "/Cuevas App/User Uploads/Posts/Audio",
+  "story-image": "/Cuevas App/User Uploads/Stories/Images",
+  "story-video": "/Cuevas App/User Uploads/Stories/Videos",
+  "story-audio": "/Cuevas App/User Uploads/Stories/Audio",
+  "mission-proof": "/Cuevas App/User Uploads/Missions/Proof Photos",
+  "profile-avatar": "/Cuevas App/User Uploads/Profiles/Avatars",
+  misc: "/Cuevas App/User Uploads/Misc",
+};
+
+function normalizeUploadDestination(value, mimeType) {
+  const raw = String(value || "").trim().toLowerCase().replace(/[_\s]+/g, "-");
+  const aliases = {
+    image: "post-image",
+    photo: "post-image",
+    video: "post-video",
+    audio: "post-audio",
+    song: "post-audio",
+    "post-photo": "post-image",
+    "post-media": "post-image",
+    "story-photo": "story-image",
+    "mission-upload": "mission-proof",
+    "mission-photo": "mission-proof",
+    avatar: "profile-avatar",
+    profile: "profile-avatar",
+  };
+  const candidate = aliases[raw] || raw;
+  if (UPLOAD_FOLDER_PATHS[candidate]) return candidate;
+  const mime = String(mimeType || "").toLowerCase();
+  if (mime.startsWith("video/")) return "post-video";
+  if (mime.startsWith("audio/")) return "post-audio";
+  if (mime.startsWith("image/")) return "post-image";
+  return "misc";
+}
+
+function uploadFilePathFor(destination) {
+  return UPLOAD_FOLDER_PATHS[destination] || UPLOAD_FOLDER_PATHS.misc;
 }
 
 function sanitizePostPrivacy(value) {
@@ -1106,6 +1147,11 @@ export async function post_uploadMedia(request) {
     const mimeType = normalizeMimeType(
       body?.mimeType ?? body?.type ?? body?.file?.type ?? body?.file?.mimeType ?? body?.file?.mimetype
     );
+    const destination = normalizeUploadDestination(
+      body?.destination ?? body?.folder ?? body?.uploadType ?? body?.kind,
+      mimeType
+    );
+    const filePath = uploadFilePathFor(destination);
 
     if (!fileName || !mimeType) {
       return badRequest({
@@ -1123,7 +1169,14 @@ export async function post_uploadMedia(request) {
 
     console.log(
       "[UPLOAD] init request:",
-      JSON.stringify({ fileName, mimeType, fileNameType: typeof fileName, mimeTypeType: typeof mimeType })
+      JSON.stringify({
+        fileName,
+        mimeType,
+        destination,
+        filePath,
+        fileNameType: typeof fileName,
+        mimeTypeType: typeof mimeType,
+      })
     );
 
     // Wix API: https://dev.wix.com/docs/velo/apis/wix-media-v2/files/generate-file-upload-url
@@ -1134,19 +1187,35 @@ export async function post_uploadMedia(request) {
     // Object-format first (works on newer Wix SDK)
     const attempts = [
       {
-        name: "ELEVATED generateFileUploadUrl({ mimeType, fileName })",
+        name: "ELEVATED generateFileUploadUrl({ mimeType, fileName, filePath })",
+        run: () => elevatedGenerate({ mimeType, fileName, filePath }),
+      },
+      {
+        name: "PLAIN generateFileUploadUrl({ mimeType, fileName, filePath })",
+        run: () => files.generateFileUploadUrl({ mimeType, fileName, filePath }),
+      },
+      {
+        name: "ELEVATED generateFileUploadUrl(mimeType, { fileName, filePath })",
+        run: () => elevatedGenerate(mimeType, { fileName, filePath }),
+      },
+      {
+        name: "PLAIN generateFileUploadUrl(mimeType, { fileName, filePath })",
+        run: () => files.generateFileUploadUrl(mimeType, { fileName, filePath }),
+      },
+      {
+        name: "ELEVATED fallback generateFileUploadUrl({ mimeType, fileName })",
         run: () => elevatedGenerate({ mimeType, fileName }),
       },
       {
-        name: "PLAIN generateFileUploadUrl({ mimeType, fileName })",
+        name: "PLAIN fallback generateFileUploadUrl({ mimeType, fileName })",
         run: () => files.generateFileUploadUrl({ mimeType, fileName }),
       },
       {
-        name: "ELEVATED generateFileUploadUrl(mimeType, { fileName })",
+        name: "ELEVATED fallback generateFileUploadUrl(mimeType, { fileName })",
         run: () => elevatedGenerate(mimeType, { fileName }),
       },
       {
-        name: "PLAIN generateFileUploadUrl(mimeType, { fileName })",
+        name: "PLAIN fallback generateFileUploadUrl(mimeType, { fileName })",
         run: () => files.generateFileUploadUrl(mimeType, { fileName }),
       },
     ];
@@ -1228,7 +1297,7 @@ export async function post_uploadMedia(request) {
 
     console.log(
       "[UPLOAD] init parsed:",
-      JSON.stringify({ uploadUrl: !!uploadUrl, fileId: !!fileId, trackingKey: !!trackingKey })
+      JSON.stringify({ uploadUrl: !!uploadUrl, fileId: !!fileId, trackingKey: !!trackingKey, destination, filePath })
     );
 
     if (!uploadUrl || (!fileId && !trackingKey)) {
@@ -1244,7 +1313,7 @@ export async function post_uploadMedia(request) {
 
     return ok({
       headers: jsonHeaders,
-      body: { success: true, uploadUrl, fileId: fileId || null, trackingKey: trackingKey || null },
+      body: { success: true, uploadUrl, fileId: fileId || null, trackingKey: trackingKey || null, destination, filePath },
     });
   } catch (err) {
     console.error("[UPLOAD] init error:", err);

@@ -3,25 +3,39 @@ import * as FileSystem from "expo-file-system/legacy";
 const UPLOAD_API = "https://www.ecothot.com/_functions/uploadMedia";
 const UPLOAD_FINALIZE_API = "https://www.ecothot.com/_functions/uploadMediaFinalize";
 
+export type UploadDestination =
+  | "post-image"
+  | "post-video"
+  | "post-audio"
+  | "story-image"
+  | "story-video"
+  | "story-audio"
+  | "mission-proof"
+  | "profile-avatar"
+  | "misc";
+
 export function encodeUploadUri(
   uri: string,
   fileName: string,
   mimeType: string,
-  kind: "image" | "video" | "audio"
+  kind: "image" | "video" | "audio",
+  destination?: UploadDestination
 ) {
   const sep = uri.includes("#") ? "&" : "#";
+  const destinationPart = destination ? `&destination=${encodeURIComponent(destination)}` : "";
   return (
     uri +
     sep +
-    `name=${encodeURIComponent(fileName)}&mime=${encodeURIComponent(mimeType)}&kind=${encodeURIComponent(kind)}`
+    `name=${encodeURIComponent(fileName)}&mime=${encodeURIComponent(mimeType)}&kind=${encodeURIComponent(kind)}${destinationPart}`
   );
 }
 
-export async function uploadMediaFile(uri: string): Promise<string> {
+export async function uploadMediaFile(uri: string, destinationOverride?: UploadDestination): Promise<string> {
   const [rawUri, hash] = uri.split("#", 2);
   let providedName = "";
   let providedMime = "";
   let providedKind = "";
+  let providedDestination = destinationOverride || "";
 
   if (hash) {
     for (const part of hash.split("&")) {
@@ -30,6 +44,7 @@ export async function uploadMediaFile(uri: string): Promise<string> {
       if (key === "name") providedName = value;
       else if (key === "mime") providedMime = value;
       else if (key === "kind") providedKind = value;
+      else if (key === "destination") providedDestination = value as UploadDestination;
     }
   }
 
@@ -70,7 +85,7 @@ export async function uploadMediaFile(uri: string): Promise<string> {
   const initRes = await fetch(UPLOAD_API, {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
-    body: JSON.stringify({ fileName: filename, mimeType: mime }),
+    body: JSON.stringify({ fileName: filename, mimeType: mime, kind: providedKind || undefined, destination: providedDestination || undefined }),
   });
   const initJson = await initRes.json();
   if (!initRes.ok || !initJson?.success || !initJson?.uploadUrl) {

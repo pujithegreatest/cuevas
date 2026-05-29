@@ -445,9 +445,10 @@ export default function MissionsScreen({ navigation }: Props) {
         compressed.uri,
         `mission-proof-${missionId}-${Date.now()}.jpg`,
         "image/jpeg",
-        "image"
+        "image",
+        "mission-proof"
       );
-      const uploadedUrl = await uploadMediaFile(uploadUri);
+      const uploadedUrl = await uploadMediaFile(uploadUri, "mission-proof");
       setUploadedProofUrls((current) => ({ ...current, [missionId]: uploadedUrl }));
     } catch (error) {
       setProofErrors((current) => ({

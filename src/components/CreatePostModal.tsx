@@ -49,14 +49,21 @@ export default function CreatePostModal({
   const PICKER_IMAGE_QUALITY = 0.82;
   const COMPRESSED_IMAGE_WIDTH = 1080;
 
-  const encodeMediaUri = (uri: string, fileName: string, mimeType: string, kind: "image" | "video" | "audio") => {
+  const encodeMediaUri = (
+    uri: string,
+    fileName: string,
+    mimeType: string,
+    kind: "image" | "video" | "audio",
+    destination?: "post-image" | "post-video" | "post-audio"
+  ) => {
     // Keep original uri for FileSystem upload, but attach metadata for correct MIME + preview.
     // Format: <uri>#name=<..>&mime=<..>&kind=<..>
     const sep = uri.includes("#") ? "&" : "#";
+    const destinationPart = destination ? `&destination=${encodeURIComponent(destination)}` : "";
     return (
       uri +
       sep +
-      `name=${encodeURIComponent(fileName)}&mime=${encodeURIComponent(mimeType)}&kind=${encodeURIComponent(kind)}`
+      `name=${encodeURIComponent(fileName)}&mime=${encodeURIComponent(mimeType)}&kind=${encodeURIComponent(kind)}${destinationPart}`
     );
   };
 
@@ -237,7 +244,15 @@ export default function CreatePostModal({
         console.log("[PICKER] compressed", { from: uri, to: finalUri });
       }
 
-      accepted.push(encodeMediaUri(finalUri, finalName, finalMime, isVideo ? "video" : "image"));
+      accepted.push(
+        encodeMediaUri(
+          finalUri,
+          finalName,
+          finalMime,
+          isVideo ? "video" : "image",
+          isVideo ? "post-video" : "post-image"
+        )
+      );
     }
 
     return { accepted, tooLong };
@@ -296,7 +311,7 @@ export default function CreatePostModal({
       const title = name.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, " ").trim() || "Cuevas Audio Transmission";
 
       setSelectedAudio({
-        uri: encodeMediaUri(uri, name, mime, "audio"),
+        uri: encodeMediaUri(uri, name, mime, "audio", "post-audio"),
         title,
         artist: authorHandle,
         durationMs: typeof asset.size === "number" ? undefined : undefined,
@@ -791,7 +806,8 @@ export default function CreatePostModal({
               captured,
               `image-${Date.now()}.jpg`,
               "image/jpeg",
-              "image"
+              "image",
+              "post-image"
             );
             setMedia((prev) =>
               prev.map((m, i) => (i === editorIndex ? encoded : m))

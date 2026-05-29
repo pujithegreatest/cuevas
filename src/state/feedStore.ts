@@ -229,6 +229,7 @@ async function uploadOne(uri: string): Promise<string> {
   let providedName = "";
   let providedMime = "";
   let providedKind = "";
+  let providedDestination = "";
   if (hash) {
     for (const part of hash.split("&")) {
       const [k, v] = part.split("=", 2);
@@ -237,6 +238,7 @@ async function uploadOne(uri: string): Promise<string> {
       if (k === "name") providedName = val;
       else if (k === "mime") providedMime = val;
       else if (k === "kind") providedKind = val;
+      else if (k === "destination") providedDestination = val;
     }
   }
 
@@ -285,13 +287,18 @@ async function uploadOne(uri: string): Promise<string> {
         mime === "video/quicktime" ? "mov" : mime.startsWith("video/") ? "mp4" : mime === "audio/mpeg" ? "mp3" : mime.startsWith("audio/") ? "m4a" : mime === "image/png" ? "png" : "jpg"
       }`;
 
-  console.log("[UPLOAD_ONE] inferred", { filename, mime, providedKind, providedMime, providedName });
+  console.log("[UPLOAD_ONE] inferred", { filename, mime, providedKind, providedMime, providedName, providedDestination });
 
   // Step 1: init (get uploadUrl + (maybe) fileId)
   const initRes = await fetch(UPLOAD_API, {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
-    body: JSON.stringify({ fileName: filename, mimeType: mime }),
+    body: JSON.stringify({
+      fileName: filename,
+      mimeType: mime,
+      kind: providedKind || undefined,
+      destination: providedDestination || undefined,
+    }),
   });
   const initText = await initRes.text();
   let initJson: any = null;
