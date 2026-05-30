@@ -36,7 +36,7 @@ const jsonHeaders = {
 // -------------------- VERSION MARKER (confirm deploy) --------------------
 // Change this string whenever you paste/publish so Wix logs prove the running version.
 // Bump this whenever you paste into Wix and Publish, so logs prove which version is live.
-const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1.uploadFolders.v2";
+const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1.uploadFolders.v3";
 
 // Coin icon provided by you (embedded so the pkpass is self-contained).
 // You can also override with a Wix Secret: WALLET_COIN_ICON_PNG_BASE64.
@@ -140,8 +140,11 @@ function uploadFilePathFor(destination) {
 }
 
 const MEDIA_ROOT_FOLDER_ID = "media-root";
+const VISITOR_UPLOADS_FOLDER_ID = "visitor-uploads";
 const elevatedListFolders = elevate(folders.listFolders);
 const elevatedCreateFolder = elevate(folders.createFolder);
+const elevatedListFiles = elevate(files.listFiles);
+const elevatedUpdateFileDescriptor = elevate(files.updateFileDescriptor);
 
 function uploadPathSegments(filePath) {
   return String(filePath || "")
@@ -222,6 +225,269 @@ async function ensureAllUploadFolders() {
     results.push(await ensureUploadFolder(filePath));
   }
   return results;
+}
+
+function mediaFileIdFrom(file) {
+  return file?._id || file?.id || file?.fileId || file?.file?.id || file?.file?._id || null;
+}
+
+function mediaFileNameFrom(file) {
+  return (
+    normalizeFileName(
+      file?.displayName ||
+        file?.name ||
+        file?.fileName ||
+        file?.originalFileName ||
+        file?.filename ||
+        file?.file?.displayName ||
+        file?.file?.name
+    ) || mediaFileIdFrom(file) || "untitled"
+  );
+}
+
+function mediaFileMimeFrom(file) {
+  return normalizeMimeType(
+    file?.mimeType ||
+      file?.mimetype ||
+      file?.type ||
+      file?.media?.mimeType ||
+      file?.file?.mimeType ||
+      file?.file?.type
+  );
+}
+
+function mediaFileTypeFrom(file) {
+  return String(file?.mediaType || file?.fileType || file?.media?.mediaType || "").trim().toUpperCase();
+}
+
+function mediaFileExtFrom(fileName) {
+  const match = String(fileName || "").toLowerCase().match(/\.([a-z0-9]+)(?:[?#].*)?$/);
+  return match ? match[1] : "";
+}
+
+function classifyExistingUpload(file) {
+  const name = mediaFileNameFrom(file);
+  const lowerName = String(name || "").toLowerCase();
+  const mime = String(mediaFileMimeFrom(file) || "").toLowerCase();
+  const mediaType = mediaFileTypeFrom(file);
+  const ext = mediaFileExtFrom(name);
+
+  if (lowerName.includes("mission-proof") || lowerName.includes("proof") || lowerName.includes("mission-upload")) {
+    return "mission-proof";
+  }
+  if (lowerName.includes("avatar") || lowerName.includes("profile")) return "profile-avatar";
+  if (lowerName.includes("story") && (mime.startsWith("video/") || mediaType === "VIDEO" || ["mp4", "mov", "m4v"].includes(ext))) {
+    return "story-video";
+  }
+  if (lowerName.includes("story") && (mime.startsWith("audio/") || mediaType === "AUDIO" || ["mp3", "m4a", "aac", "wav"].includes(ext))) {
+    return "story-audio";
+  }
+  if (lowerName.includes("story") && (mime.startsWith("image/") || mediaType === "IMAGE" || ["jpg", "jpeg", "png", "gif", "webp", "heic", "heif"].includes(ext))) {
+    return "story-image";
+  }
+  if (mime.startsWith("audio/") || mediaType === "AUDIO" || ["mp3", "m4a", "aac", "wav"].includes(ext)) return "post-audio";
+  if (mime.startsWith("video/") || mediaType === "VIDEO" || ["mp4", "mov", "m4v"].includes(ext)) return "post-video";
+  if (mime.startsWith("image/") || mediaType === "IMAGE" || ["jpg", "jpeg", "png", "gif", "webp", "heic", "heif"].includes(ext)) return "post-image";
+  return "misc";
+}
+
+function looksLikeCuevasUpload(file) {
+  const name = mediaFileNameFrom(file).toLowerCase();
+  const internalTags = Array.isArray(file?.internalTags) ? file.internalTags.join(" ").toLowerCase() : "";
+  return (
+    internalTags.includes("_fileorigin_uploaded") ||
+    name.includes("cuevas") ||
+    name.includes("mission-proof") ||
+    name.includes("proof") ||
+    name.includes("story") ||
+    name.includes("avatar") ||
+    name.includes("profile") ||
+    name.startsWith("image-") ||
+    name.startsWith("video-") ||
+    name.startsWith("audio-")
+  );
+}
+
+function mediaFilesFromListResponse(response) {
+  if (Array.isArray(response)) return response;
+  if (Array.isArray(response?.files)) return response.files;
+  if (Array.isArray(response?.items)) return response.items;
+  if (Array.isArray(response?.results)) return response.results;
+  return [];
+}
+
+function nextCursorFromListResponse(response) {
+  return response?.nextCursor?.cursors?.next || response?.nextCursor?.next || response?.pagingMetadata?.cursors?.next || "";
+}
+
+function hasNextListPage(response, fileCount) {
+  if (response?.nextCursor?.hasNext === true) return true;
+  if (response?.pagingMetadata?.hasNext === true) return true;
+  return fileCount >= 100 && !!nextCursorFromListResponse(response);
+}
+
+async function listMediaFilesPage(parentFolderId, cursor) {
+  const cursorPaging = cursor ? { limit: 100, cursor } : { limit: 100 };
+  const attempts =
+    parentFolderId === MEDIA_ROOT_FOLDER_ID
+      ? [
+          { parentFolderId, cursorPaging },
+          { cursorPaging },
+          { parentFolderId },
+          {},
+        ]
+      : [
+          { parentFolderId, cursorPaging },
+          { parentFolderId },
+        ];
+
+  let lastError = null;
+  for (const options of attempts) {
+    try {
+      const response = await elevatedListFiles(options);
+      return response || {};
+    } catch (error) {
+      lastError = error;
+      console.log("[UPLOAD_ORGANIZER] listFiles attempt failed:", JSON.stringify(options), String(error?.message || error));
+    }
+  }
+  throw lastError || new Error(`Could not list files for ${parentFolderId}`);
+}
+
+async function listMediaFilesInFolder(parentFolderId) {
+  const allFiles = [];
+  const seen = new Set();
+  let cursor = "";
+  let guard = 0;
+
+  while (guard < 20) {
+    guard += 1;
+    const response = await listMediaFilesPage(parentFolderId, cursor);
+    const pageFiles = mediaFilesFromListResponse(response);
+    for (const file of pageFiles) {
+      const id = mediaFileIdFrom(file);
+      const key = id || `${mediaFileNameFrom(file)}:${file?.url || ""}`;
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      allFiles.push(file);
+    }
+    const nextCursor = nextCursorFromListResponse(response);
+    if (!hasNextListPage(response, pageFiles.length) || !nextCursor || nextCursor === cursor) break;
+    cursor = nextCursor;
+  }
+
+  return allFiles;
+}
+
+async function moveMediaFileToFolder(file, targetFolderId) {
+  const fileId = mediaFileIdFrom(file);
+  if (!fileId) throw new Error("Missing Media Manager file ID");
+  const updatedFile = { ...file, _id: fileId, parentFolderId: targetFolderId };
+  return elevatedUpdateFileDescriptor(updatedFile, {});
+}
+
+function normalizeOrganizerBoolean(value, fallback) {
+  if (value === undefined || value === null || value === "") return fallback;
+  return ["1", "true", "yes", "y"].includes(String(value).toLowerCase());
+}
+
+function organizerSourcesFromQuery(query) {
+  const raw = String(query?.source || query?.sources || "all").toLowerCase();
+  if (raw === "site" || raw === "root" || raw === "media-root") return [MEDIA_ROOT_FOLDER_ID];
+  if (raw === "visitor" || raw === "visitor-uploads") return [VISITOR_UPLOADS_FOLDER_ID];
+  return [MEDIA_ROOT_FOLDER_ID, VISITOR_UPLOADS_FOLDER_ID];
+}
+
+async function organizeExistingRootUploads(request) {
+  const query = request?.query || {};
+  const dryRun = !normalizeOrganizerBoolean(query.execute, false) && !["false", "0", "no"].includes(String(query.dryRun || "").toLowerCase());
+  const includeAll = normalizeOrganizerBoolean(query.includeAll, false);
+  const maxMoves = Math.max(1, Math.min(Number(query.limit || 500) || 500, 1000));
+  const targetFolders = {};
+  const ensured = await ensureAllUploadFolders();
+  for (const destination of Object.keys(UPLOAD_FOLDER_PATHS)) {
+    const folderInfo = await ensureUploadFolder(uploadFilePathFor(destination));
+    targetFolders[destination] = folderInfo.folderId;
+  }
+
+  const results = [];
+  const skipped = [];
+  const sources = organizerSourcesFromQuery(query);
+  let scanned = 0;
+  let matched = 0;
+  let moved = 0;
+
+  for (const sourceFolderId of sources) {
+    const rootFiles = await listMediaFilesInFolder(sourceFolderId);
+    scanned += rootFiles.length;
+
+    for (const file of rootFiles) {
+      if (results.length >= maxMoves) break;
+      const fileId = mediaFileIdFrom(file);
+      const displayName = mediaFileNameFrom(file);
+      if (!fileId) {
+        skipped.push({ sourceFolderId, displayName, reason: "missing-file-id" });
+        continue;
+      }
+      if (!includeAll && !looksLikeCuevasUpload(file)) {
+        skipped.push({ sourceFolderId, fileId, displayName, reason: "not-cuevas-upload" });
+        continue;
+      }
+
+      const destination = classifyExistingUpload(file);
+      const targetFolderId = targetFolders[destination] || targetFolders.misc;
+      const targetPath = uploadFilePathFor(destination);
+      matched += 1;
+
+      const summary = {
+        sourceFolderId,
+        fileId,
+        displayName,
+        mediaType: mediaFileTypeFrom(file),
+        mimeType: mediaFileMimeFrom(file),
+        destination,
+        targetPath,
+        targetFolderId,
+      };
+
+      if (dryRun) {
+        results.push({ ...summary, action: "would-move" });
+        continue;
+      }
+
+      try {
+        const updated = await moveMediaFileToFolder(file, targetFolderId);
+        moved += 1;
+        results.push({
+          ...summary,
+          action: "moved",
+          newParentFolderId: updated?.parentFolderId || targetFolderId,
+        });
+      } catch (error) {
+        results.push({
+          ...summary,
+          action: "error",
+          error: String(error?.message || error),
+        });
+      }
+    }
+  }
+
+  return {
+    success: true,
+    build: BUILD_TAG,
+    dryRun,
+    includeAll,
+    sources,
+    scanned,
+    matched,
+    moved,
+    skippedCount: skipped.length,
+    returned: results.length,
+    ensured,
+    results,
+    skipped: skipped.slice(0, 50),
+  };
 }
 
 function sanitizePostPrivacy(value) {
@@ -1233,6 +1499,32 @@ export async function post_ensureUploadFolders() {
 
 export async function use_ensureUploadFolders() {
   return get_ensureUploadFolders();
+}
+
+export async function options_organizeRootUploads() {
+  return ok({ headers: jsonHeaders, body: { success: true } });
+}
+
+export async function get_organizeRootUploads(request) {
+  try {
+    console.log("[UPLOAD_ORGANIZER] build:", BUILD_TAG);
+    const response = await organizeExistingRootUploads(request);
+    return ok({ headers: jsonHeaders, body: response });
+  } catch (err) {
+    console.error("[UPLOAD_ORGANIZER] error:", err);
+    return serverError({
+      headers: jsonHeaders,
+      body: { success: false, build: BUILD_TAG, error: err?.message || String(err) },
+    });
+  }
+}
+
+export async function post_organizeRootUploads(request) {
+  return get_organizeRootUploads(request);
+}
+
+export async function use_organizeRootUploads(request) {
+  return get_organizeRootUploads(request);
 }
 
 export async function options_uploadMedia() {
