@@ -36,7 +36,7 @@ const jsonHeaders = {
 // -------------------- VERSION MARKER (confirm deploy) --------------------
 // Change this string whenever you paste/publish so Wix logs prove the running version.
 // Bump this whenever you paste into Wix and Publish, so logs prove which version is live.
-const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1.uploadFolders.v3";
+const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1.uploadFolders.v4";
 
 // Coin icon provided by you (embedded so the pkpass is self-contained).
 // You can also override with a Wix Secret: WALLET_COIN_ICON_PNG_BASE64.
@@ -144,7 +144,20 @@ const VISITOR_UPLOADS_FOLDER_ID = "visitor-uploads";
 const elevatedListFolders = elevate(folders.listFolders);
 const elevatedCreateFolder = elevate(folders.createFolder);
 const elevatedListFiles = elevate(files.listFiles);
+const elevatedSearchFiles = elevate(files.searchFiles);
 const elevatedUpdateFileDescriptor = elevate(files.updateFileDescriptor);
+
+const KNOWN_UPLOAD_FOLDER_IDS = {
+  "post-image": "cf413db2baed4ec69805109616dff941",
+  "post-video": "c5d67153e1784f639587fa5dfbb9e98f",
+  "post-audio": "12d84aaa97eb4ee9ad80ce5fcf3d71e6",
+  "story-image": "235c109f2a924dc685aa4381ff0d9849",
+  "story-video": "01e6fe943be9419f9f47aa0228357117",
+  "story-audio": "3aa4a9579cb1482182723f28a3862a35",
+  "mission-proof": "7d321bbc174943529bc19e35b8b31a10",
+  "profile-avatar": "e8a1930ca2f849878afaadacd04e3e05",
+  misc: "4b88467e206e421abaf8122dc7bc772e",
+};
 
 function uploadPathSegments(filePath) {
   return String(filePath || "")
@@ -331,10 +344,13 @@ async function listMediaFilesPage(parentFolderId, cursor) {
   const attempts =
     parentFolderId === MEDIA_ROOT_FOLDER_ID
       ? [
-          { parentFolderId, cursorPaging },
+          { search: true, options: cursor ? { cursorPaging } : undefined },
+          { options: cursor ? { cursorPaging } : undefined },
           { cursorPaging },
+          { search: true, options: { parentFolderId, cursorPaging } },
+          { parentFolderId, cursorPaging },
+          { search: true, options: { parentFolderId } },
           { parentFolderId },
-          {},
         ]
       : [
           { parentFolderId, cursorPaging },
@@ -342,13 +358,14 @@ async function listMediaFilesPage(parentFolderId, cursor) {
         ];
 
   let lastError = null;
-  for (const options of attempts) {
+  for (const attempt of attempts) {
+    const options = attempt?.options !== undefined ? attempt.options : attempt;
     try {
-      const response = await elevatedListFiles(options);
+      const response = attempt?.search ? await elevatedSearchFiles(options) : await elevatedListFiles(options);
       return response || {};
     } catch (error) {
       lastError = error;
-      console.log("[UPLOAD_ORGANIZER] listFiles attempt failed:", JSON.stringify(options), String(error?.message || error));
+      console.log("[UPLOAD_ORGANIZER] listFiles attempt failed:", JSON.stringify(attempt), String(error?.message || error));
     }
   }
   throw lastError || new Error(`Could not list files for ${parentFolderId}`);
@@ -383,7 +400,7 @@ async function moveMediaFileToFolder(file, targetFolderId) {
   const fileId = mediaFileIdFrom(file);
   if (!fileId) throw new Error("Missing Media Manager file ID");
   const updatedFile = { ...file, _id: fileId, parentFolderId: targetFolderId };
-  return elevatedUpdateFileDescriptor(updatedFile, {});
+  return elevatedUpdateFileDescriptor(updatedFile);
 }
 
 function normalizeOrganizerBoolean(value, fallback) {
@@ -402,12 +419,16 @@ async function organizeExistingRootUploads(request) {
   const query = request?.query || {};
   const dryRun = !normalizeOrganizerBoolean(query.execute, false) && !["false", "0", "no"].includes(String(query.dryRun || "").toLowerCase());
   const includeAll = normalizeOrganizerBoolean(query.includeAll, false);
+  const refreshFolders = normalizeOrganizerBoolean(query.refreshFolders, false);
   const maxMoves = Math.max(1, Math.min(Number(query.limit || 500) || 500, 1000));
-  const targetFolders = {};
-  const ensured = await ensureAllUploadFolders();
-  for (const destination of Object.keys(UPLOAD_FOLDER_PATHS)) {
-    const folderInfo = await ensureUploadFolder(uploadFilePathFor(destination));
-    targetFolders[destination] = folderInfo.folderId;
+  const targetFolders = { ...KNOWN_UPLOAD_FOLDER_IDS };
+  const ensured = [];
+  if (refreshFolders) {
+    ensured.push(...(await ensureAllUploadFolders()));
+    for (const destination of Object.keys(UPLOAD_FOLDER_PATHS)) {
+      const folderInfo = await ensureUploadFolder(uploadFilePathFor(destination));
+      targetFolders[destination] = folderInfo.folderId;
+    }
   }
 
   const results = [];
@@ -478,6 +499,7 @@ async function organizeExistingRootUploads(request) {
     build: BUILD_TAG,
     dryRun,
     includeAll,
+    refreshFolders,
     sources,
     scanned,
     matched,
