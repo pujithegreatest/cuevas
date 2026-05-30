@@ -27,14 +27,21 @@ interface StoryFilterCanvasProps {
   onVideoTrimComplete?: () => void;
 }
 
+const HEATWAVE_ASSETS = {
+  heatBar: require("../../assets/filters/heatwave/ir-heat-bar.png"),
+  pcIcon: require("../../assets/filters/heatwave/pc-icon.png"),
+  batteryIcon: require("../../assets/filters/heatwave/battery-icon.png"),
+  sdIcon: require("../../assets/filters/heatwave/sd-card.png"),
+};
+
 // 4x5 ColorMatrix tables per filter
 const MATRICES: Record<StoryFilter, number[] | null> = {
   none: null,
 
   heatwave: [
-    1.4, 0.3, 0.0, 0, 0.04,
-    0.2, 0.85, 0.0, 0, 0,
-    0.0, 0.05, 0.35, 0, 0,
+    1.55, -0.45, 0.75, 0, -0.12,
+    0.15, 0.45, 0.18, 0, -0.04,
+    -0.45, 0.65, 1.65, 0, 0.08,
     0, 0, 0, 1, 0,
   ],
 
@@ -190,7 +197,7 @@ function ScanlineOverlay({ width, height }: { width: number; height: number }) {
 // since Skia color matrix only runs on the still-image branch.
 const VIDEO_TINTS: Record<StoryFilter, string | null> = {
   none: null,
-  heatwave: "rgba(255,80,0,0.28)",
+  heatwave: "rgba(126,0,210,0.24)",
   hologram: "rgba(0,200,255,0.25)",
   vaporwave: "rgba(255,0,200,0.18)",
   infrared: "rgba(200,0,80,0.28)",
@@ -211,6 +218,215 @@ const VIDEO_TINTS: Record<StoryFilter, string | null> = {
   radioactive: "rgba(120,255,0,0.32)",
 };
 
+function HeatwaveGrid({ width, height }: { width: number; height: number }) {
+  const lines: React.ReactElement[] = [];
+  const verticalStep = Math.max(18, Math.round(width / 18));
+  const horizontalStep = Math.max(18, Math.round(height / 28));
+  for (let x = 0; x <= width; x += verticalStep) {
+    lines.push(
+      <View
+        key={`v-${x}`}
+        style={{
+          position: "absolute",
+          top: 0,
+          bottom: 0,
+          left: x,
+          width: 1,
+          backgroundColor: "rgba(0,255,255,0.055)",
+        }}
+      />
+    );
+  }
+  for (let y = 0; y <= height; y += horizontalStep) {
+    lines.push(
+      <View
+        key={`h-${y}`}
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          top: y,
+          height: 1,
+          backgroundColor: "rgba(255,255,255,0.045)",
+        }}
+      />
+    );
+  }
+  return <>{lines}</>;
+}
+
+function formatHeatwaveClock() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
+}
+
+function HeatwaveHud({ width, height }: { width: number; height: number }) {
+  const focusX = 0.528;
+  const focusY = 0.417;
+  const temp = 36.5 + ((Math.round(width + height) % 8) / 10);
+  const centerX = width * focusX;
+  const centerY = height * focusY;
+
+  return (
+    <>
+      <HeatwaveGrid width={width} height={height} />
+      <ScanlineOverlay width={width} height={height} />
+      <View
+        style={{
+          position: "absolute",
+          top: Math.max(8, height * 0.025),
+          left: Math.max(8, width * 0.035),
+          right: Math.max(8, width * 0.035),
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+        pointerEvents="none"
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Image
+            source={HEATWAVE_ASSETS.pcIcon}
+            style={{ width: 22, height: 15, tintColor: "#d9ffff" }}
+            contentFit="contain"
+          />
+          <Text
+            style={{
+              color: "#e9ffff",
+              fontSize: 12,
+              fontWeight: "900",
+              letterSpacing: 1.5,
+            }}
+          >
+            CAM 5
+          </Text>
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Text
+            style={{
+              color: "#e9ffff",
+              fontSize: 11,
+              fontWeight: "900",
+              letterSpacing: 1.2,
+              textShadowColor: "#00d5ff",
+              textShadowRadius: 6,
+            }}
+          >
+            {formatHeatwaveClock()}
+          </Text>
+          <Image
+            source={HEATWAVE_ASSETS.batteryIcon}
+            style={{ width: 11, height: 18, tintColor: "#d9ffff" }}
+            contentFit="contain"
+          />
+        </View>
+      </View>
+
+      <View
+        style={{
+          position: "absolute",
+          right: Math.max(6, width * 0.025),
+          top: height * 0.18,
+          height: height * 0.48,
+          width: Math.max(24, width * 0.075),
+          alignItems: "center",
+        }}
+        pointerEvents="none"
+      >
+        <Text style={styles.heatwaveScaleLabel}>{(temp + 5.8).toFixed(1)}</Text>
+        <Image
+          source={HEATWAVE_ASSETS.heatBar}
+          style={{ width: "100%", flex: 1 }}
+          contentFit="contain"
+        />
+        <Text style={styles.heatwaveScaleLabel}>{(temp - 18.4).toFixed(1)}</Text>
+      </View>
+
+      <View
+        style={[
+          styles.heatwaveTargetBox,
+          {
+            left: centerX - width * 0.12,
+            top: centerY - height * 0.07,
+            width: width * 0.24,
+            height: height * 0.14,
+          },
+        ]}
+        pointerEvents="none"
+      />
+      <View
+        style={{
+          position: "absolute",
+          left: centerX - 22,
+          top: centerY - 0.5,
+          width: 44,
+          height: 1,
+          backgroundColor: "rgba(180,255,255,0.8)",
+        }}
+        pointerEvents="none"
+      />
+      <View
+        style={{
+          position: "absolute",
+          left: centerX - 0.5,
+          top: centerY - 22,
+          width: 1,
+          height: 44,
+          backgroundColor: "rgba(180,255,255,0.8)",
+        }}
+        pointerEvents="none"
+      />
+      <View
+        style={[
+          styles.heatwaveTempBadge,
+          {
+            left: Math.min(width - 138, centerX + width * 0.08),
+            top: Math.max(18, centerY - height * 0.07),
+          },
+        ]}
+        pointerEvents="none"
+      >
+        <Text style={styles.heatwaveId}>ID : 758426592</Text>
+        <Text style={styles.heatwaveTemp}>{temp.toFixed(1)} °C</Text>
+      </View>
+
+      <View
+        style={{
+          position: "absolute",
+          left: Math.max(8, width * 0.04),
+          bottom: Math.max(10, height * 0.025),
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 8,
+        }}
+        pointerEvents="none"
+      >
+        <Image
+          source={HEATWAVE_ASSETS.sdIcon}
+          style={{ width: 18, height: 18, tintColor: "#d9ffff" }}
+          contentFit="contain"
+        />
+        <Text style={styles.heatwaveFooter}>BIOMETRIC IDENTIFICATION : ON</Text>
+      </View>
+      <Text
+        style={[
+          styles.heatwaveFooter,
+          {
+            position: "absolute",
+            right: Math.max(8, width * 0.04),
+            bottom: Math.max(10, height * 0.025),
+          },
+        ]}
+        pointerEvents="none"
+      >
+        BODY TEMP DETECTION : ON
+      </Text>
+    </>
+  );
+}
+
 function FilterEffects({
   filter,
   width,
@@ -225,29 +441,16 @@ function FilterEffects({
       return (
         <>
           <LinearGradient
-            colors={["rgba(255,80,0,0.18)", "rgba(255,0,80,0.05)"]}
+            colors={[
+              "rgba(5,8,75,0.48)",
+              "rgba(98,0,170,0.28)",
+              "rgba(255,122,0,0.16)",
+              "rgba(0,216,255,0.12)",
+            ]}
+            locations={[0, 0.42, 0.7, 1]}
             style={[StyleSheet.absoluteFill]}
           />
-          <View
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              top: height * 0.2,
-              height: 1,
-              backgroundColor: "rgba(255,200,100,0.25)",
-            }}
-          />
-          <View
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              top: height * 0.55,
-              height: 1,
-              backgroundColor: "rgba(255,150,60,0.25)",
-            }}
-          />
+          <HeatwaveHud width={width} height={height} />
         </>
       );
     case "hologram":
@@ -647,3 +850,53 @@ export default function StoryFilterCanvas({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  heatwaveScaleLabel: {
+    color: "#e9ffff",
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 1,
+    textShadowColor: "#00d5ff",
+    textShadowRadius: 5,
+  },
+  heatwaveTargetBox: {
+    position: "absolute",
+    borderWidth: 1.5,
+    borderColor: "rgba(170,255,255,0.82)",
+    borderStyle: "dashed",
+    backgroundColor: "rgba(0,255,255,0.05)",
+  },
+  heatwaveTempBadge: {
+    position: "absolute",
+    minWidth: 112,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "rgba(164,255,255,0.35)",
+    backgroundColor: "rgba(10,20,55,0.46)",
+  },
+  heatwaveId: {
+    color: "#d9ffff",
+    fontSize: 8,
+    fontWeight: "800",
+    letterSpacing: 0.8,
+  },
+  heatwaveTemp: {
+    color: "#43ff34",
+    fontSize: 19,
+    fontWeight: "900",
+    letterSpacing: 0.7,
+    textShadowColor: "#00ff9d",
+    textShadowRadius: 8,
+  },
+  heatwaveFooter: {
+    color: "#d9ffff",
+    fontSize: 8,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+    textShadowColor: "#00d5ff",
+    textShadowRadius: 5,
+  },
+});

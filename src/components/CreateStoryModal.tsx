@@ -1762,7 +1762,7 @@ export default function CreateStoryModal({
                             bottom: 0,
                             backgroundColor:
                               f.id === "heatwave"
-                                ? "rgba(255,80,0,0.35)"
+                                ? "rgba(126,0,210,0.45)"
                                 : f.id === "hologram"
                                 ? "rgba(0,200,255,0.35)"
                                 : f.id === "vaporwave"
