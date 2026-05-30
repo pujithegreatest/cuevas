@@ -1,6 +1,6 @@
 import { ok, badRequest, serverError, notFound, forbidden } from "wix-http-functions";
 import wixData from "wix-data";
-import { files } from "wix-media.v2";
+import { files, folders } from "wix-media.v2";
 import { elevate } from "wix-auth";
 import wixSecretsBackend from "wix-secrets-backend";
 import { accounts as loyaltyAccounts } from "wix-loyalty.v2";
@@ -36,7 +36,7 @@ const jsonHeaders = {
 // -------------------- VERSION MARKER (confirm deploy) --------------------
 // Change this string whenever you paste/publish so Wix logs prove the running version.
 // Bump this whenever you paste into Wix and Publish, so logs prove which version is live.
-const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1.uploadFolders.v1";
+const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1.uploadFolders.v2";
 
 // Coin icon provided by you (embedded so the pkpass is self-contained).
 // You can also override with a Wix Secret: WALLET_COIN_ICON_PNG_BASE64.
@@ -99,15 +99,15 @@ function normalizeFileName(value) {
 }
 
 const UPLOAD_FOLDER_PATHS = {
-  "post-image": "/Cuevas App/User Uploads/Posts/Images",
-  "post-video": "/Cuevas App/User Uploads/Posts/Videos",
-  "post-audio": "/Cuevas App/User Uploads/Posts/Audio",
-  "story-image": "/Cuevas App/User Uploads/Stories/Images",
-  "story-video": "/Cuevas App/User Uploads/Stories/Videos",
-  "story-audio": "/Cuevas App/User Uploads/Stories/Audio",
-  "mission-proof": "/Cuevas App/User Uploads/Missions/Proof Photos",
-  "profile-avatar": "/Cuevas App/User Uploads/Profiles/Avatars",
-  misc: "/Cuevas App/User Uploads/Misc",
+  "post-image": "Cuevas App/User Uploads/Posts/Images",
+  "post-video": "Cuevas App/User Uploads/Posts/Videos",
+  "post-audio": "Cuevas App/User Uploads/Posts/Audio",
+  "story-image": "Cuevas App/User Uploads/Stories/Images",
+  "story-video": "Cuevas App/User Uploads/Stories/Videos",
+  "story-audio": "Cuevas App/User Uploads/Stories/Audio",
+  "mission-proof": "Cuevas App/User Uploads/Missions/Proof Photos",
+  "profile-avatar": "Cuevas App/User Uploads/Profiles/Avatars",
+  misc: "Cuevas App/User Uploads/Misc",
 };
 
 function normalizeUploadDestination(value, mimeType) {
@@ -137,6 +137,91 @@ function normalizeUploadDestination(value, mimeType) {
 
 function uploadFilePathFor(destination) {
   return UPLOAD_FOLDER_PATHS[destination] || UPLOAD_FOLDER_PATHS.misc;
+}
+
+const MEDIA_ROOT_FOLDER_ID = "media-root";
+const elevatedListFolders = elevate(folders.listFolders);
+const elevatedCreateFolder = elevate(folders.createFolder);
+
+function uploadPathSegments(filePath) {
+  return String(filePath || "")
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+}
+
+function folderIdFrom(folder) {
+  return folder?._id || folder?.id || folder?.folderId || folder?.folder?._id || folder?.folder?.id || null;
+}
+
+async function listChildMediaFolders(parentFolderId) {
+  const options =
+    parentFolderId && parentFolderId !== MEDIA_ROOT_FOLDER_ID
+      ? { parentFolderId }
+      : {};
+  const response = await elevatedListFolders(options);
+  return Array.isArray(response?.folders) ? response.folders : [];
+}
+
+async function findChildMediaFolder(parentFolderId, displayName) {
+  const target = String(displayName || "").trim().toLowerCase();
+  const childFolders = await listChildMediaFolders(parentFolderId);
+  return (
+    childFolders.find(
+      (folder) =>
+        String(folder?.displayName || folder?.name || "").trim().toLowerCase() === target &&
+        String(folder?.state || "OK").toUpperCase() !== "DELETED"
+    ) || null
+  );
+}
+
+async function createChildMediaFolder(parentFolderId, displayName) {
+  const options =
+    parentFolderId && parentFolderId !== MEDIA_ROOT_FOLDER_ID
+      ? { parentFolderId }
+      : {};
+  const response = await elevatedCreateFolder(displayName, options);
+  return response?.folder || response;
+}
+
+async function ensureUploadFolder(filePath) {
+  const segments = uploadPathSegments(filePath);
+  if (!segments.length) {
+    return { folderId: MEDIA_ROOT_FOLDER_ID, filePath: "", created: [] };
+  }
+
+  let parentFolderId = MEDIA_ROOT_FOLDER_ID;
+  const created = [];
+
+  for (const displayName of segments) {
+    let folder = await findChildMediaFolder(parentFolderId, displayName);
+    if (!folder) {
+      try {
+        folder = await createChildMediaFolder(parentFolderId, displayName);
+        created.push(displayName);
+      } catch (error) {
+        folder = await findChildMediaFolder(parentFolderId, displayName);
+        if (!folder) throw error;
+      }
+    }
+
+    const nextFolderId = folderIdFrom(folder);
+    if (!nextFolderId) {
+      throw new Error(`Could not resolve Media Manager folder id for ${displayName}`);
+    }
+    parentFolderId = nextFolderId;
+  }
+
+  return { folderId: parentFolderId, filePath, created };
+}
+
+async function ensureAllUploadFolders() {
+  const uniquePaths = Array.from(new Set(Object.values(UPLOAD_FOLDER_PATHS)));
+  const results = [];
+  for (const filePath of uniquePaths) {
+    results.push(await ensureUploadFolder(filePath));
+  }
+  return results;
 }
 
 function sanitizePostPrivacy(value) {
@@ -1124,6 +1209,32 @@ export async function use_posts(request) {
 // ==================== UPLOAD (DIRECT) ====================
 // Avoids Velo request size limits by uploading binary directly to the URL Wix provides.
 
+export async function options_ensureUploadFolders() {
+  return ok({ headers: jsonHeaders, body: { success: true } });
+}
+
+export async function get_ensureUploadFolders() {
+  try {
+    console.log("[UPLOAD_FOLDERS] build:", BUILD_TAG);
+    const ensured = await ensureAllUploadFolders();
+    return ok({ headers: jsonHeaders, body: { success: true, ensured } });
+  } catch (err) {
+    console.error("[UPLOAD_FOLDERS] error:", err);
+    return serverError({
+      headers: jsonHeaders,
+      body: { success: false, error: err?.message || String(err) },
+    });
+  }
+}
+
+export async function post_ensureUploadFolders() {
+  return get_ensureUploadFolders();
+}
+
+export async function use_ensureUploadFolders() {
+  return get_ensureUploadFolders();
+}
+
 export async function options_uploadMedia() {
   return ok({ headers: jsonHeaders, body: { success: true } });
 }
@@ -1167,6 +1278,8 @@ export async function post_uploadMedia(request) {
       });
     }
 
+    const folderInfo = await ensureUploadFolder(filePath);
+
     console.log(
       "[UPLOAD] init request:",
       JSON.stringify({
@@ -1174,6 +1287,8 @@ export async function post_uploadMedia(request) {
         mimeType,
         destination,
         filePath,
+        folderId: folderInfo.folderId,
+        createdFolders: folderInfo.created,
         fileNameType: typeof fileName,
         mimeTypeType: typeof mimeType,
       })
@@ -1187,12 +1302,12 @@ export async function post_uploadMedia(request) {
     // Object-format first (works on newer Wix SDK)
     const attempts = [
       {
-        name: "ELEVATED generateFileUploadUrl({ mimeType, fileName, filePath })",
-        run: () => elevatedGenerate({ mimeType, fileName, filePath }),
+        name: "ELEVATED generateFileUploadUrl(mimeType, { fileName, parentFolderId })",
+        run: () => elevatedGenerate(mimeType, { fileName, parentFolderId: folderInfo.folderId }),
       },
       {
-        name: "PLAIN generateFileUploadUrl({ mimeType, fileName, filePath })",
-        run: () => files.generateFileUploadUrl({ mimeType, fileName, filePath }),
+        name: "PLAIN generateFileUploadUrl(mimeType, { fileName, parentFolderId })",
+        run: () => files.generateFileUploadUrl(mimeType, { fileName, parentFolderId: folderInfo.folderId }),
       },
       {
         name: "ELEVATED generateFileUploadUrl(mimeType, { fileName, filePath })",
@@ -1201,6 +1316,22 @@ export async function post_uploadMedia(request) {
       {
         name: "PLAIN generateFileUploadUrl(mimeType, { fileName, filePath })",
         run: () => files.generateFileUploadUrl(mimeType, { fileName, filePath }),
+      },
+      {
+        name: "ELEVATED generateFileUploadUrl({ mimeType, fileName, parentFolderId })",
+        run: () => elevatedGenerate({ mimeType, fileName, parentFolderId: folderInfo.folderId }),
+      },
+      {
+        name: "PLAIN generateFileUploadUrl({ mimeType, fileName, parentFolderId })",
+        run: () => files.generateFileUploadUrl({ mimeType, fileName, parentFolderId: folderInfo.folderId }),
+      },
+      {
+        name: "ELEVATED generateFileUploadUrl({ mimeType, fileName, filePath })",
+        run: () => elevatedGenerate({ mimeType, fileName, filePath }),
+      },
+      {
+        name: "PLAIN generateFileUploadUrl({ mimeType, fileName, filePath })",
+        run: () => files.generateFileUploadUrl({ mimeType, fileName, filePath }),
       },
       {
         name: "ELEVATED fallback generateFileUploadUrl({ mimeType, fileName })",
@@ -1297,7 +1428,14 @@ export async function post_uploadMedia(request) {
 
     console.log(
       "[UPLOAD] init parsed:",
-      JSON.stringify({ uploadUrl: !!uploadUrl, fileId: !!fileId, trackingKey: !!trackingKey, destination, filePath })
+      JSON.stringify({
+        uploadUrl: !!uploadUrl,
+        fileId: !!fileId,
+        trackingKey: !!trackingKey,
+        destination,
+        filePath,
+        folderId: folderInfo.folderId,
+      })
     );
 
     if (!uploadUrl || (!fileId && !trackingKey)) {
@@ -1313,7 +1451,15 @@ export async function post_uploadMedia(request) {
 
     return ok({
       headers: jsonHeaders,
-      body: { success: true, uploadUrl, fileId: fileId || null, trackingKey: trackingKey || null, destination, filePath },
+      body: {
+        success: true,
+        uploadUrl,
+        fileId: fileId || null,
+        trackingKey: trackingKey || null,
+        destination,
+        filePath,
+        folderId: folderInfo.folderId,
+      },
     });
   } catch (err) {
     console.error("[UPLOAD] init error:", err);
