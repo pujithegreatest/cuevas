@@ -224,6 +224,11 @@ export default function ProfileScreen({ navigation }: Props) {
   const [networkOpen, setNetworkOpen] = useState(false);
   const [businessProfileOpen, setBusinessProfileOpen] = useState(false);
 
+  const openBusinessProfile = () => {
+    setSettingsOpen(false);
+    setTimeout(() => setBusinessProfileOpen(true), 250);
+  };
+
   const handle = useMemo(
     () => displayName || (userEmail ? userEmail.split("@")[0] : "guest"),
     [displayName, userEmail]
@@ -901,7 +906,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
           <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
             <Pressable
-              onPress={() => setBusinessProfileOpen(true)}
+              onPress={openBusinessProfile}
               style={{
                 borderRadius: 20,
                 borderWidth: 1,

@@ -365,6 +365,7 @@ export default function CreatePostModal({
       setIsSubmitting(true);
       await createPostRemote({
         author: authorHandle,
+        authorEmail: userEmail || undefined,
         authorRewardPoints: rewardsBalance,
         authorAvatar: userAvatar || undefined,
         content: content.trim(),

@@ -15,6 +15,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import { Ionicons } from "./Ionicons";
 import { useAppStore } from "../state/appStore";
+import { useFeedStore } from "../state/feedStore";
 import { updateUsernameOnWix } from "../api/update-username";
 
 interface EditUsernameModalProps {
@@ -30,11 +31,13 @@ export default function EditUsernameModal({
 }: EditUsernameModalProps) {
   const isDarkMode = useAppStore((s) => s.isDarkMode);
   const userEmail = useAppStore((s) => s.userEmail);
+  const handleAliases = useAppStore((s) => s.handleAliases);
   const setDisplayName = useAppStore((s) => s.setDisplayName);
   const userAvatar = useAppStore((s) => s.userAvatar);
   const setUserAvatar = useAppStore((s) => s.setUserAvatar);
   const userBio = useAppStore((s) => s.userBio);
   const setUserBio = useAppStore((s) => s.setUserBio);
+  const updateAuthorHandle = useFeedStore((s) => s.updateAuthorHandle);
 
   const [value, setValue] = useState(currentHandle);
   const [bio, setBio] = useState(userBio || "");
@@ -93,8 +96,15 @@ export default function EditUsernameModal({
         setSaving(false);
         return;
       }
-      const result = await updateUsernameOnWix(userEmail, trimmedHandle);
+      const previousHandles = Array.from(
+        new Set([currentHandle, ...(handleAliases || []), userEmail.split("@")[0]].filter(Boolean))
+      );
+      const result = await updateUsernameOnWix(userEmail, trimmedHandle, {
+        previousUsername: currentHandle,
+        aliases: previousHandles,
+      });
       if (result.success && result.username) {
+        updateAuthorHandle(previousHandles, result.username, userEmail);
         setDisplayName(result.username);
       } else {
         setSaving(false);

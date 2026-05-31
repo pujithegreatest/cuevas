@@ -13,6 +13,7 @@ export type CommentPrivacyLevel = PrivacyLevel | "poster";
 export interface Comment {
   id: string;
   author: string;
+  authorEmail?: string;
   authorRewardPoints: number;
   content: string;
   timestamp: number;
@@ -35,6 +36,7 @@ export interface PostAudio {
 export interface Post {
   id: string;
   author: string;
+  authorEmail?: string;
   authorRewardPoints: number;
   authorAvatar?: string;
   content: string;

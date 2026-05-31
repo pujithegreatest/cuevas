@@ -10,7 +10,11 @@ export interface UpdateUsernameResponse {
 
 export async function updateUsernameOnWix(
   email: string,
-  newUsername: string
+  newUsername: string,
+  options?: {
+    previousUsername?: string;
+    aliases?: string[];
+  }
 ): Promise<UpdateUsernameResponse> {
   const trimmed = newUsername.trim();
   if (!trimmed) {
@@ -40,6 +44,8 @@ export async function updateUsernameOnWix(
         clientKey: CUEVAS_CLIENT_KEY,
         email,
         username: trimmed,
+        previousUsername: options?.previousUsername,
+        aliases: options?.aliases || [],
       }),
     });
 

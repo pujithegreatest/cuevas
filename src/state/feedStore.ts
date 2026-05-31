@@ -26,10 +26,15 @@ interface FeedState {
   addComment: (postId: string, comment: Omit<Comment, "id" | "timestamp">) => void;
   updatePostPrivacy: (postId: string, privacy: PrivacyLevel) => void;
   updateCommentPrivacy: (postId: string, commentId: string, privacy: CommentPrivacyLevel) => void;
+  updateAuthorHandle: (oldHandles: string[], newHandle: string, email?: string | null) => void;
   deletePost: (postId: string) => void;
 }
 
 const PRIVACY_VALUES: PrivacyLevel[] = ["public", "friends", "private", "group"];
+
+function normalizeHandle(value?: string | null) {
+  return (value || "").trim().toLowerCase();
+}
 
 function normalizePrivacyValue(value: any): PrivacyLevel {
   return PRIVACY_VALUES.includes(value) ? value : "public";
@@ -180,6 +185,7 @@ function mapFromBackend(item: any): Post {
   return {
     id: item?._id?.toString?.() || Date.now().toString(),
     author: item?.User || item?.author || "anonymous",
+    authorEmail: item?.AuthorEmail || item?.authorEmail || item?.UserEmail || item?.userEmail || undefined,
     authorRewardPoints: item?.authorRewardPoints ?? item?.cuevas ?? 0,
     content,
     images: media.length ? media : undefined,
@@ -199,6 +205,9 @@ function mapToBackend(
 ) {
   const payload: any = {
     User: postData.author,
+    author: postData.author,
+    AuthorEmail: postData.authorEmail || "",
+    authorEmail: postData.authorEmail || "",
     "Plain Content": postData.content,
     Media: mediaUrls,
     MediaUrls: mediaUrls,
@@ -540,6 +549,33 @@ export const useFeedStore = create<FeedState>()(
               : post
           ),
         })),
+
+      updateAuthorHandle: (oldHandles, newHandle, email) => {
+        const aliases = new Set((oldHandles || []).map(normalizeHandle).filter(Boolean));
+        const normalizedEmail = normalizeHandle(email);
+        if (!newHandle.trim() || (aliases.size === 0 && !normalizedEmail)) return;
+
+        set((state) => ({
+          posts: state.posts.map((post) => {
+            const postMatches =
+              (normalizedEmail && normalizeHandle(post.authorEmail) === normalizedEmail) ||
+              aliases.has(normalizeHandle(post.author));
+            const commentsList = (post.commentsList || []).map((comment) => {
+              const commentMatches =
+                (normalizedEmail && normalizeHandle(comment.authorEmail) === normalizedEmail) ||
+                aliases.has(normalizeHandle(comment.author));
+              return commentMatches ? { ...comment, author: newHandle, authorEmail: email || comment.authorEmail } : comment;
+            });
+
+            return {
+              ...post,
+              author: postMatches ? newHandle : post.author,
+              authorEmail: postMatches && email ? email : post.authorEmail,
+              commentsList,
+            };
+          }),
+        }));
+      },
 
       deletePost: (postId) => {
         set((state) => ({

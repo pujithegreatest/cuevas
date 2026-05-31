@@ -5,7 +5,7 @@ import { elevate } from "wix-auth";
 import wixSecretsBackend from "wix-secrets-backend";
 import { accounts as loyaltyAccounts } from "wix-loyalty.v2";
 import { getCyberneticPosts, createCyberneticPost } from "backend/posts";
-import { createCuevasAppUser, getUserByEmail, syncMemberPointsToFirebase } from "backend/firebase";
+import { createCuevasAppUser, getUserByEmail, syncMemberPointsToFirebase, updateCuevasAppUserDisplayName } from "backend/firebase";
 // Wallet generation deps (must be installed in Wix Velo Package Manager too):
 // - jszip
 // - node-forge
@@ -20,6 +20,7 @@ import forge from "node-forge";
  * Endpoints:
  * - POST /_functions/login           -> email/password or Google login
  * - POST /_functions/signup          -> Cuevas app email/password signup
+ * - POST /_functions/updateUsername  -> updates Cuevas handle + old Cybernetic posts
  * - POST /_functions/googleLogin     -> alias to login
  * - GET  /_functions/posts
  * - POST /_functions/posts
@@ -40,7 +41,7 @@ const jsonHeaders = {
 // -------------------- VERSION MARKER (confirm deploy) --------------------
 // Change this string whenever you paste/publish so Wix logs prove the running version.
 // Bump this whenever you paste into Wix and Publish, so logs prove which version is live.
-const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1.uploadFolders.v4.signup.v1.missions.v1";
+const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1.uploadFolders.v4.signup.v1.missions.v1.usernamePosts.v1";
 
 const MISSIONS_COLLECTION = "CuevasMissions";
 const MISSION_SIGNUPS_COLLECTION = "CuevasMissionSignups";
@@ -579,6 +580,83 @@ function normalizeEmail(value) {
 function normalizeDisplayName(value, email) {
   const trimmed = String(value || "").trim();
   return trimmed || normalizeEmail(email).split("@")[0] || "Cuevas Member";
+}
+
+function sanitizeUsername(value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) {
+    const err = new Error("Username cannot be empty.");
+    err.statusCode = 400;
+    throw err;
+  }
+  if (trimmed.length < 3 || trimmed.length > 24 || !/^[A-Za-z0-9_.-]+$/.test(trimmed)) {
+    const err = new Error("Username must be 3-24 characters and use letters, numbers, dots, dashes or underscores only.");
+    err.statusCode = 400;
+    throw err;
+  }
+  return trimmed;
+}
+
+function usernameAliasList(body, email) {
+  const values = [
+    body?.previousUsername,
+    body?.oldUsername,
+    body?.currentUsername,
+    normalizeEmail(email).split("@")[0],
+  ];
+  if (Array.isArray(body?.aliases)) {
+    values.push(...body.aliases);
+  } else if (body?.aliases) {
+    values.push(...String(body.aliases).split(","));
+  }
+  const seen = new Set();
+  return values
+    .map((value) => String(value || "").trim())
+    .filter((value) => {
+      const key = value.toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+async function updateCyberneticPostsForUsername(email, username, aliases) {
+  const normalizedEmail = normalizeEmail(email);
+  const itemsById = new Map();
+  const collect = async (query) => {
+    try {
+      const result = await query.limit(1000).find({ suppressAuth: true });
+      (result.items || []).forEach((item) => item?._id && itemsById.set(item._id, item));
+    } catch (err) {
+      console.log("[USERNAME] Cybernetic query skipped:", err?.message || String(err));
+    }
+  };
+
+  if (normalizedEmail) {
+    await collect(wixData.query("Cybernetic").eq("AuthorEmail", normalizedEmail));
+    await collect(wixData.query("Cybernetic").eq("authorEmail", normalizedEmail));
+  }
+  for (const alias of aliases || []) {
+    await collect(wixData.query("Cybernetic").eq("User", alias));
+    await collect(wixData.query("Cybernetic").eq("author", alias));
+  }
+
+  let updated = 0;
+  for (const item of itemsById.values()) {
+    await wixData.update(
+      "Cybernetic",
+      {
+        ...item,
+        User: username,
+        author: username,
+        AuthorEmail: normalizedEmail || item.AuthorEmail || item.authorEmail || "",
+        authorEmail: normalizedEmail || item.authorEmail || item.AuthorEmail || "",
+      },
+      { suppressAuth: true }
+    );
+    updated += 1;
+  }
+  return updated;
 }
 
 async function hashCuevasPassword(email, password) {
@@ -1398,6 +1476,55 @@ export async function post_signup(request) {
   }
 }
 
+export async function post_updateUsername(request) {
+  try {
+    console.log("[USERNAME] build:", BUILD_TAG);
+    const { body } = await parseJsonBody(request, "USERNAME");
+    if (!body) return badRequest({ headers, body: { success: false, error: "Body must be JSON" } });
+
+    const { valid, error } = await validateRequest(body);
+    if (!valid) {
+      return forbidden({ headers, body: { success: false, error } });
+    }
+
+    const email = normalizeEmail(body.email);
+    if (!email) {
+      return badRequest({ headers, body: { success: false, error: "Missing email" } });
+    }
+    const username = sanitizeUsername(body.username || body.displayName || body.handle);
+    const aliases = usernameAliasList(body, email);
+
+    let firebaseUpdated = false;
+    try {
+      await updateCuevasAppUserDisplayName(email, username);
+      firebaseUpdated = true;
+    } catch (firebaseErr) {
+      console.log("[USERNAME] Firebase displayName update warning:", firebaseErr?.message || String(firebaseErr));
+    }
+
+    const postsUpdated = await updateCyberneticPostsForUsername(email, username, aliases);
+
+    return ok({
+      headers,
+      body: {
+        success: true,
+        build: BUILD_TAG,
+        username,
+        displayName: username,
+        postsUpdated,
+        firebaseUpdated,
+      },
+    });
+  } catch (err) {
+    console.error("[USERNAME] Error:", err);
+    const response = {
+      headers,
+      body: { success: false, build: BUILD_TAG, error: err?.message || String(err) },
+    };
+    return err?.statusCode === 400 ? badRequest(response) : serverError(response);
+  }
+}
+
 // Alias: POST /_functions/googleLogin -> same as login
 export async function post_googleLogin(request) {
   return post_login(request);
@@ -1410,6 +1537,10 @@ export async function use_login(request) {
 export async function use_signup(request) {
   return post_signup(request);
 }
+export async function use_updateUsername(request) {
+  if (request?.method === "OPTIONS") return options_updateUsername();
+  return post_updateUsername(request);
+}
 export async function use_googleLogin(request) {
   return post_login(request);
 }
@@ -1419,6 +1550,9 @@ export async function options_login() {
   return ok({ headers: jsonHeaders, body: { success: true } });
 }
 export async function options_signup() {
+  return ok({ headers: jsonHeaders, body: { success: true } });
+}
+export async function options_updateUsername() {
   return ok({ headers: jsonHeaders, body: { success: true } });
 }
 export async function options_googleLogin() {
@@ -1463,9 +1597,13 @@ export async function post_posts(request) {
     const audioTitle = body.AudioTitle || body.audioTitle || "Cuevas Audio Transmission";
     const audioArtist = body.AudioArtist || body.audioArtist || body.User || body.user || body.author || "";
     const audioDurationMs = Number(body.AudioDurationMs || body.audioDurationMs || 0);
+    const authorEmail = normalizeEmail(body.AuthorEmail || body.authorEmail || body.UserEmail || body.userEmail || "");
 
     const data = {
       User: body.User || body.user || body.author || "anonymous",
+      author: body.author || body.User || body.user || "anonymous",
+      AuthorEmail: authorEmail,
+      authorEmail: authorEmail,
       "Plain Content": body["Plain Content"] || body.plainContent || body.content || "",
       Media: mediaArray,
       MediaUrls: mediaArray,

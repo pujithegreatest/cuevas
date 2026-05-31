@@ -1,8 +1,16 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
+import Svg, {
+  Circle,
+  Defs,
+  LinearGradient as SvgLinearGradient,
+  Path,
+  Rect,
+  Stop,
+} from "react-native-svg";
 import {
   Canvas,
   Image as SkiaImage,
@@ -39,9 +47,9 @@ const MATRICES: Record<StoryFilter, number[] | null> = {
   none: null,
 
   heatwave: [
-    1.55, -0.45, 0.75, 0, -0.12,
-    0.15, 0.45, 0.18, 0, -0.04,
-    -0.45, 0.65, 1.65, 0, 0.08,
+    1.95, -0.35, 0.15, 0, -0.08,
+    0.18, 0.55, 0.95, 0, -0.02,
+    1.15, -0.2, 0.85, 0, 0.02,
     0, 0, 0, 1, 0,
   ],
 
@@ -197,7 +205,7 @@ function ScanlineOverlay({ width, height }: { width: number; height: number }) {
 // since Skia color matrix only runs on the still-image branch.
 const VIDEO_TINTS: Record<StoryFilter, string | null> = {
   none: null,
-  heatwave: "rgba(126,0,210,0.24)",
+  heatwave: "rgba(50,0,105,0.18)",
   hologram: "rgba(0,200,255,0.25)",
   vaporwave: "rgba(255,0,200,0.18)",
   infrared: "rgba(200,0,80,0.28)",
@@ -263,15 +271,120 @@ function formatHeatwaveClock() {
   return `${hh}:${mm}:${ss}`;
 }
 
+function getHeatwaveTelemetry(tick: number, width: number, height: number) {
+  const wave = Math.sin(tick * 0.62);
+  const jitter = Math.sin((tick + width) * 1.37) * 0.12 + Math.cos((tick + height) * 0.71) * 0.08;
+  return {
+    temp: 36.7 + wave * 0.52 + jitter,
+    focusX: 0.5 + Math.sin(tick * 0.31) * 0.045,
+    focusY: 0.41 + Math.cos(tick * 0.24) * 0.03,
+  };
+}
+
+function HeatwaveThermalMap({ width, height, tick }: { width: number; height: number; tick: number }) {
+  const hotX = width * (0.48 + Math.sin(tick * 0.37) * 0.05);
+  const hotY = height * (0.43 + Math.cos(tick * 0.29) * 0.04);
+  const coolX = width * (0.34 + Math.cos(tick * 0.19) * 0.08);
+
+  return (
+    <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Defs>
+        <SvgLinearGradient id="heatBase" x1="0" y1="0" x2="1" y2="1">
+          <Stop offset="0" stopColor="#070044" stopOpacity="0.62" />
+          <Stop offset="0.32" stopColor="#5d18b8" stopOpacity="0.58" />
+          <Stop offset="0.56" stopColor="#006bff" stopOpacity="0.22" />
+          <Stop offset="0.78" stopColor="#00f0ff" stopOpacity="0.18" />
+          <Stop offset="1" stopColor="#ff7b00" stopOpacity="0.24" />
+        </SvgLinearGradient>
+        <SvgLinearGradient id="hotCore" x1="0" y1="0" x2="1" y2="1">
+          <Stop offset="0" stopColor="#fff7a8" stopOpacity="0.76" />
+          <Stop offset="0.35" stopColor="#ffec00" stopOpacity="0.68" />
+          <Stop offset="0.68" stopColor="#ff3b00" stopOpacity="0.56" />
+          <Stop offset="1" stopColor="#00ff75" stopOpacity="0.34" />
+        </SvgLinearGradient>
+        <SvgLinearGradient id="coolWash" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#00d5ff" stopOpacity="0.24" />
+          <Stop offset="0.65" stopColor="#4f00ff" stopOpacity="0.28" />
+          <Stop offset="1" stopColor="#10002c" stopOpacity="0.38" />
+        </SvgLinearGradient>
+      </Defs>
+      <Rect x="0" y="0" width={width} height={height} fill="url(#heatBase)" />
+      <Circle cx={coolX} cy={height * 0.22} r={width * 0.48} fill="url(#coolWash)" opacity="0.64" />
+      <Circle cx={hotX} cy={hotY} r={Math.max(width, height) * 0.19} fill="url(#hotCore)" opacity="0.46" />
+      <Circle cx={hotX - width * 0.08} cy={hotY + height * 0.12} r={width * 0.23} fill="#00e76f" opacity="0.22" />
+      <Circle cx={hotX + width * 0.13} cy={hotY - height * 0.12} r={width * 0.16} fill="#ffef00" opacity="0.24" />
+      <Circle cx={width * 0.12} cy={height * 0.82} r={width * 0.32} fill="#ff6a00" opacity="0.20" />
+      <Circle cx={width * 0.88} cy={height * 0.76} r={width * 0.28} fill="#00c7ff" opacity="0.18" />
+    </Svg>
+  );
+}
+
+function HeatwaveThermoGun({
+  width,
+  height,
+  centerX,
+  centerY,
+  tick,
+}: {
+  width: number;
+  height: number;
+  centerX: number;
+  centerY: number;
+  tick: number;
+}) {
+  const phase = (tick % 18) / 18;
+  const arcOpacity = 0.35 + Math.sin(tick * 0.8) * 0.12;
+
+  return (
+    <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Path
+        d={`M ${centerX - width * 0.5} ${centerY + height * 0.24} C ${centerX - width * 0.26} ${centerY - height * 0.28}, ${centerX + width * 0.26} ${centerY - height * 0.28}, ${centerX + width * 0.5} ${centerY + height * 0.24}`}
+        stroke="#00c8ff"
+        strokeWidth="5"
+        strokeOpacity={arcOpacity}
+        fill="none"
+      />
+      <Path
+        d={`M ${centerX - width * 0.37} ${centerY + height * 0.18} C ${centerX - width * 0.18} ${centerY - height * 0.14}, ${centerX + width * 0.18} ${centerY - height * 0.14}, ${centerX + width * 0.37} ${centerY + height * 0.18}`}
+        stroke="#2ef0ff"
+        strokeWidth="4"
+        strokeOpacity="0.28"
+        fill="none"
+      />
+      <Path
+        d={`M ${centerX - width * 0.23} ${centerY + height * 0.1} C ${centerX - width * 0.1} ${centerY - height * 0.04}, ${centerX + width * 0.1} ${centerY - height * 0.04}, ${centerX + width * 0.23} ${centerY + height * 0.1}`}
+        stroke="#82faff"
+        strokeWidth="2.5"
+        strokeOpacity="0.32"
+        fill="none"
+      />
+      <Circle cx={centerX} cy={centerY} r={10 + phase * 18} stroke="#8afcff" strokeWidth="1.4" strokeOpacity={0.62 - phase * 0.36} fill="none" />
+      <Path d={`M ${centerX - 24} ${centerY} L ${centerX + 24} ${centerY} M ${centerX} ${centerY - 24} L ${centerX} ${centerY + 24}`} stroke="#aaffff" strokeWidth="1.5" strokeOpacity="0.86" />
+    </Svg>
+  );
+}
+
 export function HeatwaveHud({ width, height }: { width: number; height: number }) {
-  const focusX = 0.528;
-  const focusY = 0.417;
-  const temp = 36.5 + ((Math.round(width + height) % 8) / 10);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setTick((value) => value + 1), 550);
+    return () => clearInterval(id);
+  }, []);
+
+  const telemetry = getHeatwaveTelemetry(tick, width, height);
+  const focusX = telemetry.focusX;
+  const focusY = telemetry.focusY;
+  const temp = telemetry.temp;
   const centerX = width * focusX;
   const centerY = height * focusY;
+  const tempF = temp * 1.8 + 32;
+  const idSuffix = String(758426592 + (tick % 91)).padStart(9, "0");
 
   return (
     <>
+      <HeatwaveThermalMap width={width} height={height} tick={tick} />
+      <HeatwaveThermoGun width={width} height={height} centerX={centerX} centerY={centerY} tick={tick} />
       <HeatwaveGrid width={width} height={height} />
       <ScanlineOverlay width={width} height={height} />
       <View
@@ -322,6 +435,24 @@ export function HeatwaveHud({ width, height }: { width: number; height: number }
             contentFit="contain"
           />
         </View>
+      </View>
+
+      <View
+        style={{
+          position: "absolute",
+          left: Math.max(8, width * 0.04),
+          top: height * 0.13,
+          paddingHorizontal: 10,
+          paddingVertical: 8,
+          borderWidth: 1,
+          borderColor: "rgba(138,252,255,0.45)",
+          backgroundColor: "rgba(0,10,24,0.28)",
+        }}
+        pointerEvents="none"
+      >
+        <Text style={styles.heatwaveTelemetrySmall}>THERMO CAM ONLINE</Text>
+        <Text style={styles.heatwaveStatLine}>CORE {temp.toFixed(1)} °C / {tempF.toFixed(1)} °F</Text>
+        <Text style={styles.heatwaveStatLine}>X {focusX.toFixed(3)}  Y {focusY.toFixed(3)}</Text>
       </View>
 
       <View
@@ -388,7 +519,7 @@ export function HeatwaveHud({ width, height }: { width: number; height: number }
         ]}
         pointerEvents="none"
       >
-        <Text style={styles.heatwaveId}>ID : 758426592</Text>
+        <Text style={styles.heatwaveId}>ID : {idSuffix}</Text>
         <Text style={styles.heatwaveTemp}>{temp.toFixed(1)} °C</Text>
       </View>
 
@@ -405,7 +536,7 @@ export function HeatwaveHud({ width, height }: { width: number; height: number }
         }}
         pointerEvents="none"
       >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
           <Image
             source={HEATWAVE_ASSETS.sdIcon}
             style={{ width: 18, height: 18, tintColor: "#d9ffff" }}
@@ -413,7 +544,7 @@ export function HeatwaveHud({ width, height }: { width: number; height: number }
           />
           <Text style={styles.heatwaveFooter}>BIOMETRIC IDENTIFICATION : ON</Text>
         </View>
-        <Text style={styles.heatwaveFooter}>BODY TEMP DETECTION : ON</Text>
+        <Text style={[styles.heatwaveFooter, { flex: 1, textAlign: "right" }]}>BODY TEMP DETECTION : ON</Text>
       </View>
     </>
   );
@@ -430,21 +561,7 @@ function FilterEffects({
 }) {
   switch (filter) {
     case "heatwave":
-      return (
-        <>
-          <LinearGradient
-            colors={[
-              "rgba(5,8,75,0.48)",
-              "rgba(98,0,170,0.28)",
-              "rgba(255,122,0,0.16)",
-              "rgba(0,216,255,0.12)",
-            ]}
-            locations={[0, 0.42, 0.7, 1]}
-            style={[StyleSheet.absoluteFill]}
-          />
-          <HeatwaveHud width={width} height={height} />
-        </>
-      );
+      return <HeatwaveHud width={width} height={height} />;
     case "hologram":
       return (
         <>
@@ -882,6 +999,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
     textShadowColor: "#00ff9d",
     textShadowRadius: 8,
+  },
+  heatwaveTelemetrySmall: {
+    color: "#d9ffff",
+    fontSize: 7,
+    fontWeight: "900",
+    letterSpacing: 1,
+    marginBottom: 3,
+  },
+  heatwaveStatLine: {
+    color: "#58ff39",
+    fontSize: 8,
+    fontWeight: "900",
+    letterSpacing: 0.9,
+    textShadowColor: "#00ff9d",
+    textShadowRadius: 5,
   },
   heatwaveFooter: {
     color: "#d9ffff",
