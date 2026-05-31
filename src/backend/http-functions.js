@@ -23,6 +23,9 @@ import forge from "node-forge";
  * - POST /_functions/googleLogin     -> alias to login
  * - GET  /_functions/posts
  * - POST /_functions/posts
+ * - GET  /_functions/missions
+ * - POST /_functions/missions
+ * - POST /_functions/missionSignup
  * - POST /_functions/uploadMedia             -> returns { uploadUrl, fileId, trackingKey }
  * - POST /_functions/uploadMediaFinalize     -> returns { url }
  * - POST /_functions/walletLinks             -> returns { apple: { downloadUrl }, google: { saveUrl } }
@@ -37,7 +40,10 @@ const jsonHeaders = {
 // -------------------- VERSION MARKER (confirm deploy) --------------------
 // Change this string whenever you paste/publish so Wix logs prove the running version.
 // Bump this whenever you paste into Wix and Publish, so logs prove which version is live.
-const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1.uploadFolders.v4.signup.v1";
+const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1.uploadFolders.v4.signup.v1.missions.v1";
+
+const MISSIONS_COLLECTION = "CuevasMissions";
+const MISSION_SIGNUPS_COLLECTION = "CuevasMissionSignups";
 
 // Coin icon provided by you (embedded so the pkpass is self-contained).
 // You can also override with a Wix Secret: WALLET_COIN_ICON_PNG_BASE64.
@@ -1616,6 +1622,234 @@ export async function use_posts(request) {
   if (request?.method === "PATCH") {
     return patch_posts(request);
   }
+  return notFound({
+    headers: jsonHeaders,
+    body: { success: false, error: `Unsupported method: ${request?.method || "unknown"}` },
+  });
+}
+
+// ==================== MISSIONS ====================
+
+function normalizeMissionType(value) {
+  const candidate = String(value || "").trim();
+  return ["One time", "Recurring", "Weekly", "Monthly"].includes(candidate) ? candidate : "One time";
+}
+
+function normalizeMissionDifficulty(value) {
+  const candidate = String(value || "").trim();
+  return ["Easy", "Medium", "High impact"].includes(candidate) ? candidate : "Easy";
+}
+
+function normalizeMissionForClient(item) {
+  return {
+    id: String(item?._id || item?.id || ""),
+    _id: item?._id,
+    title: item?.Title || item?.title || item?.EventName || "Untitled Mission",
+    description: item?.Description || item?.description || "",
+    location: item?.Location || item?.location || "",
+    eventDate: item?.EventDate || item?.eventDate || item?.Date || "Date TBD",
+    eventDateISO: item?.EventDateISO || item?.eventDateISO || "",
+    type: normalizeMissionType(item?.Type || item?.type),
+    difficulty: normalizeMissionDifficulty(item?.Difficulty || item?.difficulty),
+    points: Number(item?.Points ?? item?.points ?? 100),
+    peopleNeeded: item?.PeopleNeeded || item?.peopleNeeded || "",
+    gearProvided: Boolean(item?.GearProvided ?? item?.gearProvided ?? false),
+    materialsNote: item?.MaterialsNote || item?.materialsNote || "",
+    businessName: item?.BusinessName || item?.businessName || "Cuevas Partner",
+    businessHandle: item?.BusinessHandle || item?.businessHandle || "cuevas-partner",
+    businessVerified: Boolean(item?.BusinessVerified ?? item?.businessVerified ?? false),
+    goingCount: Number(item?.GoingCount ?? item?.goingCount ?? 0),
+    status: item?.Status || item?.status || "active",
+  };
+}
+
+function missionPayloadFromBody(body) {
+  const title = String(body?.title || body?.Title || body?.eventName || body?.EventName || "").trim();
+  const description = String(body?.description || body?.Description || "").trim();
+  const location = String(body?.location || body?.Location || "").trim();
+  const eventDate = String(body?.eventDate || body?.EventDate || body?.date || body?.Date || "").trim();
+  if (!title || !description || !location || !eventDate) {
+    const err = new Error("Missing mission title, description, location, or eventDate");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const parsedEventDate = new Date(eventDate);
+  const eventDateISO = Number.isNaN(parsedEventDate.getTime()) ? "" : parsedEventDate.toISOString();
+  const points = Number(body?.points ?? body?.Points ?? 100);
+  return {
+    Title: title,
+    title,
+    EventName: title,
+    Description: description,
+    description,
+    Location: location,
+    location,
+    EventDate: eventDate,
+    eventDate,
+    EventDateISO: body?.eventDateISO || body?.EventDateISO || eventDateISO,
+    Type: normalizeMissionType(body?.type || body?.Type),
+    Difficulty: normalizeMissionDifficulty(body?.difficulty || body?.Difficulty),
+    Points: Number.isFinite(points) ? points : 100,
+    PeopleNeeded: String(body?.peopleNeeded || body?.PeopleNeeded || "Open crew").trim(),
+    GearProvided: Boolean(body?.gearProvided ?? body?.GearProvided ?? false),
+    MaterialsNote: String(body?.materialsNote || body?.MaterialsNote || "").trim(),
+    BusinessName: String(body?.businessName || body?.BusinessName || "Cuevas Partner").trim(),
+    BusinessHandle: String(body?.businessHandle || body?.BusinessHandle || "cuevas-partner").trim(),
+    BusinessVerified: Boolean(body?.businessVerified ?? body?.BusinessVerified ?? false),
+    ContactEmail: normalizeEmail(body?.contactEmail || body?.ContactEmail || ""),
+    GoingCount: Number(body?.goingCount ?? body?.GoingCount ?? 0) || 0,
+    Status: String(body?.status || body?.Status || "active").trim().toLowerCase(),
+  };
+}
+
+export async function get_missions() {
+  try {
+    console.log("[MISSIONS] build:", BUILD_TAG);
+    const result = await wixData
+      .query(MISSIONS_COLLECTION)
+      .ne("Status", "archived")
+      .descending("_createdDate")
+      .limit(100)
+      .find({ suppressAuth: true });
+    return ok({
+      headers: jsonHeaders,
+      body: {
+        success: true,
+        build: BUILD_TAG,
+        missions: (result.items || []).map(normalizeMissionForClient),
+      },
+    });
+  } catch (err) {
+    console.error("[MISSIONS] GET error:", err);
+    return serverError({
+      headers: jsonHeaders,
+      body: { success: false, build: BUILD_TAG, error: err?.message || String(err) },
+    });
+  }
+}
+
+export async function post_missions(request) {
+  try {
+    console.log("[MISSIONS] POST build:", BUILD_TAG);
+    const { body } = await parseJsonBody(request, "MISSIONS");
+    const { valid, error } = await validateRequest(body);
+    if (!valid) {
+      return forbidden({ headers: jsonHeaders, body: { success: false, error } });
+    }
+    const payload = missionPayloadFromBody(body);
+    const inserted = await wixData.insert(MISSIONS_COLLECTION, payload, { suppressAuth: true });
+    return ok({
+      headers: jsonHeaders,
+      body: { success: true, build: BUILD_TAG, mission: normalizeMissionForClient(inserted) },
+    });
+  } catch (err) {
+    console.error("[MISSIONS] POST error:", err);
+    const response = {
+      headers: jsonHeaders,
+      body: { success: false, build: BUILD_TAG, error: err?.message || String(err) },
+    };
+    return err?.statusCode === 400 ? badRequest(response) : serverError(response);
+  }
+}
+
+export async function options_missions() {
+  return ok({ headers: jsonHeaders, body: { success: true } });
+}
+
+export async function use_missions(request) {
+  if (request?.method === "OPTIONS") return options_missions();
+  if (request?.method === "GET") return get_missions(request);
+  if (request?.method === "POST") return post_missions(request);
+  return notFound({
+    headers: jsonHeaders,
+    body: { success: false, error: `Unsupported method: ${request?.method || "unknown"}` },
+  });
+}
+
+export async function post_missionSignup(request) {
+  try {
+    console.log("[MISSION_SIGNUP] build:", BUILD_TAG);
+    const { body } = await parseJsonBody(request, "MISSION_SIGNUP");
+    const { valid, error } = await validateRequest(body);
+    if (!valid) {
+      return forbidden({ headers: jsonHeaders, body: { success: false, error } });
+    }
+
+    const missionId = String(body?.missionId || body?.MissionId || "").trim();
+    if (!missionId) {
+      return badRequest({ headers: jsonHeaders, body: { success: false, error: "Missing missionId" } });
+    }
+
+    const userEmail = normalizeEmail(body?.userEmail || body?.UserEmail || "");
+    const userHandle = String(body?.userHandle || body?.UserHandle || userEmail.split("@")[0] || "anonymous").trim();
+    const existingSignup = await wixData
+      .query(MISSION_SIGNUPS_COLLECTION)
+      .eq("MissionId", missionId)
+      .eq("UserEmail", userEmail)
+      .limit(1)
+      .find({ suppressAuth: true });
+
+    let alreadyJoined = false;
+    if (existingSignup.items?.length) {
+      alreadyJoined = true;
+    } else {
+      await wixData.insert(
+        MISSION_SIGNUPS_COLLECTION,
+        {
+          MissionId: missionId,
+          UserEmail: userEmail,
+          UserHandle: userHandle,
+          Status: "going",
+          JoinedAt: new Date().toISOString(),
+        },
+        { suppressAuth: true }
+      );
+    }
+
+    let goingCount = existingSignup.totalCount || 0;
+    try {
+      const signupCount = await wixData
+        .query(MISSION_SIGNUPS_COLLECTION)
+        .eq("MissionId", missionId)
+        .eq("Status", "going")
+        .count({ suppressAuth: true });
+      goingCount = signupCount;
+      const mission = await wixData.get(MISSIONS_COLLECTION, missionId, { suppressAuth: true });
+      if (mission?._id) {
+        await wixData.update(
+          MISSIONS_COLLECTION,
+          {
+            ...mission,
+            GoingCount: goingCount,
+          },
+          { suppressAuth: true }
+        );
+      }
+    } catch (countErr) {
+      console.log("[MISSION_SIGNUP] count/update warning:", countErr?.message || String(countErr));
+    }
+
+    return ok({
+      headers: jsonHeaders,
+      body: { success: true, build: BUILD_TAG, missionId, goingCount, alreadyJoined },
+    });
+  } catch (err) {
+    console.error("[MISSION_SIGNUP] POST error:", err);
+    return serverError({
+      headers: jsonHeaders,
+      body: { success: false, build: BUILD_TAG, error: err?.message || String(err) },
+    });
+  }
+}
+
+export async function options_missionSignup() {
+  return ok({ headers: jsonHeaders, body: { success: true } });
+}
+
+export async function use_missionSignup(request) {
+  if (request?.method === "OPTIONS") return options_missionSignup();
+  if (request?.method === "POST") return post_missionSignup(request);
   return notFound({
     headers: jsonHeaders,
     body: { success: false, error: `Unsupported method: ${request?.method || "unknown"}` },

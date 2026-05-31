@@ -50,6 +50,7 @@ import {
   Brush,
   Smile,
   CloudOff,
+  CloudUpload,
   Wand2,
   SwitchCamera,
   Target,
@@ -62,6 +63,9 @@ import {
   Globe,
   Settings,
   UserPlus,
+  Briefcase,
+  Building2,
+  QrCode,
   LucideIcon,
 } from "lucide-react-native";
 
@@ -158,6 +162,8 @@ const map: Record<string, LucideIcon> = {
   happy: Smile,
   "cloud-offline-outline": CloudOff,
   "cloud-offline": CloudOff,
+  "cloud-upload-outline": CloudUpload,
+  "cloud-upload": CloudUpload,
   "color-wand-outline": Wand2,
   "color-wand": Wand2,
   "camera-reverse": SwitchCamera,
@@ -185,6 +191,12 @@ const map: Record<string, LucideIcon> = {
   "person-add": UserPlus,
   "person-add-outline": UserPlus,
   "paper-plane-outline": Send,
+  briefcase: Briefcase,
+  "briefcase-outline": Briefcase,
+  business: Building2,
+  "business-outline": Building2,
+  "qr-code": QrCode,
+  "qr-code-outline": QrCode,
 };
 
 const filledNames = new Set(["heart"]);

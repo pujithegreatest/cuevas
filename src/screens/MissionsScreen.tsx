@@ -1,11 +1,18 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { Image } from "expo-image";
+import { Video, ResizeMode } from "expo-av";
+import * as Calendar from "expo-calendar";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  CuevasMission,
+  fetchCuevasMissions,
+  joinCuevasMission,
+} from "../api/cuevas-missions";
 import { Ionicons } from "../components/Ionicons";
 import { useAppStore } from "../state/appStore";
 import { MainTabParamList } from "../types/navigation";
@@ -13,27 +20,33 @@ import { encodeUploadUri, uploadMediaFile } from "../utils/uploadMedia";
 
 type Props = BottomTabScreenProps<MainTabParamList, "Missions">;
 
-type Mission = {
+type ProofMedia = {
   id: string;
-  title: string;
-  points: number;
-  location: string;
-  eventDate: string;
-  type: "One time" | "Recurring" | "Weekly" | "Monthly";
-  description: string;
-  difficulty: "Easy" | "Medium" | "High impact";
+  uri: string;
+  type: "image" | "video";
+  name: string;
+  mime: string;
+  uploadedUrl?: string;
 };
 
-const availableMissions: Mission[] = [
+const fallbackMissions: CuevasMission[] = [
   {
     id: "community-service-day",
     title: "Community Service Day",
     points: 100,
     location: "Cuevas HQ + Local Park",
     eventDate: "June 8, 2026",
+    eventDateISO: "2026-06-08T14:00:00.000Z",
     type: "One time",
     description: "Join the Cuevas crew for a neighborhood reset: supplies, sorting, park support, and positive energy.",
     difficulty: "Easy",
+    peopleNeeded: "12 ppl",
+    gearProvided: true,
+    materialsNote: "Cleanup kits provided.",
+    businessName: "Cuevas Civic Lab",
+    businessHandle: "cuevas-civic-lab",
+    businessVerified: true,
+    goingCount: 8,
   },
   {
     id: "community-cleanup",
@@ -41,9 +54,17 @@ const availableMissions: Mission[] = [
     points: 120,
     location: "Downtown Trail Loop",
     eventDate: "June 15, 2026",
+    eventDateISO: "2026-06-15T15:00:00.000Z",
     type: "Recurring",
     description: "Scan in, grab a cleanup kit, and help restore high-traffic blocks with the weekly eco squad.",
     difficulty: "Medium",
+    peopleNeeded: "20 ppl",
+    gearProvided: true,
+    materialsNote: "Gloves and bags provided.",
+    businessName: "Downtown Green Grid",
+    businessHandle: "green-grid",
+    businessVerified: true,
+    goingCount: 14,
   },
   {
     id: "soup-kitchen",
@@ -51,9 +72,17 @@ const availableMissions: Mission[] = [
     points: 150,
     location: "Hope Table Kitchen",
     eventDate: "June 22, 2026",
+    eventDateISO: "2026-06-22T21:00:00.000Z",
     type: "Weekly",
     description: "Assist with meal prep, packing, and guest service during a high-impact community dinner window.",
     difficulty: "High impact",
+    peopleNeeded: "6 ppl",
+    gearProvided: false,
+    materialsNote: "Bring closed-toe shoes.",
+    businessName: "Hope Table",
+    businessHandle: "hope-table",
+    businessVerified: true,
+    goingCount: 4,
   },
   {
     id: "race-for-a-cure",
@@ -61,9 +90,17 @@ const availableMissions: Mission[] = [
     points: 175,
     location: "Riverfront Start Line",
     eventDate: "July 4, 2026",
+    eventDateISO: "2026-07-04T12:00:00.000Z",
     type: "One time",
     description: "Volunteer at water stations, check-in, or finish-line support for a charity race activation.",
     difficulty: "Medium",
+    peopleNeeded: "18 ppl",
+    gearProvided: true,
+    materialsNote: "Volunteer shirt provided.",
+    businessName: "Riverfront Cure Run",
+    businessHandle: "cure-run",
+    businessVerified: true,
+    goingCount: 23,
   },
   {
     id: "food-pantry-sort",
@@ -71,9 +108,17 @@ const availableMissions: Mission[] = [
     points: 90,
     location: "Northside Pantry",
     eventDate: "July 11, 2026",
+    eventDateISO: "2026-07-11T16:00:00.000Z",
     type: "Monthly",
     description: "Sort donated food, prepare shelf zones, and help make pickup smoother for local families.",
     difficulty: "Easy",
+    peopleNeeded: "8 ppl",
+    gearProvided: true,
+    materialsNote: "All materials on site.",
+    businessName: "Northside Pantry",
+    businessHandle: "northside-pantry",
+    businessVerified: false,
+    goingCount: 3,
   },
   {
     id: "senior-tech-hour",
@@ -81,13 +126,21 @@ const availableMissions: Mission[] = [
     points: 110,
     location: "Community Library",
     eventDate: "July 18, 2026",
+    eventDateISO: "2026-07-18T18:00:00.000Z",
     type: "Recurring",
     description: "Help neighbors with phone setup, email basics, and safe app usage in a friendly drop-in session.",
     difficulty: "Medium",
+    peopleNeeded: "5 ppl",
+    gearProvided: false,
+    materialsNote: "Bring your own laptop if possible.",
+    businessName: "Community Library",
+    businessHandle: "library-lab",
+    businessVerified: true,
+    goingCount: 6,
   },
 ];
 
-const completedMissions: Mission[] = [
+const completedMissions: CuevasMission[] = [
   {
     id: "demo-completed",
     title: "Park Supply Drop",
@@ -97,8 +150,26 @@ const completedMissions: Mission[] = [
     type: "One time",
     description: "Delivered cleanup supplies and logged the first Cuevas service checkpoint for the demo profile.",
     difficulty: "Easy",
+    peopleNeeded: "3 ppl",
+    gearProvided: true,
+    materialsNote: "Proof upload demo.",
+    businessName: "Cuevas Civic Lab",
+    businessHandle: "cuevas-civic-lab",
+    businessVerified: true,
+    goingCount: 3,
   },
 ];
+
+function parseMissionStart(mission: CuevasMission) {
+  const rawDate = mission.eventDateISO || mission.eventDate;
+  const parsed = new Date(rawDate);
+  if (Number.isNaN(parsed.getTime())) {
+    const fallback = new Date();
+    fallback.setHours(fallback.getHours() + 2, 0, 0, 0);
+    return fallback;
+  }
+  return parsed;
+}
 
 function MissionCard({
   mission,
@@ -106,29 +177,32 @@ function MissionCard({
   isQueued,
   isCompleted,
   onToggle,
-  proofUri,
-  uploadedProofUrl,
+  onAddCalendar,
+  proofMedia,
   isUploadingProof,
   proofError,
   onPickProof,
+  onRemoveProof,
   onSubmitProof,
 }: {
-  mission: Mission;
+  mission: CuevasMission;
   isDarkMode: boolean;
   isQueued?: boolean;
   isCompleted?: boolean;
   onToggle?: () => void;
-  proofUri?: string;
-  uploadedProofUrl?: string;
+  onAddCalendar?: () => void;
+  proofMedia?: ProofMedia[];
   isUploadingProof?: boolean;
   proofError?: string;
   onPickProof?: () => void;
+  onRemoveProof?: (proofId: string) => void;
   onSubmitProof?: () => void;
 }) {
   const cardBg = isDarkMode ? "rgba(15, 28, 34, 0.94)" : "rgba(255,255,255,0.94)";
   const text = isDarkMode ? "#CFEFEC" : "#1F2937";
   const muted = isDarkMode ? "#9CA3AF" : "#5F6B73";
   const border = isQueued ? "#06A7A1" : isDarkMode ? "rgba(6,167,161,0.22)" : "rgba(8,25,32,0.10)";
+  const pendingProofCount = (proofMedia || []).filter((item) => !item.uploadedUrl).length;
 
   return (
     <View
@@ -179,6 +253,14 @@ function MissionCard({
         </LinearGradient>
 
         <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
+            <Text style={{ color: "#06A7A1", fontSize: 11, fontWeight: "900" }} numberOfLines={1}>
+              @{mission.businessHandle || "cuevas-partner"}
+            </Text>
+            {mission.businessVerified ? (
+              <Ionicons name="checkmark-circle" size={13} color="#06A7A1" style={{ marginLeft: 4 }} />
+            ) : null}
+          </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
             <Text style={{ color: text, fontSize: 18, fontWeight: "900", flex: 1, paddingRight: 8 }}>
               {mission.title}
@@ -211,6 +293,9 @@ function MissionCard({
           { icon: "calendar-outline", label: mission.eventDate },
           { icon: mission.type === "Recurring" ? "repeat-outline" : "radio-button-on-outline", label: mission.type },
           { icon: "shield-check", label: mission.difficulty },
+          { icon: "people-outline", label: `${mission.goingCount || 0} going` },
+          { icon: "person-add-outline", label: mission.peopleNeeded || "Open crew" },
+          { icon: mission.gearProvided ? "checkmark-circle" : "briefcase", label: mission.gearProvided ? "Gear provided" : "Bring gear" },
         ].map((item) => (
           <View
             key={`${mission.id}-${item.label}`}
@@ -233,80 +318,154 @@ function MissionCard({
         ))}
       </View>
 
-      {!isCompleted && onToggle ? (
-        <Pressable
-          onPress={onToggle}
-          style={({ pressed }) => ({
-            marginTop: 4,
-            borderRadius: 16,
-            paddingVertical: 12,
-            alignItems: "center",
-            backgroundColor: isQueued ? "rgba(6,167,161,0.12)" : "#06A7A1",
-            borderWidth: 1,
-            borderColor: "#06A7A1",
-            opacity: pressed ? 0.78 : 1,
-          })}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Ionicons
-              name={isQueued ? "checkmark-circle" : "add"}
-              size={18}
-              color={isQueued ? "#06A7A1" : "#FFFFFF"}
-            />
-            <Text
-              style={{
-                color: isQueued ? "#06A7A1" : "#FFFFFF",
-                fontWeight: "900",
-                marginLeft: 8,
-              }}
-            >
-              {isQueued ? "Added to My Missions" : "Add to My Missions"}
-            </Text>
-          </View>
-        </Pressable>
+      {mission.materialsNote ? (
+        <Text style={{ color: muted, fontSize: 11, lineHeight: 16, marginTop: 2 }}>
+          Materials: {mission.materialsNote}
+        </Text>
       ) : null}
 
-      {isCompleted ? (
-        <View style={{ marginTop: 6 }}>
-          {proofUri ? (
-            <View
-              style={{
-                borderRadius: 18,
-                overflow: "hidden",
-                borderWidth: 1,
-                borderColor: "rgba(6,167,161,0.35)",
-                marginBottom: 10,
-              }}
-            >
-              <Image source={{ uri: uploadedProofUrl || proofUri }} style={{ width: "100%", height: 150 }} contentFit="cover" />
-            </View>
-          ) : null}
+      {!isCompleted && onToggle ? (
+        <>
           <Pressable
-            onPress={onPickProof}
+            onPress={onToggle}
             style={({ pressed }) => ({
+              marginTop: 10,
               borderRadius: 16,
               paddingVertical: 12,
               alignItems: "center",
-              backgroundColor: proofUri ? "rgba(6,167,161,0.12)" : "#06A7A1",
+              backgroundColor: isQueued ? "rgba(6,167,161,0.12)" : "#06A7A1",
               borderWidth: 1,
               borderColor: "#06A7A1",
               opacity: pressed ? 0.78 : 1,
             })}
           >
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons name={proofUri ? "image" : "camera-outline"} size={18} color={proofUri ? "#06A7A1" : "#FFFFFF"} />
+              <Ionicons
+                name={isQueued ? "checkmark-circle" : "add"}
+                size={18}
+                color={isQueued ? "#06A7A1" : "#FFFFFF"}
+              />
               <Text
                 style={{
-                  color: proofUri ? "#06A7A1" : "#FFFFFF",
+                  color: isQueued ? "#06A7A1" : "#FFFFFF",
                   fontWeight: "900",
                   marginLeft: 8,
                 }}
               >
-                {proofUri ? "Replace Proof Photo" : "Choose Proof Photo"}
+                {isQueued ? "Added to My Missions" : "Add to My Missions"}
               </Text>
             </View>
           </Pressable>
-          {proofUri && !uploadedProofUrl ? (
+
+          <Pressable
+            onPress={onAddCalendar}
+            style={({ pressed }) => ({
+              marginTop: 10,
+              borderRadius: 16,
+              paddingVertical: 12,
+              alignItems: "center",
+              backgroundColor: isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(8,25,32,0.05)",
+              borderWidth: 1,
+              borderColor: "rgba(6,167,161,0.35)",
+              opacity: pressed ? 0.78 : 1,
+            })}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Ionicons name="calendar-outline" size={18} color="#06A7A1" />
+              <Text style={{ color: "#06A7A1", fontWeight: "900", marginLeft: 8 }}>
+                Add to Calendar
+              </Text>
+            </View>
+          </Pressable>
+        </>
+      ) : null}
+
+      {isCompleted ? (
+        <View style={{ marginTop: 10 }}>
+          {(proofMedia || []).length > 0 ? (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+              {(proofMedia || []).map((proof) => (
+                <View
+                  key={proof.id}
+                  style={{
+                    width: 92,
+                    height: 92,
+                    borderRadius: 16,
+                    overflow: "hidden",
+                    borderWidth: 1,
+                    borderColor: proof.uploadedUrl ? "#06A7A1" : "rgba(6,167,161,0.35)",
+                  }}
+                >
+                  {proof.type === "video" ? (
+                    <Video
+                      source={{ uri: proof.uri }}
+                      style={{ width: "100%", height: "100%" }}
+                      resizeMode={ResizeMode.COVER}
+                      isMuted
+                      shouldPlay={false}
+                    />
+                  ) : (
+                    <Image source={{ uri: proof.uri }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
+                  )}
+                  <Pressable
+                    onPress={() => onRemoveProof?.(proof.id)}
+                    style={{
+                      position: "absolute",
+                      top: 5,
+                      right: 5,
+                      width: 22,
+                      height: 22,
+                      borderRadius: 11,
+                      backgroundColor: "rgba(0,0,0,0.6)",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons name="close" size={14} color="#FFFFFF" />
+                  </Pressable>
+                  {proof.uploadedUrl ? (
+                    <View
+                      style={{
+                        position: "absolute",
+                        left: 5,
+                        bottom: 5,
+                        width: 22,
+                        height: 22,
+                        borderRadius: 11,
+                        backgroundColor: "rgba(6,167,161,0.92)",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Ionicons name="checkmark-circle" size={14} color="#FFFFFF" />
+                    </View>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          ) : null}
+
+          <Pressable
+            onPress={onPickProof}
+            style={({ pressed }) => ({
+              borderRadius: 16,
+              paddingVertical: 12,
+              alignItems: "center",
+              backgroundColor: "#06A7A1",
+              borderWidth: 1,
+              borderColor: "#06A7A1",
+              opacity: pressed ? 0.78 : 1,
+            })}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Ionicons name="images-outline" size={18} color="#FFFFFF" />
+              <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>
+                Add Proof Media
+              </Text>
+            </View>
+          </Pressable>
+
+          {pendingProofCount > 0 ? (
             <Pressable
               onPress={onSubmitProof}
               disabled={isUploadingProof}
@@ -322,20 +481,15 @@ function MissionCard({
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Ionicons name="cloud-upload-outline" size={18} color="#FFFFFF" />
                 <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>
-                  {isUploadingProof ? "Uploading Proof..." : "Submit Proof Upload"}
+                  {isUploadingProof ? "Uploading Proof..." : `Submit ${pendingProofCount} Upload${pendingProofCount === 1 ? "" : "s"}`}
                 </Text>
               </View>
             </Pressable>
           ) : null}
-          {uploadedProofUrl ? (
-            <Text style={{ color: "#06A7A1", fontSize: 11, fontWeight: "900", marginTop: 8, textAlign: "center" }}>
-              Proof uploaded for demo.
-            </Text>
-          ) : (
-            <Text style={{ color: muted, fontSize: 11, marginTop: 8, textAlign: "center" }}>
-              Pick a photo, then submit it to upload.
-            </Text>
-          )}
+
+          <Text style={{ color: muted, fontSize: 11, marginTop: 8, textAlign: "center" }}>
+            Upload multiple photos or videos for mission proof.
+          </Text>
           {proofError ? (
             <Text style={{ color: "#EF4444", fontSize: 11, fontWeight: "800", marginTop: 6, textAlign: "center" }}>
               {proofError}
@@ -388,68 +542,204 @@ function SectionHeader({
 
 export default function MissionsScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const isDarkMode = useAppStore((s) => s.isDarkMode);
-  const rewardsBalance = useAppStore((s) => s.rewardsBalance);
+  const isDarkMode = useAppStore((state) => state.isDarkMode);
+  const rewardsBalance = useAppStore((state) => state.rewardsBalance);
+  const userEmail = useAppStore((state) => state.userEmail);
+  const displayName = useAppStore((state) => state.displayName);
+  const [missions, setMissions] = useState<CuevasMission[]>(fallbackMissions);
+  const [isLoadingMissions, setIsLoadingMissions] = useState(false);
+  const [missionError, setMissionError] = useState<string | null>(null);
   const [queuedMissionIds, setQueuedMissionIds] = useState<string[]>(["community-cleanup"]);
-  const [proofPhotos, setProofPhotos] = useState<Record<string, string>>({});
-  const [uploadedProofUrls, setUploadedProofUrls] = useState<Record<string, string>>({});
+  const [proofMedia, setProofMedia] = useState<Record<string, ProofMedia[]>>({});
   const [uploadingProofIds, setUploadingProofIds] = useState<Record<string, boolean>>({});
   const [proofErrors, setProofErrors] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoadingMissions(true);
+    fetchCuevasMissions()
+      .then((nextMissions) => {
+        if (!cancelled && nextMissions.length > 0) {
+          setMissions(nextMissions);
+          setMissionError(null);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setMissionError(String((error as any)?.message || error));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingMissions(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const queuedMissions = useMemo(
-    () => availableMissions.filter((mission) => queuedMissionIds.includes(mission.id)),
-    [queuedMissionIds]
+    () => missions.filter((mission) => queuedMissionIds.includes(mission.id)),
+    [missions, queuedMissionIds]
   );
 
-  const toggleMission = (id: string) => {
-    setQueuedMissionIds((current) =>
-      current.includes(id) ? current.filter((missionId) => missionId !== id) : [...current, id]
+  const updateGoingCount = (missionId: string, goingCount: number) => {
+    setMissions((current) =>
+      current.map((mission) =>
+        mission.id === missionId
+          ? { ...mission, goingCount: Math.max(goingCount, mission.goingCount || 0) }
+          : mission
+      )
     );
   };
 
-  const pickProofPhoto = async (missionId: string) => {
+  const toggleMission = async (mission: CuevasMission) => {
+    if (queuedMissionIds.includes(mission.id)) {
+      setQueuedMissionIds((current) => current.filter((missionId) => missionId !== mission.id));
+      return;
+    }
+
+    setQueuedMissionIds((current) => [...current, mission.id]);
+    setMissions((current) =>
+      current.map((item) =>
+        item.id === mission.id ? { ...item, goingCount: (item.goingCount || 0) + 1 } : item
+      )
+    );
+    try {
+      const result = await joinCuevasMission({
+        missionId: mission.id,
+        userEmail,
+        userHandle: displayName || userEmail?.split("@")[0] || "anonymous",
+      });
+      updateGoingCount(mission.id, result.goingCount);
+    } catch (error) {
+      console.log("[MISSIONS] signup failed", String(error));
+    }
+  };
+
+  const addMissionToCalendar = async (mission: CuevasMission) => {
+    try {
+      const permission = await Calendar.requestCalendarPermissionsAsync();
+      if (!permission.granted) {
+        setMissionError("Calendar permission is required.");
+        return;
+      }
+      const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+      const writableCalendar =
+        calendars.find((calendar) => calendar.allowsModifications) || calendars[0];
+      if (!writableCalendar?.id) {
+        setMissionError("No writable calendar found.");
+        return;
+      }
+      const startDate = parseMissionStart(mission);
+      const endDate = new Date(startDate.getTime() + 90 * 60 * 1000);
+      await Calendar.createEventAsync(writableCalendar.id, {
+        title: `Cuevas Mission: ${mission.title}`,
+        location: mission.location,
+        notes: `${mission.description}\n\nHost: ${mission.businessName || "Cuevas Partner"}\nPoints: ${mission.points} Cuevas`,
+        startDate,
+        endDate,
+        timeZone: undefined,
+      });
+      setMissionError("Mission added to calendar.");
+    } catch (error) {
+      setMissionError(`Calendar add failed: ${String((error as any)?.message || error)}`);
+    }
+  };
+
+  const pickProofMedia = async (missionId: string) => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsMultipleSelection: true,
       quality: 0.82,
+      videoMaxDuration: 60,
+      selectionLimit: 8,
     });
-    if (!result.canceled && result.assets?.[0]?.uri) {
-      setProofPhotos((current) => ({ ...current, [missionId]: result.assets[0].uri }));
-      setUploadedProofUrls((current) => {
-        const next = { ...current };
-        delete next[missionId];
-        return next;
+    if (result.canceled) return;
+
+    const selected = (result.assets || [])
+      .filter((asset) => !!asset.uri)
+      .map((asset) => {
+        const isVideo = asset.type === "video" || /\.(mp4|mov|m4v)$/i.test(asset.uri);
+        const mime =
+          (asset as any).mimeType ||
+          (isVideo
+            ? asset.uri.toLowerCase().endsWith(".mov")
+              ? "video/quicktime"
+              : "video/mp4"
+            : "image/jpeg");
+        const extension = mime === "video/quicktime" ? "mov" : mime.startsWith("video/") ? "mp4" : "jpg";
+        return {
+          id: `proof-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          uri: asset.uri,
+          type: isVideo ? "video" : "image",
+          name: (asset as any).fileName || `mission-proof-${Date.now()}.${extension}`,
+          mime,
+        } as ProofMedia;
       });
+
+    if (selected.length > 0) {
+      setProofMedia((current) => ({
+        ...current,
+        [missionId]: [...(current[missionId] || []), ...selected],
+      }));
       setProofErrors((current) => ({ ...current, [missionId]: "" }));
     }
   };
 
-  const submitProofPhoto = async (missionId: string) => {
-    const proofUri = proofPhotos[missionId];
-    if (!proofUri) {
-      setProofErrors((current) => ({ ...current, [missionId]: "Choose a proof photo first." }));
+  const removeProofMedia = (missionId: string, proofId: string) => {
+    setProofMedia((current) => ({
+      ...current,
+      [missionId]: (current[missionId] || []).filter((proof) => proof.id !== proofId),
+    }));
+  };
+
+  const submitProofMedia = async (missionId: string) => {
+    const pendingMedia = (proofMedia[missionId] || []).filter((item) => !item.uploadedUrl);
+    if (!pendingMedia.length) {
+      setProofErrors((current) => ({ ...current, [missionId]: "Choose proof media first." }));
       return;
     }
 
     setUploadingProofIds((current) => ({ ...current, [missionId]: true }));
     setProofErrors((current) => ({ ...current, [missionId]: "" }));
     try {
-      const compressed = await ImageManipulator.manipulateAsync(
-        proofUri,
-        [{ resize: { width: 1080 } }],
-        { compress: 0.82, format: ImageManipulator.SaveFormat.JPEG }
-      );
-      const uploadUri = encodeUploadUri(
-        compressed.uri,
-        `mission-proof-${missionId}-${Date.now()}.jpg`,
-        "image/jpeg",
-        "image",
-        "mission-proof"
-      );
-      const uploadedUrl = await uploadMediaFile(uploadUri, "mission-proof");
-      setUploadedProofUrls((current) => ({ ...current, [missionId]: uploadedUrl }));
+      const uploadedItems: ProofMedia[] = [];
+      for (const proof of pendingMedia) {
+        let uploadUri = proof.uri;
+        let fileName = proof.name;
+        let mimeType = proof.mime;
+
+        if (proof.type === "image") {
+          const compressed = await ImageManipulator.manipulateAsync(
+            proof.uri,
+            [{ resize: { width: 1080 } }],
+            { compress: 0.82, format: ImageManipulator.SaveFormat.JPEG }
+          );
+          uploadUri = compressed.uri;
+          fileName = `mission-proof-${missionId}-${Date.now()}.jpg`;
+          mimeType = "image/jpeg";
+        }
+
+        const encodedUri = encodeUploadUri(
+          uploadUri,
+          fileName,
+          mimeType,
+          proof.type,
+          "mission-proof"
+        );
+        const uploadedUrl = await uploadMediaFile(encodedUri, "mission-proof");
+        uploadedItems.push({ ...proof, uri: uploadedUrl, uploadedUrl });
+      }
+
+      setProofMedia((current) => ({
+        ...current,
+        [missionId]: (current[missionId] || []).map((proof) => {
+          const uploaded = uploadedItems.find((item) => item.id === proof.id);
+          return uploaded || proof;
+        }),
+      }));
     } catch (error) {
       setProofErrors((current) => ({
         ...current,
@@ -475,7 +765,7 @@ export default function MissionsScreen({ navigation }: Props) {
               Missions
             </Text>
             <Text style={{ color: isDarkMode ? "#9CA3AF" : "#5F6B73", marginTop: 4 }}>
-              Earn Cuevas by helping the community.
+              Dynamic partner events from the Cuevas civic grid.
             </Text>
           </View>
           <Pressable
@@ -526,8 +816,13 @@ export default function MissionsScreen({ navigation }: Props) {
                 Cuevas Civic Grid
               </Text>
               <Text style={{ color: isDarkMode ? "#9CA3AF" : "#5F6B73", fontSize: 12, lineHeight: 18, marginTop: 2 }}>
-                Pick missions, show up, scan in, and turn real-world service into rewards.
+                Businesses publish missions, users join, calendars sync, and attendance counts update live.
               </Text>
+              {missionError ? (
+                <Text style={{ color: missionError.includes("added") ? "#06A7A1" : "#EF4444", fontSize: 11, fontWeight: "800", marginTop: 8 }}>
+                  {missionError}
+                </Text>
+              ) : null}
             </View>
           </View>
         </LinearGradient>
@@ -545,7 +840,8 @@ export default function MissionsScreen({ navigation }: Props) {
               mission={mission}
               isDarkMode={isDarkMode}
               isQueued
-              onToggle={() => toggleMission(mission.id)}
+              onToggle={() => toggleMission(mission)}
+              onAddCalendar={() => addMissionToCalendar(mission)}
             />
           ))
         ) : (
@@ -566,23 +862,24 @@ export default function MissionsScreen({ navigation }: Props) {
 
         <SectionHeader
           title="Available Missions"
-          subtitle="Placeholder demo tasks ready to claim"
+          subtitle={isLoadingMissions ? "Syncing from Wix mission collection..." : "Live partner missions and demo fallbacks"}
           icon="radio-button-on"
           isDarkMode={isDarkMode}
         />
-        {availableMissions.map((mission) => (
+        {missions.map((mission) => (
           <MissionCard
             key={mission.id}
             mission={mission}
             isDarkMode={isDarkMode}
             isQueued={queuedMissionIds.includes(mission.id)}
-            onToggle={() => toggleMission(mission.id)}
+            onToggle={() => toggleMission(mission)}
+            onAddCalendar={() => addMissionToCalendar(mission)}
           />
         ))}
 
         <SectionHeader
           title="Completed"
-          subtitle="Demo completed task for profile proof"
+          subtitle="Proof uploads support multiple photos and videos"
           icon="shield-check"
           isDarkMode={isDarkMode}
         />
@@ -592,12 +889,12 @@ export default function MissionsScreen({ navigation }: Props) {
             mission={mission}
             isDarkMode={isDarkMode}
             isCompleted
-            proofUri={proofPhotos[mission.id]}
-            uploadedProofUrl={uploadedProofUrls[mission.id]}
+            proofMedia={proofMedia[mission.id] || []}
             isUploadingProof={!!uploadingProofIds[mission.id]}
             proofError={proofErrors[mission.id]}
-            onPickProof={() => pickProofPhoto(mission.id)}
-            onSubmitProof={() => submitProofPhoto(mission.id)}
+            onPickProof={() => pickProofMedia(mission.id)}
+            onRemoveProof={(proofId) => removeProofMedia(mission.id, proofId)}
+            onSubmitProof={() => submitProofMedia(mission.id)}
           />
         ))}
       </ScrollView>

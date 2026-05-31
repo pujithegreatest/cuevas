@@ -263,7 +263,7 @@ function formatHeatwaveClock() {
   return `${hh}:${mm}:${ss}`;
 }
 
-function HeatwaveHud({ width, height }: { width: number; height: number }) {
+export function HeatwaveHud({ width, height }: { width: number; height: number }) {
   const focusX = 0.528;
   const focusY = 0.417;
   const temp = 36.5 + ((Math.round(width + height) % 8) / 10);
@@ -396,33 +396,25 @@ function HeatwaveHud({ width, height }: { width: number; height: number }) {
         style={{
           position: "absolute",
           left: Math.max(8, width * 0.04),
+          right: Math.max(8, width * 0.04),
           bottom: Math.max(10, height * 0.025),
           flexDirection: "row",
           alignItems: "center",
-          gap: 8,
+          justifyContent: "space-between",
+          gap: 10,
         }}
         pointerEvents="none"
       >
-        <Image
-          source={HEATWAVE_ASSETS.sdIcon}
-          style={{ width: 18, height: 18, tintColor: "#d9ffff" }}
-          contentFit="contain"
-        />
-        <Text style={styles.heatwaveFooter}>BIOMETRIC IDENTIFICATION : ON</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Image
+            source={HEATWAVE_ASSETS.sdIcon}
+            style={{ width: 18, height: 18, tintColor: "#d9ffff" }}
+            contentFit="contain"
+          />
+          <Text style={styles.heatwaveFooter}>BIOMETRIC IDENTIFICATION : ON</Text>
+        </View>
+        <Text style={styles.heatwaveFooter}>BODY TEMP DETECTION : ON</Text>
       </View>
-      <Text
-        style={[
-          styles.heatwaveFooter,
-          {
-            position: "absolute",
-            right: Math.max(8, width * 0.04),
-            bottom: Math.max(10, height * 0.025),
-          },
-        ]}
-        pointerEvents="none"
-      >
-        BODY TEMP DETECTION : ON
-      </Text>
     </>
   );
 }

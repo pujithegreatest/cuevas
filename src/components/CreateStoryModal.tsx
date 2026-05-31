@@ -58,7 +58,6 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const FILTERS: { id: StoryFilter; label: string }[] = [
   { id: "none", label: "Original" },
   { id: "neon", label: "Neon" },
-  { id: "heatwave", label: "Heatwave" },
   { id: "hologram", label: "Hologram" },
   { id: "vaporwave", label: "Vaporwave" },
   { id: "infrared", label: "Infrared" },
@@ -163,6 +162,7 @@ export default function CreateStoryModal({
   const voStartTimeRef = useRef<number>(0);
   const voSoundRef = useRef<Audio.Sound | null>(null);
   const voLoadIdRef = useRef(0);
+  const trimSourceFilterRef = useRef<StoryFilter>("none");
   const hasAutoOpenedCameraRef = useRef(false);
   const canvasRef = useRef<View>(null);
   const musicSong = music ? getSongById(music.id) : null;
@@ -585,16 +585,19 @@ export default function CreateStoryModal({
     setCameraVisible(true);
   };
 
-  const handleCameraCapture = (asset: {
+  const handleCameraCapture = async (asset: {
     uri: string;
     type: "image" | "video";
     durationMs?: number;
+    liveFilter?: StoryFilter;
   }) => {
     setCameraVisible(false);
+    trimSourceFilterRef.current = asset.liveFilter || "none";
     if (asset.type === "video") {
       startVideoTrim(asset.uri, asset.durationMs);
     } else {
-      ingestImage(asset.uri);
+      await ingestImage(asset.uri);
+      setFilter(asset.liveFilter || "none");
     }
   };
 
@@ -609,7 +612,8 @@ export default function CreateStoryModal({
     setVideoDurationMs(result.durationMs);
     setVideoTrimStartMs(result.startMs);
     setVideoTrimEndMs(result.endMs);
-    setFilter("none");
+    setFilter(trimSourceFilterRef.current || "none");
+    trimSourceFilterRef.current = "none";
     setOverlays([]);
     setSelectedId(null);
     setTrimSourceUri(null);

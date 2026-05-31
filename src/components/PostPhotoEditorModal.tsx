@@ -40,7 +40,6 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const FILTERS: { id: StoryFilter; label: string }[] = [
   { id: "none", label: "Original" },
   { id: "neon", label: "Neon" },
-  { id: "heatwave", label: "Heatwave" },
   { id: "hologram", label: "Hologram" },
   { id: "vaporwave", label: "Vaporwave" },
   { id: "infrared", label: "Infrared" },

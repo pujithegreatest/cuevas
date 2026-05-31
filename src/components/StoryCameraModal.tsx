@@ -27,6 +27,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "./Ionicons";
+import { HeatwaveHud } from "./StoryFilterCanvas";
+import { StoryFilter } from "../types/story";
 
 interface StoryCameraModalProps {
   visible: boolean;
@@ -35,6 +37,7 @@ interface StoryCameraModalProps {
     uri: string;
     type: "image" | "video";
     durationMs?: number;
+    liveFilter?: StoryFilter;
   }) => void;
   onPickLibrary?: () => void;
 }
@@ -43,6 +46,7 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const MAX_RECORD_MS = 15000;
 const RECORD_BTN_SIZE = 84;
 const RING_SIZE = 104;
+type LiveFilter = "none" | "heatwave";
 
 export default function StoryCameraModal({
   visible,
@@ -55,6 +59,7 @@ export default function StoryCameraModal({
   const [mode, setMode] = useState<CameraMode>("picture");
   const [isRecording, setIsRecording] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
+  const [liveFilter, setLiveFilter] = useState<LiveFilter>("none");
   const [permission, requestPermission] = useCameraPermissions();
   const [micPermission, requestMicPermission] = useMicrophonePermissions();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -101,6 +106,7 @@ export default function StoryCameraModal({
       setIsRecording(false);
       setElapsedMs(0);
       setMode("picture");
+      setLiveFilter("none");
       setErrorMsg(null);
       progress.value = 0;
       redDot.value = 0;
@@ -164,7 +170,11 @@ export default function StoryCameraModal({
         shutterSound: false,
       });
       if (photo?.uri) {
-        onCapture({ uri: photo.uri, type: "image" });
+        onCapture({
+          uri: photo.uri,
+          type: "image",
+          liveFilter: liveFilter === "heatwave" ? "heatwave" : undefined,
+        });
       }
     } catch {
       setErrorMsg("Failed to take photo.");
@@ -272,6 +282,7 @@ export default function StoryCameraModal({
           uri: video.uri,
           type: "video",
           durationMs: finalMs,
+          liveFilter: liveFilter === "heatwave" ? "heatwave" : undefined,
         });
       }
     } catch {
@@ -399,6 +410,22 @@ export default function StoryCameraModal({
                 Grant access
               </Text>
             </Pressable>
+          </View>
+        )}
+
+        {liveFilter === "heatwave" && (
+          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+            <LinearGradient
+              colors={[
+                "rgba(5,8,75,0.40)",
+                "rgba(98,0,170,0.22)",
+                "rgba(255,122,0,0.12)",
+                "rgba(0,216,255,0.10)",
+              ]}
+              locations={[0, 0.42, 0.7, 1]}
+              style={StyleSheet.absoluteFill}
+            />
+            <HeatwaveHud width={SCREEN_W} height={SCREEN_H} />
           </View>
         )}
 
@@ -672,6 +699,84 @@ export default function StoryCameraModal({
               <Text style={{ color: "#ff8080", fontSize: 12, fontWeight: "700" }}>
                 {errorMsg}
               </Text>
+            </View>
+          </View>
+        )}
+
+        {!isRecording && (
+          <View
+            style={{
+              position: "absolute",
+              bottom: 220,
+              left: 18,
+              right: 18,
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                borderRadius: 999,
+                borderWidth: 1,
+                borderColor: "rgba(6,167,161,0.45)",
+                backgroundColor: "rgba(0,0,0,0.48)",
+              }}
+            >
+              <Text
+                style={{
+                  color: "rgba(207,239,236,0.78)",
+                  fontFamily: "Courier",
+                  fontSize: 10,
+                  fontWeight: "900",
+                  letterSpacing: 1.2,
+                }}
+              >
+                LIVE FILTER
+              </Text>
+              <Pressable
+                onPress={() =>
+                  setLiveFilter((current) =>
+                    current === "heatwave" ? "none" : "heatwave"
+                  )
+                }
+                style={({ pressed }) => ({
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 6,
+                  paddingHorizontal: 12,
+                  paddingVertical: 7,
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor:
+                    liveFilter === "heatwave"
+                      ? "#06A7A1"
+                      : "rgba(255,255,255,0.22)",
+                  backgroundColor:
+                    liveFilter === "heatwave"
+                      ? "rgba(6,167,161,0.28)"
+                      : "rgba(255,255,255,0.08)",
+                  opacity: pressed ? 0.72 : 1,
+                })}
+              >
+                <Ionicons
+                  name="flame-outline"
+                  size={14}
+                  color={liveFilter === "heatwave" ? "#06A7A1" : "#CFEFEC"}
+                />
+                <Text
+                  style={{
+                    color: liveFilter === "heatwave" ? "#CFEFEC" : "#9CA3AF",
+                    fontSize: 12,
+                    fontWeight: "900",
+                  }}
+                >
+                  Heatwave
+                </Text>
+              </Pressable>
             </View>
           </View>
         )}

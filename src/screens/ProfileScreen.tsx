@@ -27,6 +27,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PostCard from "../components/PostCard";
 import CommentsModal from "../components/CommentsModal";
 import EditUsernameModal from "../components/EditUsernameModal";
+import BusinessProfileModal from "../components/BusinessProfileModal";
 import { LinearGradient } from "expo-linear-gradient";
 import { formatRelativeTime } from "../utils/linkPreview";
 import { POST_PRIVACY_OPTIONS, getPrivacyOption } from "../utils/privacy";
@@ -221,6 +222,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const [completedMissionsOpen, setCompletedMissionsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [networkOpen, setNetworkOpen] = useState(false);
+  const [businessProfileOpen, setBusinessProfileOpen] = useState(false);
 
   const handle = useMemo(
     () => displayName || (userEmail ? userEmail.split("@")[0] : "guest"),
@@ -898,6 +900,43 @@ export default function ProfileScreen({ navigation }: Props) {
           </View>
 
           <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+            <Pressable
+              onPress={() => setBusinessProfileOpen(true)}
+              style={{
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: "rgba(6,167,161,0.35)",
+                backgroundColor: isDarkMode ? "rgba(6,167,161,0.12)" : "#E8FFFC",
+                padding: 16,
+                marginBottom: 12,
+              }}
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center flex-1">
+                  <View
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 16,
+                      backgroundColor: "#06A7A1",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 12,
+                    }}
+                  >
+                    <Ionicons name="business-outline" size={22} color="#FFFFFF" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className={`font-bold ${textColor}`}>Business Profile</Text>
+                    <Text className={`text-xs mt-1 ${subText}`}>
+                      Create missions, scan QR check-ins, and view live signups.
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons name="log-out-outline" size={22} color="#06A7A1" />
+              </View>
+            </Pressable>
+
             <View className={`rounded-2xl border p-4 ${statBg} ${statBorder}`}>
               <View className="flex-row items-center justify-between mb-3">
                 <View>
@@ -1008,6 +1047,11 @@ export default function ProfileScreen({ navigation }: Props) {
           />
         </View>
       </Modal>
+
+      <BusinessProfileModal
+        visible={businessProfileOpen}
+        onClose={() => setBusinessProfileOpen(false)}
+      />
 
       <Modal
         visible={completedMissionsOpen}

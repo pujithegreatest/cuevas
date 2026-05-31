@@ -8,7 +8,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  InputAccessoryView,
 } from "react-native";
 import { Ionicons } from "./Ionicons";
 import * as ImagePicker from "expo-image-picker";
@@ -43,7 +42,6 @@ export default function CreatePostModal({
   const [editorIndex, setEditorIndex] = useState<number | null>(null);
   const [privacy, setPrivacy] = useState<PrivacyLevel>("public");
   const [privacyFlash, setPrivacyFlash] = useState<string | null>(null);
-  const accessoryId = "create-post-actions";
   const POST_VIDEO_MAX_SECONDS = 15;
   const PICKER_VIDEO_QUALITY = 0.78;
   const PICKER_IMAGE_QUALITY = 0.82;
@@ -563,7 +561,6 @@ export default function CreatePostModal({
                 isDarkMode ? "text-dark-text" : "text-pixel-text"
               }`}
               autoFocus
-              inputAccessoryViewID={Platform.OS === "ios" ? accessoryId : undefined}
             />
 
             {/* Link Preview */}
@@ -755,12 +752,19 @@ export default function CreatePostModal({
             )}
           </ScrollView>
 
-          {/* Android: keep a toolbar at the bottom that KeyboardAvoidingView lifts above keyboard */}
-          {Platform.OS !== "ios" && (
+          {/* Composer media rail: visible by default and lifted above keyboard */}
+          {(
             <View
-              className={`flex-row items-center justify-between px-4 py-3 border-t ${
-                isDarkMode ? "border-gray-700" : "border-gray-200"
-              }`}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                borderTopWidth: 1,
+                borderTopColor: isDarkMode ? "rgba(6,167,161,0.18)" : "rgba(8,25,32,0.08)",
+                backgroundColor: isDarkMode ? "#181818" : "#FFFFFF",
+              }}
             >
               <View className="flex-row items-center">
                 <Pressable onPress={handlePickMedia} className="mr-5">
@@ -817,44 +821,6 @@ export default function CreatePostModal({
           setEditorIndex(null);
         }}
       />
-
-      {/* iOS: Twitter-style toolbar pinned above the keyboard */}
-      {Platform.OS === "ios" && (
-        <InputAccessoryView nativeID={accessoryId}>
-          <View
-            className={`flex-row items-center justify-between px-4 py-3 border-t ${
-              isDarkMode ? "border-gray-700 bg-dark-bg" : "border-gray-200 bg-white"
-            }`}
-          >
-            <View className="flex-row items-center">
-              <Pressable onPress={handlePickMedia} className="mr-5">
-                <Ionicons
-                  name="image-outline"
-                  size={24}
-                  color={isDarkMode ? "#06A7A1" : "#06A7A1"}
-                />
-              </Pressable>
-              <Pressable onPress={handleOpenCamera}>
-                <Ionicons
-                  name="camera-outline"
-                  size={24}
-                  color={isDarkMode ? "#06A7A1" : "#06A7A1"}
-                />
-              </Pressable>
-              <Pressable onPress={handlePickAudio} className="ml-5">
-                <Ionicons
-                  name="musical-notes"
-                  size={24}
-                  color={isDarkMode ? "#06A7A1" : "#06A7A1"}
-                />
-              </Pressable>
-            </View>
-            <Text className={`${isDarkMode ? "text-gray-400" : "text-gray-500"} text-xs`}>
-              {selectedAudio ? "Audio attached" : media.length > 0 ? `Change media (≤${POST_VIDEO_MAX_SECONDS}s)` : "Add media/audio"}
-            </Text>
-          </View>
-        </InputAccessoryView>
-      )}
     </Modal>
   );
 }
