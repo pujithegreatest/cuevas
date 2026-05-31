@@ -9,16 +9,18 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
 import { useAppStore } from "../state/appStore";
-import { loginToEcothot, loginWithGoogle } from "../api/ecothot-auth";
+import { loginToEcothot, loginWithGoogle, signupToCuevas } from "../api/ecothot-auth";
 import * as Google from "expo-auth-session/providers/google";
-import { makeRedirectUri } from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { Ionicons } from "../components/Ionicons";
 import Constants from "expo-constants";
+import { LinearGradient } from "expo-linear-gradient";
+import { Image } from "expo-image";
 
 // Required for Google auth to work properly on web
 WebBrowser.maybeCompleteAuthSession();
@@ -229,12 +231,16 @@ function GoogleAuthButton({
 }
 
 export default function LoginScreen({ navigation }: Props) {
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [displayName, setDisplayNameInput] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const login = useAppStore((s) => s.login);
+  const setDisplayName = useAppStore((s) => s.setDisplayName);
   const setRewardsBalance = useAppStore((s) => s.setRewardsBalance);
   const isDarkMode = useAppStore((s) => s.isDarkMode);
 
@@ -243,31 +249,50 @@ export default function LoginScreen({ navigation }: Props) {
     login(userEmail);
   };
 
-  const handleLogin = async () => {
+  const handleSubmit = async () => {
     setError("");
 
-    // Basic validation
+    const normalizedEmail = email.trim().toLowerCase();
+
     if (!email || !password) {
       setError("Please enter both email and password");
       return;
+    }
+    if (!normalizedEmail.includes("@")) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    if (mode === "signup") {
+      if (!displayName.trim()) {
+        setError("Choose a display name");
+        return;
+      }
+      if (password.length < 6) {
+        setError("Password must be at least 6 characters");
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError("Passwords do not match");
+        return;
+      }
     }
 
     setIsLoading(true);
 
     try {
-      // Call the Ecothot API
-      const response = await loginToEcothot(email, password);
+      const response =
+        mode === "signup"
+          ? await signupToCuevas(normalizedEmail, password, displayName)
+          : await loginToEcothot(normalizedEmail, password);
 
       if (response.success && response.cuevas !== undefined) {
-        // Set the balance from the API response
         setRewardsBalance(response.cuevas);
-
-        // Log the user in - this will automatically trigger navigation
-        // via conditional rendering in RootNavigator
-        login(email);
+        if (response.displayName || displayName.trim()) {
+          setDisplayName(response.displayName || displayName.trim());
+        }
+        login(normalizedEmail);
       } else {
-        // Show error message from API
-        setError(response.error || "Login failed. Please try again.");
+        setError(response.error || `${mode === "signup" ? "Sign up" : "Login"} failed. Please try again.`);
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -276,157 +301,259 @@ export default function LoginScreen({ navigation }: Props) {
     }
   };
 
+  const isSignup = mode === "signup";
+  const textColor = isDarkMode ? "#CFEFEC" : "#10252B";
+  const mutedColor = isDarkMode ? "#9CA3AF" : "#5F6B73";
+  const fieldBg = isDarkMode ? "rgba(9, 24, 30, 0.92)" : "rgba(255,255,255,0.92)";
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1"
+      <LinearGradient
+        colors={isDarkMode ? ["#061116", "#081920", "#0A0A0A"] : ["#CFEFEC", "#F7FFFF"]}
+        style={{ flex: 1 }}
       >
-        <View
-          className={`flex-1 px-6 justify-center ${
-            isDarkMode ? "bg-dark-bg" : "bg-pixel-bg"
-          }`}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
         >
-          {/* Title */}
-          <View className="items-center mb-12">
-            <Text
-              className={`text-4xl font-bold mb-2 font-pixel ${
-                isDarkMode ? "text-dark-text" : "text-pixel-text"
-              }`}
-              style={{ fontFamily: "Courier New" }}
-            >
-              ECOTHOT
-            </Text>
-            <Text
-              className={`text-lg ${
-                isDarkMode ? "text-dark-accent" : "text-pixel-teal"
-              }`}
-              style={{ fontFamily: "Courier New" }}
-            >
-              Rewards Login
-            </Text>
-          </View>
-
-          {/* Email Input */}
-          <View className="mb-4">
-            <Text
-              className={`text-sm mb-2 ${
-                isDarkMode ? "text-dark-text" : "text-pixel-black"
-              }`}
-              style={{ fontFamily: "Courier New" }}
-            >
-              EMAIL
-            </Text>
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="your@email.com"
-              placeholderTextColor={isDarkMode ? "#666" : "#999"}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              className={`border-2 px-4 py-3 text-base ${
-                isDarkMode
-                  ? "bg-dark-surface border-dark-accent text-dark-text"
-                  : "bg-white border-pixel-black text-pixel-black"
-              }`}
-              style={{ fontFamily: "Courier New" }}
-            />
-          </View>
-
-          {/* Password Input */}
-          <View className="mb-6">
-            <Text
-              className={`text-sm mb-2 ${
-                isDarkMode ? "text-dark-text" : "text-pixel-black"
-              }`}
-              style={{ fontFamily: "Courier New" }}
-            >
-              PASSWORD
-            </Text>
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              placeholder="••••••••"
-              placeholderTextColor={isDarkMode ? "#666" : "#999"}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              className={`border-2 px-4 py-3 text-base ${
-                isDarkMode
-                  ? "bg-dark-surface border-dark-accent text-dark-text"
-                  : "bg-white border-pixel-black text-pixel-black"
-              }`}
-              style={{ fontFamily: "Courier New" }}
-            />
-          </View>
-
-          {/* Error Message */}
-          {error ? (
-            <View className="mb-4 p-4 bg-red-100 border-2 border-red-500">
-              <Text
-                className="text-red-700 text-sm font-bold mb-1"
-                style={{ fontFamily: "Courier New" }}
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 24, paddingVertical: 46 }}
+          >
+            <View style={{ alignItems: "center", marginBottom: 24 }}>
+              <View
+                style={{
+                  width: 86,
+                  height: 86,
+                  borderRadius: 30,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "rgba(6,167,161,0.16)",
+                  borderWidth: 1,
+                  borderColor: "rgba(6,167,161,0.46)",
+                  shadowColor: "#06A7A1",
+                  shadowOpacity: 0.36,
+                  shadowRadius: 18,
+                }}
               >
-                ERROR
+                <Image source={require("../../assets/coin.gif")} style={{ width: 58, height: 58 }} contentFit="contain" />
+              </View>
+              <Text
+                style={{
+                  color: textColor,
+                  fontFamily: "Courier New",
+                  fontSize: 44,
+                  fontWeight: "900",
+                  letterSpacing: 3,
+                  marginTop: 16,
+                }}
+              >
+                CUEVAS
               </Text>
               <Text
-                className="text-red-700 text-xs"
-                style={{ fontFamily: "Courier New" }}
+                style={{
+                  color: "#06A7A1",
+                  fontFamily: "Courier New",
+                  fontSize: 13,
+                  fontWeight: "900",
+                  letterSpacing: 2,
+                  marginTop: 4,
+                }}
               >
-                {error}
+                {isSignup ? "CREATE YOUR REWARD ID" : "REWARDS LOGIN"}
               </Text>
             </View>
-          ) : null}
 
-          {/* Login Button */}
-          <Pressable
-            onPress={handleLogin}
-            disabled={isLoading}
-            className={`py-4 px-6 border-2 items-center ${
-              isLoading
-                ? isDarkMode
-                  ? "bg-dark-surface border-gray-600"
-                  : "bg-gray-300 border-gray-400"
-                : isDarkMode
-                ? "bg-dark-accent border-dark-accent"
-                : "bg-pixel-teal border-pixel-black"
-            }`}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <Text
-              className={`text-lg font-bold ${
-                isLoading ? "text-gray-500" : "text-white"
-              }`}
-              style={{ fontFamily: "Courier New" }}
+            <View
+              style={{
+                borderRadius: 30,
+                borderWidth: 1,
+                borderColor: "rgba(6,167,161,0.36)",
+                backgroundColor: isDarkMode ? "rgba(7,18,23,0.88)" : "rgba(255,255,255,0.76)",
+                padding: 18,
+                shadowColor: "#06A7A1",
+                shadowOpacity: isDarkMode ? 0.22 : 0.14,
+                shadowRadius: 18,
+              }}
             >
-              {isLoading ? "LOGGING IN..." : "LOGIN"}
-            </Text>
-          </Pressable>
+              <View style={{ flexDirection: "row", padding: 4, backgroundColor: isDarkMode ? "#061116" : "#E8FFFC", borderRadius: 999, marginBottom: 18 }}>
+                {(["login", "signup"] as const).map((item) => {
+                  const active = mode === item;
+                  return (
+                    <Pressable
+                      key={item}
+                      onPress={() => {
+                        setMode(item);
+                        setError("");
+                      }}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 11,
+                        borderRadius: 999,
+                        alignItems: "center",
+                        backgroundColor: active ? "#06A7A1" : "transparent",
+                      }}
+                    >
+                      <Text style={{ color: active ? "#FFFFFF" : mutedColor, fontFamily: "Courier New", fontWeight: "900" }}>
+                        {item === "login" ? "SIGN IN" : "SIGN UP"}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
 
-          {/* Google Sign-In */}
-          <GoogleAuthButton
-            isDarkMode={isDarkMode}
-            isLoading={isLoading}
-            onLoginSuccess={handleGoogleLoginSuccess}
-            onError={setError}
-          />
+              {isSignup ? (
+                <View style={{ marginBottom: 14 }}>
+                  <Text style={{ color: textColor, fontFamily: "Courier New", fontSize: 12, fontWeight: "900", marginBottom: 7 }}>
+                    DISPLAY NAME
+                  </Text>
+                  <TextInput
+                    value={displayName}
+                    onChangeText={setDisplayNameInput}
+                    placeholder="pujiedits"
+                    placeholderTextColor={isDarkMode ? "#66777A" : "#8A9A9D"}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    style={{
+                      borderWidth: 1,
+                      borderColor: "rgba(6,167,161,0.45)",
+                      borderRadius: 16,
+                      paddingHorizontal: 14,
+                      paddingVertical: 13,
+                      color: textColor,
+                      backgroundColor: fieldBg,
+                      fontFamily: "Courier New",
+                      fontSize: 15,
+                    }}
+                  />
+                </View>
+              ) : null}
 
-          {/* Info Text */}
-          <View className="mt-8 items-center">
-            <Text
-              className={`text-xs text-center ${
-                isDarkMode ? "text-gray-400" : "text-pixel-black"
-              }`}
-              style={{ fontFamily: "Courier New" }}
-            >
-              Login with your ecothot.com credentials
-            </Text>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
+              <View style={{ marginBottom: 14 }}>
+                <Text style={{ color: textColor, fontFamily: "Courier New", fontSize: 12, fontWeight: "900", marginBottom: 7 }}>
+                  EMAIL
+                </Text>
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="your@email.com"
+                  placeholderTextColor={isDarkMode ? "#66777A" : "#8A9A9D"}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  style={{
+                    borderWidth: 1,
+                    borderColor: "rgba(6,167,161,0.45)",
+                    borderRadius: 16,
+                    paddingHorizontal: 14,
+                    paddingVertical: 13,
+                    color: textColor,
+                    backgroundColor: fieldBg,
+                    fontFamily: "Courier New",
+                    fontSize: 15,
+                  }}
+                />
+              </View>
+
+              <View style={{ marginBottom: isSignup ? 14 : 18 }}>
+                <Text style={{ color: textColor, fontFamily: "Courier New", fontSize: 12, fontWeight: "900", marginBottom: 7 }}>
+                  PASSWORD
+                </Text>
+                <TextInput
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="••••••••"
+                  placeholderTextColor={isDarkMode ? "#66777A" : "#8A9A9D"}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  style={{
+                    borderWidth: 1,
+                    borderColor: "rgba(6,167,161,0.45)",
+                    borderRadius: 16,
+                    paddingHorizontal: 14,
+                    paddingVertical: 13,
+                    color: textColor,
+                    backgroundColor: fieldBg,
+                    fontFamily: "Courier New",
+                    fontSize: 15,
+                  }}
+                />
+              </View>
+
+              {isSignup ? (
+                <View style={{ marginBottom: 18 }}>
+                  <Text style={{ color: textColor, fontFamily: "Courier New", fontSize: 12, fontWeight: "900", marginBottom: 7 }}>
+                    CONFIRM PASSWORD
+                  </Text>
+                  <TextInput
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="••••••••"
+                    placeholderTextColor={isDarkMode ? "#66777A" : "#8A9A9D"}
+                    secureTextEntry
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    style={{
+                      borderWidth: 1,
+                      borderColor: "rgba(6,167,161,0.45)",
+                      borderRadius: 16,
+                      paddingHorizontal: 14,
+                      paddingVertical: 13,
+                      color: textColor,
+                      backgroundColor: fieldBg,
+                      fontFamily: "Courier New",
+                      fontSize: 15,
+                    }}
+                  />
+                </View>
+              ) : null}
+
+              {error ? (
+                <View style={{ marginBottom: 14, padding: 12, borderRadius: 16, backgroundColor: "rgba(128,23,31,0.16)", borderWidth: 1, borderColor: "#80171F" }}>
+                  <Text style={{ color: "#FF6B72", fontFamily: "Courier New", fontSize: 12, fontWeight: "900", marginBottom: 4 }}>
+                    ERROR
+                  </Text>
+                  <Text style={{ color: "#FFB4B8", fontFamily: "Courier New", fontSize: 12 }}>
+                    {error}
+                  </Text>
+                </View>
+              ) : null}
+
+              <Pressable
+                onPress={handleSubmit}
+                disabled={isLoading}
+                style={({ pressed }) => ({
+                  borderRadius: 18,
+                  paddingVertical: 15,
+                  alignItems: "center",
+                  backgroundColor: isLoading ? "rgba(6,167,161,0.34)" : "#06A7A1",
+                  borderWidth: 1,
+                  borderColor: "#39D8D0",
+                  opacity: pressed || isLoading ? 0.72 : 1,
+                })}
+              >
+                <Text style={{ color: "#FFFFFF", fontFamily: "Courier New", fontSize: 16, fontWeight: "900", letterSpacing: 1 }}>
+                  {isLoading ? (isSignup ? "CREATING..." : "SIGNING IN...") : isSignup ? "CREATE ACCOUNT" : "SIGN IN"}
+                </Text>
+              </Pressable>
+
+              <GoogleAuthButton
+                isDarkMode={isDarkMode}
+                isLoading={isLoading}
+                onLoginSuccess={handleGoogleLoginSuccess}
+                onError={setError}
+              />
+
+              <Text style={{ color: mutedColor, fontFamily: "Courier New", fontSize: 11, textAlign: "center", lineHeight: 16, marginTop: 4 }}>
+                {isSignup
+                  ? "Create a Cuevas account for rewards, missions, posts, and wallet sync."
+                  : "Use Cuevas credentials or Google to access rewards."}
+              </Text>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </LinearGradient>
     </TouchableWithoutFeedback>
   );
 }

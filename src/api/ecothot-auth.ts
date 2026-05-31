@@ -7,6 +7,10 @@ interface LoginRequest {
   password: string;
 }
 
+interface SignupRequest extends LoginRequest {
+  displayName: string;
+}
+
 interface GoogleLoginRequest {
   clientKey: string;
   email: string;
@@ -16,11 +20,12 @@ interface GoogleLoginRequest {
 interface LoginResponse {
   success: boolean;
   cuevas?: number;
+  displayName?: string;
   error?: string;
 }
 
 /**
- * Login to Ecothot API
+ * Login to Cuevas API
  * @param email - User's email
  * @param password - User's password
  * @returns LoginResponse object with success status and balance or error
@@ -108,6 +113,7 @@ export async function loginToEcothot(
       return {
         success: true,
         cuevas: data.cuevas,
+        displayName: data.displayName,
       };
     } else {
       return {
@@ -134,8 +140,77 @@ export async function loginToEcothot(
   }
 }
 
+export async function signupToCuevas(
+  email: string,
+  password: string,
+  displayName: string
+): Promise<LoginResponse> {
+  try {
+    if (!CUEVAS_CLIENT_KEY) {
+      return {
+        success: false,
+        error: "Configuration error: Missing client key. Please restart the app.",
+      };
+    }
+
+    const requestBody: SignupRequest = {
+      clientKey: CUEVAS_CLIENT_KEY,
+      email,
+      password,
+      displayName,
+    };
+
+    const response = await fetch("https://www.ecothot.com/_functions/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    const responseText = await response.text();
+    let data: any = {};
+    if (responseText && responseText.trim()) {
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        return {
+          success: false,
+          error: `Invalid server response (${response.status}). Please try again.`,
+        };
+      }
+    }
+
+    if (!response.ok || !data.success) {
+      return {
+        success: false,
+        error: data.error || `Server error (${response.status})`,
+      };
+    }
+
+    return {
+      success: true,
+      cuevas: data.cuevas,
+      displayName: data.displayName,
+    };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("Network request failed")) {
+      return {
+        success: false,
+        error: "No internet connection. Please check your network.",
+      };
+    }
+
+    return {
+      success: false,
+      error: "Unable to connect to server. Please try again.",
+    };
+  }
+}
+
 /**
- * Login to Ecothot API using Google authentication
+ * Login to Cuevas API using Google authentication
  * @param email - User's Google email
  * @param googleToken - Google ID token
  * @returns LoginResponse object with success status and balance or error
@@ -216,6 +291,7 @@ export async function loginWithGoogle(
       return {
         success: true,
         cuevas: data.cuevas,
+        displayName: data.displayName,
       };
     } else {
       return {

@@ -5,7 +5,7 @@ import { elevate } from "wix-auth";
 import wixSecretsBackend from "wix-secrets-backend";
 import { accounts as loyaltyAccounts } from "wix-loyalty.v2";
 import { getCyberneticPosts, createCyberneticPost } from "backend/posts";
-import { getUserByEmail, syncMemberPointsToFirebase } from "backend/firebase";
+import { createCuevasAppUser, getUserByEmail, syncMemberPointsToFirebase } from "backend/firebase";
 // Wallet generation deps (must be installed in Wix Velo Package Manager too):
 // - jszip
 // - node-forge
@@ -19,6 +19,7 @@ import forge from "node-forge";
  *
  * Endpoints:
  * - POST /_functions/login           -> email/password or Google login
+ * - POST /_functions/signup          -> Cuevas app email/password signup
  * - POST /_functions/googleLogin     -> alias to login
  * - GET  /_functions/posts
  * - POST /_functions/posts
@@ -36,7 +37,7 @@ const jsonHeaders = {
 // -------------------- VERSION MARKER (confirm deploy) --------------------
 // Change this string whenever you paste/publish so Wix logs prove the running version.
 // Bump this whenever you paste into Wix and Publish, so logs prove which version is live.
-const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1.uploadFolders.v4";
+const BUILD_TAG = "http-functions.login.loyaltypoints.v1.upload.mimeTypeString.v2.walletLinks.v2.pkpass.v1.googleWallet.v1.postsPrivacyAudio.v1.uploadFolders.v4.signup.v1";
 
 // Coin icon provided by you (embedded so the pkpass is self-contained).
 // You can also override with a Wix Secret: WALLET_COIN_ICON_PNG_BASE64.
@@ -563,6 +564,30 @@ async function validateRequest(body) {
   } catch (err) {
     return { valid: false, error: "Invalid JSON body" };
   }
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function normalizeDisplayName(value, email) {
+  const trimmed = String(value || "").trim();
+  return trimmed || normalizeEmail(email).split("@")[0] || "Cuevas Member";
+}
+
+async function hashCuevasPassword(email, password) {
+  const pepper = await wixSecretsBackend.getSecret("CUEVAS_CLIENT_KEY");
+  return crypto
+    .createHash("sha256")
+    .update(`${normalizeEmail(email)}:${String(password || "")}:${pepper || ""}`)
+    .digest("hex");
+}
+
+async function verifyCuevasPassword(user, email, password) {
+  if (!user?.passwordHash) return true;
+  if (!password) return false;
+  const expected = await hashCuevasPassword(email, password);
+  return expected === user.passwordHash;
 }
 
 // ==================== WALLET (APPLE / GOOGLE) ====================
@@ -1110,7 +1135,8 @@ export async function get_walletPass(request) {
 }
 
 // --- LOGIN LOGIC (matches your working version) ---
-async function handleLoginLogic(email) {
+async function handleLoginLogic(email, auth = {}) {
+  email = normalizeEmail(email);
   if (!email) return badRequest({ headers, body: { success: false, error: "Email is required" } });
   console.log(`[LOGIN] Attempting login for: ${email}`);
 
@@ -1215,6 +1241,20 @@ async function handleLoginLogic(email) {
       }
     }
 
+    if (user?.passwordHash && !auth.googleToken) {
+      const passwordOk = await verifyCuevasPassword(user, email, auth.password);
+      if (!passwordOk) {
+        return forbidden({
+          headers,
+          body: {
+            success: false,
+            code: "INVALID_CREDENTIALS",
+            error: "Incorrect email or password.",
+          },
+        });
+      }
+    }
+
     if (!user) {
       return notFound({
         headers,
@@ -1231,6 +1271,7 @@ async function handleLoginLogic(email) {
       body: {
         success: true,
         email: user.email,
+        displayName: user.displayName || normalizeDisplayName("", user.email || email),
         wixMemberId: user.wixMemberId,
         cuevas: points ?? 0,
         loyaltypoints: points ?? 0,
@@ -1260,9 +1301,90 @@ export async function post_login(request) {
     const { valid, error } = await validateRequest(body);
     if (!valid) return forbidden({ headers, body: { success: false, error } });
 
-    return await handleLoginLogic(body.email);
+    return await handleLoginLogic(body.email, {
+      password: body.password,
+      googleToken: body.googleToken,
+    });
   } catch (err) {
     console.error("[LOGIN] Error:", err);
+    return serverError({
+      headers,
+      body: { success: false, error: err?.message || String(err) },
+    });
+  }
+}
+
+// POST /_functions/signup
+export async function post_signup(request) {
+  try {
+    console.log("[SIGNUP] build:", BUILD_TAG);
+    const { body } = await parseJsonBody(request, "SIGNUP");
+    if (!body) return badRequest({ headers, body: { success: false, error: "Body must be JSON" } });
+
+    const { valid, error } = await validateRequest(body);
+    if (!valid) return forbidden({ headers, body: { success: false, error } });
+
+    const email = normalizeEmail(body.email);
+    const password = String(body.password || "");
+    const displayName = normalizeDisplayName(body.displayName, email);
+
+    if (!email || !email.includes("@")) {
+      return badRequest({ headers, body: { success: false, error: "Valid email is required" } });
+    }
+    if (password.length < 6) {
+      return badRequest({ headers, body: { success: false, error: "Password must be at least 6 characters" } });
+    }
+
+    const existing = await getUserByEmail(email);
+    if (existing) {
+      return badRequest({
+        headers,
+        body: {
+          success: false,
+          code: "USER_EXISTS",
+          error: "That email already has a Cuevas account. Log in instead.",
+        },
+      });
+    }
+
+    const wixUserQuery = await wixData
+      .query("Members/PrivateMembersData")
+      .eq("loginEmail", email)
+      .find({ suppressAuth: true });
+    if (wixUserQuery.items.length > 0) {
+      return badRequest({
+        headers,
+        body: {
+          success: false,
+          code: "USER_EXISTS",
+          error: "That email is already registered on ecothot.com. Log in instead.",
+        },
+      });
+    }
+
+    const memberId = `cuevas_${sha1Hex(email).slice(0, 24)}`;
+    const passwordHash = await hashCuevasPassword(email, password);
+    await createCuevasAppUser({
+      memberId,
+      email,
+      displayName,
+      passwordHash,
+      loyaltyPoints: 0,
+    });
+
+    return ok({
+      headers,
+      body: {
+        success: true,
+        email,
+        displayName,
+        wixMemberId: memberId,
+        cuevas: 0,
+        loyaltypoints: 0,
+      },
+    });
+  } catch (err) {
+    console.error("[SIGNUP] Error:", err);
     return serverError({
       headers,
       body: { success: false, error: err?.message || String(err) },
@@ -1279,12 +1401,18 @@ export async function post_googleLogin(request) {
 export async function use_login(request) {
   return post_login(request);
 }
+export async function use_signup(request) {
+  return post_signup(request);
+}
 export async function use_googleLogin(request) {
   return post_login(request);
 }
 
 // OPTIONS handlers for CORS preflight
 export async function options_login() {
+  return ok({ headers: jsonHeaders, body: { success: true } });
+}
+export async function options_signup() {
   return ok({ headers: jsonHeaders, body: { success: true } });
 }
 export async function options_googleLogin() {
