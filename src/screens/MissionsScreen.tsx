@@ -44,7 +44,7 @@ const fallbackMissions: CuevasMission[] = [
     type: "One time",
     description: "Join the Cuevas crew for a neighborhood reset: supplies, sorting, park support, and positive energy.",
     difficulty: "Easy",
-    peopleNeeded: "12 ppl",
+    peopleNeeded: 12,
     gearProvided: true,
     materialsNote: "Cleanup kits provided.",
     businessName: "Cuevas Civic Lab",
@@ -62,7 +62,7 @@ const fallbackMissions: CuevasMission[] = [
     type: "Recurring",
     description: "Scan in, grab a cleanup kit, and help restore high-traffic blocks with the weekly eco squad.",
     difficulty: "Medium",
-    peopleNeeded: "20 ppl",
+    peopleNeeded: 20,
     gearProvided: true,
     materialsNote: "Gloves and bags provided.",
     businessName: "Downtown Green Grid",
@@ -80,7 +80,7 @@ const fallbackMissions: CuevasMission[] = [
     type: "Weekly",
     description: "Assist with meal prep, packing, and guest service during a high-impact community dinner window.",
     difficulty: "High impact",
-    peopleNeeded: "6 ppl",
+    peopleNeeded: 6,
     gearProvided: false,
     materialsNote: "Bring closed-toe shoes.",
     businessName: "Hope Table",
@@ -98,7 +98,7 @@ const fallbackMissions: CuevasMission[] = [
     type: "One time",
     description: "Volunteer at water stations, check-in, or finish-line support for a charity race activation.",
     difficulty: "Medium",
-    peopleNeeded: "18 ppl",
+    peopleNeeded: 18,
     gearProvided: true,
     materialsNote: "Volunteer shirt provided.",
     businessName: "Riverfront Cure Run",
@@ -116,7 +116,7 @@ const fallbackMissions: CuevasMission[] = [
     type: "Monthly",
     description: "Sort donated food, prepare shelf zones, and help make pickup smoother for local families.",
     difficulty: "Easy",
-    peopleNeeded: "8 ppl",
+    peopleNeeded: 8,
     gearProvided: true,
     materialsNote: "All materials on site.",
     businessName: "Northside Pantry",
@@ -134,7 +134,7 @@ const fallbackMissions: CuevasMission[] = [
     type: "Recurring",
     description: "Help neighbors with phone setup, email basics, and safe app usage in a friendly drop-in session.",
     difficulty: "Medium",
-    peopleNeeded: "5 ppl",
+    peopleNeeded: 5,
     gearProvided: false,
     materialsNote: "Bring your own laptop if possible.",
     businessName: "Community Library",
@@ -154,7 +154,7 @@ const completedMissions: CuevasMission[] = [
     type: "One time",
     description: "Delivered cleanup supplies and logged the first Cuevas service checkpoint for the demo profile.",
     difficulty: "Easy",
-    peopleNeeded: "3 ppl",
+    peopleNeeded: 3,
     gearProvided: true,
     materialsNote: "Proof upload demo.",
     businessName: "Cuevas Civic Lab",
@@ -173,6 +173,12 @@ function parseMissionStart(mission: CuevasMission) {
     return fallback;
   }
   return parsed;
+}
+
+function formatPeopleNeeded(value: CuevasMission["peopleNeeded"]) {
+  const count = Number(value);
+  if (Number.isFinite(count) && count > 0) return `${count} ppl`;
+  return value || "Open crew";
 }
 
 async function getWritableCuevasCalendarId() {
@@ -325,7 +331,7 @@ function MissionCard({
           { icon: mission.type === "Recurring" ? "repeat-outline" : "radio-button-on-outline", label: mission.type },
           { icon: "shield-check", label: mission.difficulty },
           { icon: "people-outline", label: `${mission.goingCount || 0} going` },
-          { icon: "person-add-outline", label: mission.peopleNeeded || "Open crew" },
+          { icon: "person-add-outline", label: formatPeopleNeeded(mission.peopleNeeded) },
           { icon: mission.gearProvided ? "checkmark-circle" : "briefcase", label: mission.gearProvided ? "Gear provided" : "Bring gear" },
         ].map((item) => (
           <View

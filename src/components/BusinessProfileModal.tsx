@@ -10,6 +10,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -35,6 +36,26 @@ type BusinessTab = "profile" | "create" | "active" | "submissions";
 const typeOptions: CreateMissionInput["type"][] = ["One time", "Recurring", "Weekly", "Monthly"];
 const difficultyOptions: CreateMissionInput["difficulty"][] = ["Easy", "Medium", "High impact"];
 const durationOptions = [1, 2, 3, 4];
+
+function defaultMissionDate() {
+  const next = new Date();
+  next.setDate(next.getDate() + 7);
+  next.setHours(12, 0, 0, 0);
+  return next;
+}
+
+function formatDatePart(date: Date) {
+  return date.toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" });
+}
+
+function formatTimePart(date: Date) {
+  return date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+function normalizedPeopleNeeded(value: string) {
+  const count = Number(String(value || "").replace(/[^\d]/g, ""));
+  return Number.isFinite(count) && count > 0 ? count : 1;
+}
 
 function slugHandle(value: string) {
   return String(value || "cuevas-business")
@@ -167,9 +188,10 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-  const [eventDate, setEventDate] = useState("");
+  const [eventDateTime, setEventDateTime] = useState<Date>(() => defaultMissionDate());
+  const [datePickerMode, setDatePickerMode] = useState<"date" | "time" | null>(null);
   const [durationHours, setDurationHours] = useState(1);
-  const [peopleNeeded, setPeopleNeeded] = useState("4 ppl");
+  const [peopleNeeded, setPeopleNeeded] = useState("4");
   const [materialsNote, setMaterialsNote] = useState("Materials provided on site.");
   const [type, setType] = useState<CreateMissionInput["type"]>("One time");
   const [difficulty, setDifficulty] = useState<CreateMissionInput["difficulty"]>("Easy");
@@ -245,8 +267,8 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
   };
 
   const submitMission = async () => {
-    if (!title.trim() || !description.trim() || !location.trim() || !eventDate.trim()) {
-      setStatus("Fill event name, description, location, and date.");
+    if (!title.trim() || !description.trim() || !location.trim()) {
+      setStatus("Fill event name, description, and location.");
       return;
     }
     setIsSubmitting(true);
@@ -256,12 +278,12 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
         title: title.trim(),
         description: description.trim(),
         location: location.trim(),
-        eventDate: eventDate.trim(),
+        eventDate: eventDateTime.toISOString(),
         durationHours,
         type,
         difficulty,
         points: durationHours * 100,
-        peopleNeeded: peopleNeeded.trim() || "Open crew",
+        peopleNeeded: normalizedPeopleNeeded(peopleNeeded),
         gearProvided,
         materialsNote: materialsNote.trim(),
         businessName: businessName.trim() || `${handle} Lab`,
@@ -273,9 +295,9 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
       setTitle("");
       setDescription("");
       setLocation("");
-      setEventDate("");
+      setEventDateTime(defaultMissionDate());
       setDurationHours(1);
-      setPeopleNeeded("4 ppl");
+      setPeopleNeeded("4");
       setStatus("Mission published to the Cuevas civic grid.");
       setActiveTab("active");
     } catch (error) {
@@ -283,6 +305,21 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDateTimeChange = (_event: unknown, selectedDate?: Date) => {
+    const mode = datePickerMode;
+    if (Platform.OS !== "ios") setDatePickerMode(null);
+    if (!mode || !selectedDate) return;
+    setEventDateTime((current) => {
+      const next = new Date(current);
+      if (mode === "date") {
+        next.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+      } else {
+        next.setHours(selectedDate.getHours(), selectedDate.getMinutes(), 0, 0);
+      }
+      return next;
+    });
   };
 
   const checkInEmail = async (mission: CuevasMission, emailInput: string) => {
@@ -471,7 +508,54 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
       <Field label="Event name" value={title} onChangeText={setTitle} placeholder="Community Cleanup" />
       <Field label="Description" value={description} onChangeText={setDescription} placeholder="Short mission preview for users." multiline />
       <Field label="Location" value={location} onChangeText={setLocation} placeholder="Downtown Trail Loop" />
-      <Field label="Date / time" value={eventDate} onChangeText={setEventDate} placeholder="June 15, 2026 11:00 AM" />
+      <View style={{ marginBottom: 12 }}>
+        <Text style={{ color: "#9CA3AF", fontSize: 11, fontWeight: "900", letterSpacing: 1.3, marginBottom: 6 }}>
+          Date / time
+        </Text>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          {[
+            { mode: "date" as const, icon: "calendar-outline" as const, label: formatDatePart(eventDateTime) },
+            { mode: "time" as const, icon: "time-outline" as const, label: formatTimePart(eventDateTime) },
+          ].map((item) => (
+            <Pressable
+              key={item.mode}
+              onPress={() => setDatePickerMode(item.mode)}
+              style={{
+                flex: 1,
+                minHeight: 48,
+                borderRadius: 18,
+                borderWidth: 1,
+                borderColor: datePickerMode === item.mode ? "#06A7A1" : "rgba(6,167,161,0.34)",
+                backgroundColor: "rgba(255,255,255,0.06)",
+                paddingHorizontal: 14,
+                flexDirection: "row",
+                alignItems: "center",
+              }}
+            >
+              <Ionicons name={item.icon} size={17} color="#06A7A1" />
+              <Text style={{ color: "#CFEFEC", fontWeight: "900", fontSize: 12, marginLeft: 8, flex: 1 }}>
+                {item.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        {datePickerMode ? (
+          <View style={{ marginTop: 8 }}>
+            <DateTimePicker
+              value={eventDateTime}
+              mode={datePickerMode}
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={handleDateTimeChange}
+              themeVariant="dark"
+            />
+            {Platform.OS === "ios" ? (
+              <Pressable onPress={() => setDatePickerMode(null)} style={{ alignSelf: "flex-end", paddingVertical: 6, paddingHorizontal: 12 }}>
+                <Text style={{ color: "#06A7A1", fontWeight: "900" }}>Done</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
       <View style={{ marginBottom: 12 }}>
         <Text style={{ color: "#9CA3AF", fontSize: 11, fontWeight: "900", letterSpacing: 1.3, marginBottom: 6 }}>
           Service duration · 100 Cuevas per hour
@@ -500,7 +584,7 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
           })}
         </View>
       </View>
-      <Field label="People needed" value={peopleNeeded} onChangeText={setPeopleNeeded} placeholder="4 ppl" />
+      <Field label="People needed" value={peopleNeeded} onChangeText={setPeopleNeeded} placeholder="4" keyboardType="number-pad" />
       <OptionRow label="Mission type" options={typeOptions} value={type} onChange={setType} />
       <OptionRow label="Difficulty" options={difficultyOptions} value={difficulty} onChange={setDifficulty} />
       <Pressable

@@ -15,7 +15,7 @@ export interface CuevasMission {
   type: MissionType;
   description: string;
   difficulty: MissionDifficulty;
-  peopleNeeded?: string;
+  peopleNeeded?: number | string;
   gearProvided?: boolean;
   materialsNote?: string;
   businessName?: string;
@@ -34,7 +34,7 @@ export interface CreateMissionInput {
   type: MissionType;
   difficulty: MissionDifficulty;
   points: number;
-  peopleNeeded: string;
+  peopleNeeded: number;
   gearProvided: boolean;
   materialsNote?: string;
   businessName: string;
@@ -88,6 +88,8 @@ function normalizeMission(item: any): CuevasMission {
   const eventDateISO = Number.isNaN(parsedEventDate.getTime())
     ? undefined
     : parsedEventDate.toISOString();
+  const rawPeopleNeeded = item?.peopleNeeded ?? item?.PeopleNeeded ?? "";
+  const peopleNeededCount = Number(rawPeopleNeeded);
   return {
     id: String(item?._id || item?.id || item?.missionId || `mission-${Date.now()}`),
     title: item?.title || item?.Title || item?.EventName || item?.eventName || "Untitled Mission",
@@ -102,7 +104,7 @@ function normalizeMission(item: any): CuevasMission {
     type: item?.type || item?.Type || "One time",
     description: item?.description || item?.Description || "Mission details coming soon.",
     difficulty: item?.difficulty || item?.Difficulty || "Easy",
-    peopleNeeded: item?.peopleNeeded || item?.PeopleNeeded || "",
+    peopleNeeded: Number.isFinite(peopleNeededCount) && peopleNeededCount > 0 ? peopleNeededCount : rawPeopleNeeded || "",
     gearProvided: Boolean(item?.gearProvided ?? item?.GearProvided ?? false),
     materialsNote: item?.materialsNote || item?.MaterialsNote || "",
     businessName: item?.businessName || item?.BusinessName || "Cuevas Partner",
