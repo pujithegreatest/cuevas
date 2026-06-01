@@ -285,36 +285,39 @@ function HeatwaveThermalMap({ width, height, tick }: { width: number; height: nu
   const hotX = width * (0.48 + Math.sin(tick * 0.37) * 0.05);
   const hotY = height * (0.43 + Math.cos(tick * 0.29) * 0.04);
   const coolX = width * (0.34 + Math.cos(tick * 0.19) * 0.08);
+  const lungPulse = 0.04 + Math.abs(Math.sin(tick * 0.8)) * 0.03;
 
   return (
     <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
       <Defs>
         <SvgLinearGradient id="heatBase" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#070044" stopOpacity="0.62" />
-          <Stop offset="0.32" stopColor="#5d18b8" stopOpacity="0.58" />
-          <Stop offset="0.56" stopColor="#006bff" stopOpacity="0.22" />
-          <Stop offset="0.78" stopColor="#00f0ff" stopOpacity="0.18" />
-          <Stop offset="1" stopColor="#ff7b00" stopOpacity="0.24" />
+          <Stop offset="0" stopColor="#02002b" stopOpacity="0.78" />
+          <Stop offset="0.28" stopColor="#4f00b8" stopOpacity="0.68" />
+          <Stop offset="0.52" stopColor="#002dff" stopOpacity="0.42" />
+          <Stop offset="0.76" stopColor="#00f0ff" stopOpacity="0.30" />
+          <Stop offset="1" stopColor="#ff6200" stopOpacity="0.34" />
         </SvgLinearGradient>
         <SvgLinearGradient id="hotCore" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#fff7a8" stopOpacity="0.76" />
-          <Stop offset="0.35" stopColor="#ffec00" stopOpacity="0.68" />
-          <Stop offset="0.68" stopColor="#ff3b00" stopOpacity="0.56" />
-          <Stop offset="1" stopColor="#00ff75" stopOpacity="0.34" />
+          <Stop offset="0" stopColor="#ffffff" stopOpacity="0.92" />
+          <Stop offset="0.26" stopColor="#fff200" stopOpacity="0.84" />
+          <Stop offset="0.58" stopColor="#ff3b00" stopOpacity="0.72" />
+          <Stop offset="1" stopColor="#00ff75" stopOpacity="0.46" />
         </SvgLinearGradient>
         <SvgLinearGradient id="coolWash" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#00d5ff" stopOpacity="0.24" />
-          <Stop offset="0.65" stopColor="#4f00ff" stopOpacity="0.28" />
-          <Stop offset="1" stopColor="#10002c" stopOpacity="0.38" />
+          <Stop offset="0" stopColor="#00d5ff" stopOpacity="0.36" />
+          <Stop offset="0.65" stopColor="#4f00ff" stopOpacity="0.36" />
+          <Stop offset="1" stopColor="#10002c" stopOpacity="0.46" />
         </SvgLinearGradient>
       </Defs>
       <Rect x="0" y="0" width={width} height={height} fill="url(#heatBase)" />
       <Circle cx={coolX} cy={height * 0.22} r={width * 0.48} fill="url(#coolWash)" opacity="0.64" />
-      <Circle cx={hotX} cy={hotY} r={Math.max(width, height) * 0.19} fill="url(#hotCore)" opacity="0.46" />
-      <Circle cx={hotX - width * 0.08} cy={hotY + height * 0.12} r={width * 0.23} fill="#00e76f" opacity="0.22" />
-      <Circle cx={hotX + width * 0.13} cy={hotY - height * 0.12} r={width * 0.16} fill="#ffef00" opacity="0.24" />
-      <Circle cx={width * 0.12} cy={height * 0.82} r={width * 0.32} fill="#ff6a00" opacity="0.20" />
-      <Circle cx={width * 0.88} cy={height * 0.76} r={width * 0.28} fill="#00c7ff" opacity="0.18" />
+      <Circle cx={hotX} cy={hotY} r={Math.max(width, height) * (0.18 + lungPulse)} fill="url(#hotCore)" opacity="0.58" />
+      <Circle cx={hotX - width * 0.08} cy={hotY + height * 0.12} r={width * 0.23} fill="#00e76f" opacity="0.32" />
+      <Circle cx={hotX + width * 0.13} cy={hotY - height * 0.12} r={width * 0.16} fill="#ffef00" opacity="0.34" />
+      <Circle cx={hotX - width * 0.15} cy={hotY - height * 0.04} r={width * 0.11} fill="#ff2a00" opacity="0.48" />
+      <Circle cx={hotX + width * 0.16} cy={hotY + height * 0.08} r={width * 0.12} fill="#fffa00" opacity="0.42" />
+      <Circle cx={width * 0.12} cy={height * 0.82} r={width * 0.32} fill="#ff6a00" opacity="0.28" />
+      <Circle cx={width * 0.88} cy={height * 0.76} r={width * 0.28} fill="#00c7ff" opacity="0.28" />
     </Svg>
   );
 }
@@ -356,6 +359,42 @@ function HeatwaveThermoGun({
         stroke="#82faff"
         strokeWidth="2.5"
         strokeOpacity="0.32"
+        fill="none"
+      />
+      <Rect
+        x={centerX - width * 0.16}
+        y={centerY - height * 0.17}
+        width={width * 0.32}
+        height={height * 0.2}
+        stroke="#8afcff"
+        strokeWidth="1.6"
+        strokeOpacity="0.72"
+        strokeDasharray="6 5"
+        fill="rgba(0,255,255,0.025)"
+      />
+      <Rect
+        x={centerX - width * 0.26}
+        y={centerY - height * 0.01}
+        width={width * 0.52}
+        height={height * 0.3}
+        stroke="#00d8ff"
+        strokeWidth="1.2"
+        strokeOpacity="0.44"
+        strokeDasharray="8 7"
+        fill="rgba(0,110,255,0.025)"
+      />
+      <Path
+        d={`M ${width * 0.08} ${centerY + height * 0.23} L ${centerX - width * 0.08} ${centerY + height * 0.02} L ${centerX - width * 0.02} ${centerY - height * 0.02}`}
+        stroke="#00eaff"
+        strokeWidth="2.2"
+        strokeOpacity="0.78"
+        fill="none"
+      />
+      <Path
+        d={`M ${width * 0.07} ${centerY + height * 0.23} L ${width * 0.14} ${centerY + height * 0.29} L ${width * 0.2} ${centerY + height * 0.2}`}
+        stroke="#d9ffff"
+        strokeWidth="2"
+        strokeOpacity="0.72"
         fill="none"
       />
       <Circle cx={centerX} cy={centerY} r={10 + phase * 18} stroke="#8afcff" strokeWidth="1.4" strokeOpacity={0.62 - phase * 0.36} fill="none" />
@@ -521,6 +560,21 @@ export function HeatwaveHud({ width, height }: { width: number; height: number }
       >
         <Text style={styles.heatwaveId}>ID : {idSuffix}</Text>
         <Text style={styles.heatwaveTemp}>{temp.toFixed(1)} °C</Text>
+        <Text style={styles.heatwaveLock}>THERMO LOCK</Text>
+      </View>
+
+      <View
+        style={[
+          styles.heatwaveGunBadge,
+          {
+            left: Math.max(8, width * 0.06),
+            top: Math.min(height - 92, centerY + height * 0.25),
+          },
+        ]}
+        pointerEvents="none"
+      >
+        <Text style={styles.heatwaveGunLabel}>THERMO GUN</Text>
+        <Text style={styles.heatwaveGunValue}>SCAN PULSE {String(tick % 100).padStart(2, "0")}</Text>
       </View>
 
       <View
@@ -542,9 +596,9 @@ export function HeatwaveHud({ width, height }: { width: number; height: number }
             style={{ width: 18, height: 18, tintColor: "#d9ffff" }}
             contentFit="contain"
           />
-          <Text style={styles.heatwaveFooter}>BIOMETRIC IDENTIFICATION : ON</Text>
+          <Text style={styles.heatwaveFooter} numberOfLines={1}>BIOMETRIC ID : ON</Text>
         </View>
-        <Text style={[styles.heatwaveFooter, { flex: 1, textAlign: "right" }]}>BODY TEMP DETECTION : ON</Text>
+        <Text style={[styles.heatwaveFooter, { flex: 1, textAlign: "right" }]} numberOfLines={1}>BODY TEMP : ON</Text>
       </View>
     </>
   );
@@ -999,6 +1053,35 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
     textShadowColor: "#00ff9d",
     textShadowRadius: 8,
+  },
+  heatwaveLock: {
+    color: "#d9ffff",
+    fontSize: 7,
+    fontWeight: "900",
+    letterSpacing: 1.1,
+    marginTop: 1,
+  },
+  heatwaveGunBadge: {
+    position: "absolute",
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "rgba(0,216,255,0.42)",
+    backgroundColor: "rgba(0,8,22,0.5)",
+  },
+  heatwaveGunLabel: {
+    color: "#d9ffff",
+    fontSize: 7,
+    fontWeight: "900",
+    letterSpacing: 1,
+  },
+  heatwaveGunValue: {
+    color: "#43ff34",
+    fontSize: 8,
+    fontWeight: "900",
+    letterSpacing: 0.9,
+    marginTop: 2,
   },
   heatwaveTelemetrySmall: {
     color: "#d9ffff",

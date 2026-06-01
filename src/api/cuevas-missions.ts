@@ -8,6 +8,7 @@ export interface CuevasMission {
   id: string;
   title: string;
   points: number;
+  durationHours?: number;
   location: string;
   eventDate: string;
   eventDateISO?: string;
@@ -29,6 +30,7 @@ export interface CreateMissionInput {
   description: string;
   location: string;
   eventDate: string;
+  durationHours?: number;
   type: MissionType;
   difficulty: MissionDifficulty;
   points: number;
@@ -39,6 +41,27 @@ export interface CreateMissionInput {
   businessHandle: string;
   businessVerified?: boolean;
   contactEmail?: string | null;
+}
+
+export interface MissionAttendee {
+  email: string;
+  handle?: string;
+  status?: string;
+  checkedIn?: boolean;
+  awardedPoints?: number;
+  checkedInAt?: string;
+}
+
+async function parseApiJson(response: Response, fallbackMessage: string) {
+  const text = await response.text();
+  if (!text.trim()) {
+    throw new Error(`${fallbackMessage}: empty response (${response.status})`);
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`${fallbackMessage}: invalid JSON (${response.status})`);
+  }
 }
 
 function normalizeMission(item: any): CuevasMission {
@@ -56,6 +79,7 @@ function normalizeMission(item: any): CuevasMission {
     id: String(item?._id || item?.id || item?.missionId || `mission-${Date.now()}`),
     title: item?.title || item?.Title || item?.EventName || item?.eventName || "Untitled Mission",
     points: Number(item?.points ?? item?.Points ?? item?.Cuevas ?? 100),
+    durationHours: Number(item?.durationHours ?? item?.DurationHours ?? 1) || 1,
     location: item?.location || item?.Location || "Location TBD",
     eventDate: typeof eventDate === "string" ? eventDate : new Date(eventDate).toLocaleDateString(),
     eventDateISO:
@@ -81,7 +105,7 @@ export async function fetchCuevasMissions(): Promise<CuevasMission[]> {
     method: "GET",
     headers: { Accept: "application/json" },
   });
-  const json = await response.json();
+  const json = await parseApiJson(response, "Failed to load missions");
   if (!response.ok || !json?.success) {
     throw new Error(json?.error || "Failed to load missions");
   }
@@ -94,7 +118,7 @@ export async function createCuevasMission(input: CreateMissionInput): Promise<Cu
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify({ ...input, clientKey: CUEVAS_CLIENT_KEY }),
   });
-  const json = await response.json();
+  const json = await parseApiJson(response, "Failed to create mission");
   if (!response.ok || !json?.success) {
     throw new Error(json?.error || "Failed to create mission");
   }
@@ -111,7 +135,7 @@ export async function joinCuevasMission(input: {
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify({ ...input, clientKey: CUEVAS_CLIENT_KEY }),
   });
-  const json = await response.json();
+  const json = await parseApiJson(response, "Failed to join mission");
   if (!response.ok || !json?.success) {
     throw new Error(json?.error || "Failed to join mission");
   }
@@ -119,5 +143,70 @@ export async function joinCuevasMission(input: {
     missionId: String(json.missionId || input.missionId),
     goingCount: Number(json.goingCount || 0),
     alreadyJoined: Boolean(json.alreadyJoined),
+  };
+}
+
+export async function fetchMissionAttendees(missionId: string): Promise<MissionAttendee[]> {
+  const response = await fetch(
+    `${BASE_URL}/missionAttendees?missionId=${encodeURIComponent(missionId)}`,
+    {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    }
+  );
+  const json = await parseApiJson(response, "Failed to load mission attendees");
+  if (!response.ok || !json?.success) {
+    throw new Error(json?.error || "Failed to load mission attendees");
+  }
+  return (json.attendees || []).map((item: any) => ({
+    email: String(item?.email || item?.UserEmail || ""),
+    handle: item?.handle || item?.UserHandle || "",
+    status: item?.status || item?.Status || "going",
+    checkedIn: Boolean(item?.checkedIn ?? item?.CheckedIn ?? false),
+    awardedPoints: Number(item?.awardedPoints ?? item?.AwardedPoints ?? 0),
+    checkedInAt: item?.checkedInAt || item?.CheckedInAt || "",
+  }));
+}
+
+export async function checkInCuevasMission(input: {
+  missionId: string;
+  userEmail: string;
+  userHandle?: string | null;
+  businessHandle?: string | null;
+}): Promise<{ missionId: string; email: string; awardedPoints: number; loyaltyPoints?: number }> {
+  const response = await fetch(`${BASE_URL}/missionCheckIn`, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify({ ...input, clientKey: CUEVAS_CLIENT_KEY }),
+  });
+  const json = await parseApiJson(response, "Failed to check in mission attendee");
+  if (!response.ok || !json?.success) {
+    throw new Error(json?.error || "Failed to check in mission attendee");
+  }
+  return {
+    missionId: String(json.missionId || input.missionId),
+    email: String(json.email || input.userEmail),
+    awardedPoints: Number(json.awardedPoints || 0),
+    loyaltyPoints: typeof json.loyaltyPoints === "number" ? json.loyaltyPoints : undefined,
+  };
+}
+
+export async function upsertCuevasBusinessProfile(input: {
+  businessName: string;
+  businessHandle: string;
+  ownerEmail?: string | null;
+}): Promise<{ businessName: string; businessHandle: string }> {
+  const response = await fetch(`${BASE_URL}/businessProfile`, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify({ ...input, clientKey: CUEVAS_CLIENT_KEY }),
+  });
+  const json = await parseApiJson(response, "Failed to save business profile");
+  if (!response.ok || !json?.success) {
+    throw new Error(json?.error || "Failed to save business profile");
+  }
+  return {
+    businessName: String(json.business?.businessName || input.businessName),
+    businessHandle: String(json.business?.businessHandle || input.businessHandle),
   };
 }

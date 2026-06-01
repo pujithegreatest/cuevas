@@ -16,6 +16,8 @@ interface AppState {
   handleAliases: string[];
   userAvatar: string | null;
   userBio: string | null;
+  isBusinessAccount: boolean;
+  businessName: string | null;
 
   rewardsBalance: number;
   defaultPostPrivacy: PrivacyLevel;
@@ -33,6 +35,8 @@ interface AppState {
   setDisplayName: (name: string) => void;
   setUserAvatar: (uri: string | null) => void;
   setUserBio: (bio: string | null) => void;
+  setBusinessProfile: (businessName: string) => void;
+  clearBusinessProfile: () => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -44,6 +48,8 @@ export const useAppStore = create<AppState>()(
       handleAliases: [],
       userAvatar: null,
       userBio: null,
+      isBusinessAccount: false,
+      businessName: null,
       rewardsBalance: 300,
       defaultPostPrivacy: "public",
       friends: [
@@ -72,6 +78,8 @@ export const useAppStore = create<AppState>()(
           displayName: null,
           userAvatar: null,
           userBio: null,
+          isBusinessAccount: false,
+          businessName: null,
         }),
 
       setRewardsBalance: (balance: number) =>
@@ -109,6 +117,16 @@ export const useAppStore = create<AppState>()(
       setUserAvatar: (uri: string | null) => set({ userAvatar: uri }),
       setUserBio: (bio: string | null) =>
         set({ userBio: bio && bio.trim().length > 0 ? bio.trim() : null }),
+      setBusinessProfile: (businessName: string) =>
+        set({
+          isBusinessAccount: true,
+          businessName: businessName.trim(),
+        }),
+      clearBusinessProfile: () =>
+        set({
+          isBusinessAccount: false,
+          businessName: null,
+        }),
     }),
     {
       name: "app-storage",

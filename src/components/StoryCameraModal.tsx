@@ -726,17 +726,6 @@ export default function StoryCameraModal({
                 backgroundColor: "rgba(0,0,0,0.48)",
               }}
             >
-              <Text
-                style={{
-                  color: "rgba(207,239,236,0.78)",
-                  fontFamily: "Courier",
-                  fontSize: 10,
-                  fontWeight: "900",
-                  letterSpacing: 1.2,
-                }}
-              >
-                LIVE FILTER
-              </Text>
               <Pressable
                 onPress={() =>
                   setLiveFilter((current) =>

@@ -372,7 +372,8 @@ export default function CommentsModal({
           renderItem={renderComment}
           ListHeaderComponent={header}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: 120 }}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 18 }}
           ListEmptyComponent={
             <View style={{ alignItems: "center", justifyContent: "center", paddingVertical: 36 }}>
               <Ionicons name="chatbubble-outline" size={54} color={isDarkMode ? "#374151" : "#CBD5E1"} />
@@ -386,7 +387,6 @@ export default function CommentsModal({
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={0}
-          style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}
         >
           <View
             style={{

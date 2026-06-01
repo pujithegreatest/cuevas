@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { Image } from "expo-image";
 import { Video, ResizeMode } from "expo-av";
@@ -171,6 +171,32 @@ function parseMissionStart(mission: CuevasMission) {
   return parsed;
 }
 
+async function getWritableCuevasCalendarId() {
+  const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+  const writableCalendar = calendars.find((calendar) => calendar.allowsModifications);
+  if (writableCalendar?.id) return writableCalendar.id;
+
+  const defaultCalendar = await Calendar.getDefaultCalendarAsync().catch(() => null);
+  if (defaultCalendar?.allowsModifications && defaultCalendar.id) return defaultCalendar.id;
+
+  const defaultSource =
+    Platform.OS === "ios"
+      ? defaultCalendar?.source
+      : { isLocalAccount: true, name: "Cuevas Missions" };
+  if (!defaultSource) return null;
+
+  return Calendar.createCalendarAsync({
+    title: "Cuevas Missions",
+    color: "#06A7A1",
+    entityType: Calendar.EntityTypes.EVENT,
+    sourceId: (defaultSource as any).id,
+    source: defaultSource as any,
+    name: "Cuevas Missions",
+    ownerAccount: "Cuevas",
+    accessLevel: Calendar.CalendarAccessLevel.OWNER,
+  });
+}
+
 function MissionCard({
   mission,
   isDarkMode,
@@ -291,6 +317,7 @@ function MissionCard({
         {[
           { icon: "location-outline", label: mission.location },
           { icon: "calendar-outline", label: mission.eventDate },
+          { icon: "hourglass-outline", label: `${Math.max(1, Number(mission.durationHours || mission.points / 100 || 1))} hr` },
           { icon: mission.type === "Recurring" ? "repeat-outline" : "radio-button-on-outline", label: mission.type },
           { icon: "shield-check", label: mission.difficulty },
           { icon: "people-outline", label: `${mission.goingCount || 0} going` },
@@ -360,7 +387,7 @@ function MissionCard({
           <Pressable
             onPress={onAddCalendar}
             style={({ pressed }) => ({
-              marginTop: 10,
+              marginTop: 12,
               borderRadius: 16,
               paddingVertical: 12,
               alignItems: "center",
@@ -564,11 +591,12 @@ export default function MissionsScreen({ navigation }: Props) {
           setMissionError(null);
         }
       })
-      .catch((error) => {
-        if (!cancelled) {
-          setMissionError(String((error as any)?.message || error));
-        }
-      })
+    .catch((error) => {
+      if (!cancelled) {
+          console.log("[MISSIONS] sync failed", String((error as any)?.message || error));
+          setMissionError("Using demo missions while Wix syncs.");
+      }
+    })
       .finally(() => {
         if (!cancelled) setIsLoadingMissions(false);
       });
@@ -623,22 +651,21 @@ export default function MissionsScreen({ navigation }: Props) {
         setMissionError("Calendar permission is required.");
         return;
       }
-      const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
-      const writableCalendar =
-        calendars.find((calendar) => calendar.allowsModifications) || calendars[0];
-      if (!writableCalendar?.id) {
+      const calendarId = await getWritableCuevasCalendarId();
+      if (!calendarId) {
         setMissionError("No writable calendar found.");
         return;
       }
       const startDate = parseMissionStart(mission);
-      const endDate = new Date(startDate.getTime() + 90 * 60 * 1000);
-      await Calendar.createEventAsync(writableCalendar.id, {
+      const durationHours = Math.max(1, Number(mission.durationHours || mission.points / 100 || 1));
+      const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000);
+      await Calendar.createEventAsync(calendarId, {
         title: `Cuevas Mission: ${mission.title}`,
         location: mission.location,
-        notes: `${mission.description}\n\nHost: ${mission.businessName || "Cuevas Partner"}\nPoints: ${mission.points} Cuevas`,
+        notes: `${mission.description}\n\nHost: ${mission.businessName || "Cuevas Partner"}\nDuration: ${durationHours} hour${durationHours === 1 ? "" : "s"}\nPoints: ${mission.points} Cuevas`,
         startDate,
         endDate,
-        timeZone: undefined,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
       setMissionError("Mission added to calendar.");
     } catch (error) {
@@ -819,7 +846,7 @@ export default function MissionsScreen({ navigation }: Props) {
                 Businesses publish missions, users join, calendars sync, and attendance counts update live.
               </Text>
               {missionError ? (
-                <Text style={{ color: missionError.includes("added") ? "#06A7A1" : "#EF4444", fontSize: 11, fontWeight: "800", marginTop: 8 }}>
+              <Text style={{ color: missionError.includes("added") || missionError.includes("Using") ? "#06A7A1" : "#EF4444", fontSize: 11, fontWeight: "800", marginTop: 8 }}>
                   {missionError}
                 </Text>
               ) : null}

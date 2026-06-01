@@ -179,6 +179,17 @@ export default function CreateStoryModal({
 
   const canvasW = SCREEN_W - 32;
   const canvasH = Math.min(SCREEN_H * 0.6, canvasW * (16 / 9));
+  const hasLockedLiveFilter = filter === "heatwave";
+
+  const applyStaticFilter = (nextFilter: StoryFilter) => {
+    if (hasLockedLiveFilter) {
+      setStatusMsg(
+        "Heatwave was captured live and stays locked on this story. Remove the media to choose static filters."
+      );
+      return;
+    }
+    setFilter(nextFilter);
+  };
 
   useEffect(() => {
     if (!visible) {
@@ -1677,7 +1688,7 @@ export default function CreateStoryModal({
                   {FILTERS.map((f) => (
                     <Pressable
                       key={f.id}
-                      onPress={() => setFilter(f.id)}
+                      onPress={() => applyStaticFilter(f.id)}
                       className="items-center"
                     >
                       <View
@@ -1736,7 +1747,7 @@ export default function CreateStoryModal({
                   {FILTERS.map((f) => (
                     <Pressable
                       key={f.id}
-                      onPress={() => setFilter(f.id)}
+                      onPress={() => applyStaticFilter(f.id)}
                       className="items-center"
                     >
                       <View
