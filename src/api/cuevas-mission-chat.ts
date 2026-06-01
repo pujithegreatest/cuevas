@@ -1,5 +1,6 @@
 const BASE_URL = "https://www.ecothot.com/_functions";
 const CUEVAS_CLIENT_KEY = "ecothot-super-secret-9384fjksd";
+const CHAT_ENDPOINTS = ["missionChatMessages", "missionchatmessages"];
 
 export type MissionChatRole = "volunteer" | "vendor";
 
@@ -14,15 +15,13 @@ export interface MissionChatMessage {
   createdAt: string;
 }
 
-async function parseApiJson(response: Response, fallbackMessage: string) {
+async function readApiJson(response: Response) {
   const text = await response.text();
-  if (!text.trim()) {
-    throw new Error(`${fallbackMessage}: empty response (${response.status})`);
-  }
+  if (!text.trim()) return { json: null, text };
   try {
-    return JSON.parse(text);
+    return { json: JSON.parse(text), text };
   } catch {
-    throw new Error(`${fallbackMessage}: invalid JSON (${response.status})`);
+    return { json: null, text };
   }
 }
 
@@ -53,15 +52,19 @@ export async function fetchMissionChatMessages(input: {
   if (input.userEmail) params.set("userEmail", input.userEmail);
   if (input.businessHandle) params.set("businessHandle", input.businessHandle);
 
-  const response = await fetch(`${BASE_URL}/missionChatMessages?${params.toString()}`, {
-    method: "GET",
-    headers: { Accept: "application/json" },
-  });
-  const json = await parseApiJson(response, "Failed to load mission chat");
-  if (!response.ok || !json?.success) {
-    throw new Error(json?.error || "Failed to load mission chat");
+  for (const endpoint of CHAT_ENDPOINTS) {
+    const response = await fetch(`${BASE_URL}/${endpoint}?${params.toString()}`, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    });
+    const { json, text } = await readApiJson(response);
+    if (response.status === 404 && !json) continue;
+    if (!response.ok || !json?.success) {
+      throw new Error(json?.error || `Failed to load mission chat (${response.status})${text ? "" : ". Publish the Wix backend."}`);
+    }
+    return (json.messages || []).map(normalizeMessage);
   }
-  return (json.messages || []).map(normalizeMessage);
+  throw new Error("Mission chat endpoint is not live yet. Publish the Wix backend.");
 }
 
 export async function sendMissionChatMessage(input: {
@@ -72,14 +75,18 @@ export async function sendMissionChatMessage(input: {
   authorRole: MissionChatRole;
   businessHandle?: string | null;
 }): Promise<MissionChatMessage> {
-  const response = await fetch(`${BASE_URL}/missionChatMessages`, {
-    method: "POST",
-    headers: { Accept: "application/json", "Content-Type": "application/json" },
-    body: JSON.stringify({ ...input, clientKey: CUEVAS_CLIENT_KEY }),
-  });
-  const json = await parseApiJson(response, "Failed to send mission chat");
-  if (!response.ok || !json?.success) {
-    throw new Error(json?.error || "Failed to send mission chat");
+  for (const endpoint of CHAT_ENDPOINTS) {
+    const response = await fetch(`${BASE_URL}/${endpoint}`, {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({ ...input, clientKey: CUEVAS_CLIENT_KEY }),
+    });
+    const { json, text } = await readApiJson(response);
+    if (response.status === 404 && !json) continue;
+    if (!response.ok || !json?.success) {
+      throw new Error(json?.error || `Failed to send mission chat (${response.status})${text ? "" : ". Publish the Wix backend."}`);
+    }
+    return normalizeMessage(json.message);
   }
-  return normalizeMessage(json.message);
+  throw new Error("Mission chat endpoint is not live yet. Publish the Wix backend.");
 }

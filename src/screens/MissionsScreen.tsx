@@ -217,6 +217,7 @@ function MissionCard({
   onAddCalendar,
   onOpenChat,
   canChat,
+  actionStatus,
   proofMedia,
   isUploadingProof,
   proofError,
@@ -232,6 +233,7 @@ function MissionCard({
   onAddCalendar?: () => void;
   onOpenChat?: () => void;
   canChat?: boolean;
+  actionStatus?: string;
   proofMedia?: ProofMedia[];
   isUploadingProof?: boolean;
   proofError?: string;
@@ -372,8 +374,10 @@ function MissionCard({
             onPress={onToggle}
             style={({ pressed }) => ({
               marginTop: 10,
+              marginBottom: 4,
               borderRadius: 16,
               paddingVertical: 12,
+              paddingHorizontal: 12,
               alignItems: "center",
               backgroundColor: isQueued ? "rgba(6,167,161,0.12)" : "#06A7A1",
               borderWidth: 1,
@@ -403,8 +407,10 @@ function MissionCard({
             onPress={onAddCalendar}
             style={({ pressed }) => ({
               marginTop: 12,
+              marginBottom: 4,
               borderRadius: 16,
               paddingVertical: 12,
+              paddingHorizontal: 12,
               alignItems: "center",
               backgroundColor: isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(8,25,32,0.05)",
               borderWidth: 1,
@@ -425,8 +431,10 @@ function MissionCard({
               onPress={onOpenChat}
               style={({ pressed }) => ({
                 marginTop: 12,
+                marginBottom: 4,
                 borderRadius: 16,
                 paddingVertical: 12,
+                paddingHorizontal: 12,
                 alignItems: "center",
                 backgroundColor: isDarkMode ? "rgba(6,167,161,0.10)" : "#E8FFFC",
                 borderWidth: 1,
@@ -441,6 +449,19 @@ function MissionCard({
                 </Text>
               </View>
             </Pressable>
+          ) : null}
+          {actionStatus ? (
+            <Text
+              style={{
+                color: actionStatus.includes("failed") || actionStatus.includes("permission") ? "#EF4444" : "#06A7A1",
+                fontSize: 11,
+                fontWeight: "800",
+                marginTop: 8,
+                textAlign: "center",
+              }}
+            >
+              {actionStatus}
+            </Text>
           ) : null}
         </>
       ) : null}
@@ -619,6 +640,7 @@ export default function MissionsScreen({ navigation }: Props) {
   const [uploadingProofIds, setUploadingProofIds] = useState<Record<string, boolean>>({});
   const [proofErrors, setProofErrors] = useState<Record<string, string>>({});
   const [chatMission, setChatMission] = useState<CuevasMission | null>(null);
+  const [missionActionStatus, setMissionActionStatus] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -685,20 +707,21 @@ export default function MissionsScreen({ navigation }: Props) {
 
   const addMissionToCalendar = async (mission: CuevasMission) => {
     try {
+      setMissionActionStatus((current) => ({ ...current, [mission.id]: "Adding mission to calendar..." }));
       const permission = await Calendar.requestCalendarPermissionsAsync();
       if (!permission.granted) {
-        setMissionError("Calendar permission is required.");
+        setMissionActionStatus((current) => ({ ...current, [mission.id]: "Calendar permission is required." }));
         return;
       }
       const calendarId = await getWritableCuevasCalendarId();
       if (!calendarId) {
-        setMissionError("No writable calendar found.");
+        setMissionActionStatus((current) => ({ ...current, [mission.id]: "No writable calendar found." }));
         return;
       }
       const startDate = parseMissionStart(mission);
       const durationHours = Math.max(1, Number(mission.durationHours || mission.points / 100 || 1));
       const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000);
-      await Calendar.createEventAsync(calendarId, {
+      const eventId = await Calendar.createEventAsync(calendarId, {
         title: `Cuevas Mission: ${mission.title}`,
         location: mission.location,
         notes: `${mission.description}\n\nHost: ${mission.businessName || "Cuevas Partner"}\nDuration: ${durationHours} hour${durationHours === 1 ? "" : "s"}\nPoints: ${mission.points} Cuevas`,
@@ -706,9 +729,15 @@ export default function MissionsScreen({ navigation }: Props) {
         endDate,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
-      setMissionError("Mission added to calendar.");
+      setMissionActionStatus((current) => ({ ...current, [mission.id]: "Mission added to calendar." }));
+      if (eventId) {
+        Calendar.openEventInCalendarAsync({ id: eventId }).catch(() => null);
+      }
     } catch (error) {
-      setMissionError(`Calendar add failed: ${String((error as any)?.message || error)}`);
+      setMissionActionStatus((current) => ({
+        ...current,
+        [mission.id]: `Calendar add failed: ${String((error as any)?.message || error)}`,
+      }));
     }
   };
 
@@ -942,6 +971,7 @@ export default function MissionsScreen({ navigation }: Props) {
               onAddCalendar={() => addMissionToCalendar(mission)}
               canChat
               onOpenChat={() => setChatMission(mission)}
+              actionStatus={missionActionStatus[mission.id]}
             />
           ))
         ) : (
@@ -976,6 +1006,7 @@ export default function MissionsScreen({ navigation }: Props) {
             onAddCalendar={() => addMissionToCalendar(mission)}
             canChat={queuedMissionIds.includes(mission.id)}
             onOpenChat={() => setChatMission(mission)}
+            actionStatus={missionActionStatus[mission.id]}
           />
         ))}
 

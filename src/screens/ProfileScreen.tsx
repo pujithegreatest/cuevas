@@ -234,7 +234,8 @@ export default function ProfileScreen({ navigation }: Props) {
     if (!businessProfileUnlocked) {
       setBusinessPassword("");
       setBusinessPasswordError(null);
-      setBusinessPasswordOpen(true);
+      setSettingsOpen(false);
+      setTimeout(() => setBusinessPasswordOpen(true), 250);
       return;
     }
     setSettingsOpen(false);
