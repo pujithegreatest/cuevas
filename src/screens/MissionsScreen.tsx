@@ -15,6 +15,7 @@ import {
   submitMissionProof,
 } from "../api/cuevas-missions";
 import { Ionicons } from "../components/Ionicons";
+import MissionChatModal from "../components/MissionChatModal";
 import { useAppStore } from "../state/appStore";
 import { MainTabParamList } from "../types/navigation";
 import { encodeUploadUri, uploadMediaFile } from "../utils/uploadMedia";
@@ -214,6 +215,8 @@ function MissionCard({
   isCompleted,
   onToggle,
   onAddCalendar,
+  onOpenChat,
+  canChat,
   proofMedia,
   isUploadingProof,
   proofError,
@@ -227,6 +230,8 @@ function MissionCard({
   isCompleted?: boolean;
   onToggle?: () => void;
   onAddCalendar?: () => void;
+  onOpenChat?: () => void;
+  canChat?: boolean;
   proofMedia?: ProofMedia[];
   isUploadingProof?: boolean;
   proofError?: string;
@@ -414,6 +419,29 @@ function MissionCard({
               </Text>
             </View>
           </Pressable>
+
+          {canChat && onOpenChat ? (
+            <Pressable
+              onPress={onOpenChat}
+              style={({ pressed }) => ({
+                marginTop: 12,
+                borderRadius: 16,
+                paddingVertical: 12,
+                alignItems: "center",
+                backgroundColor: isDarkMode ? "rgba(6,167,161,0.10)" : "#E8FFFC",
+                borderWidth: 1,
+                borderColor: "rgba(6,167,161,0.45)",
+                opacity: pressed ? 0.78 : 1,
+              })}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons name="chatbubbles-outline" size={18} color="#06A7A1" />
+                <Text style={{ color: "#06A7A1", fontWeight: "900", marginLeft: 8 }}>
+                  Mission Chat
+                </Text>
+              </View>
+            </Pressable>
+          ) : null}
         </>
       ) : null}
 
@@ -590,6 +618,7 @@ export default function MissionsScreen({ navigation }: Props) {
   const [proofMedia, setProofMedia] = useState<Record<string, ProofMedia[]>>({});
   const [uploadingProofIds, setUploadingProofIds] = useState<Record<string, boolean>>({});
   const [proofErrors, setProofErrors] = useState<Record<string, string>>({});
+  const [chatMission, setChatMission] = useState<CuevasMission | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -911,6 +940,8 @@ export default function MissionsScreen({ navigation }: Props) {
               isQueued
               onToggle={() => toggleMission(mission)}
               onAddCalendar={() => addMissionToCalendar(mission)}
+              canChat
+              onOpenChat={() => setChatMission(mission)}
             />
           ))
         ) : (
@@ -943,6 +974,8 @@ export default function MissionsScreen({ navigation }: Props) {
             isQueued={queuedMissionIds.includes(mission.id)}
             onToggle={() => toggleMission(mission)}
             onAddCalendar={() => addMissionToCalendar(mission)}
+            canChat={queuedMissionIds.includes(mission.id)}
+            onOpenChat={() => setChatMission(mission)}
           />
         ))}
 
@@ -967,6 +1000,16 @@ export default function MissionsScreen({ navigation }: Props) {
           />
         ))}
       </ScrollView>
+      <MissionChatModal
+        visible={!!chatMission}
+        mission={chatMission}
+        userEmail={userEmail}
+        userHandle={displayName || userEmail?.split("@")[0] || "anonymous"}
+        authorRole="volunteer"
+        businessHandle={chatMission?.businessHandle}
+        isDarkMode={isDarkMode}
+        onClose={() => setChatMission(null)}
+      />
     </LinearGradient>
   );
 }

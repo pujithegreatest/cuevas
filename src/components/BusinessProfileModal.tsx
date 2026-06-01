@@ -25,6 +25,7 @@ import {
 } from "../api/cuevas-missions";
 import { useAppStore } from "../state/appStore";
 import { Ionicons } from "./Ionicons";
+import MissionChatModal from "./MissionChatModal";
 
 interface Props {
   visible: boolean;
@@ -184,6 +185,7 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
   const [manualEmail, setManualEmail] = useState<Record<string, string>>({});
   const [attendees, setAttendees] = useState<Record<string, MissionAttendee[]>>({});
   const [checkInStatus, setCheckInStatus] = useState<Record<string, string>>({});
+  const [chatMission, setChatMission] = useState<CuevasMission | null>(null);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -705,6 +707,24 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
           <Ionicons name="qr-code-outline" size={18} color="#06A7A1" />
           <Text style={{ color: "#06A7A1", fontWeight: "900" }}>{isScanning ? "Close scanner" : "Scan QR"}</Text>
         </Pressable>
+        <Pressable
+          onPress={() => setChatMission(mission)}
+          style={{
+            marginTop: 10,
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: "rgba(6,167,161,0.45)",
+            paddingVertical: 12,
+            alignItems: "center",
+            flexDirection: "row",
+            justifyContent: "center",
+            gap: 8,
+            backgroundColor: "rgba(6,167,161,0.08)",
+          }}
+        >
+          <Ionicons name="chatbubbles-outline" size={18} color="#06A7A1" />
+          <Text style={{ color: "#06A7A1", fontWeight: "900" }}>Open Mission Chat</Text>
+        </Pressable>
         {isScanning ? (
           <View style={{ height: 250, borderRadius: 18, overflow: "hidden", marginTop: 10, backgroundColor: "#000" }}>
             {permission?.granted ? (
@@ -841,6 +861,16 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
           )}
         </LinearGradient>
       </KeyboardAvoidingView>
+      <MissionChatModal
+        visible={!!chatMission}
+        mission={chatMission}
+        userEmail={userEmail}
+        userHandle={handle}
+        authorRole="vendor"
+        businessHandle={handle}
+        isDarkMode
+        onClose={() => setChatMission(null)}
+      />
     </Modal>
   );
 }
