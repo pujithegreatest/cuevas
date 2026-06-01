@@ -52,6 +52,19 @@ export interface MissionAttendee {
   checkedInAt?: string;
 }
 
+export interface MissionProofInput {
+  missionId: string;
+  missionTitle?: string;
+  userEmail?: string | null;
+  userHandle?: string | null;
+  businessHandle?: string | null;
+  mediaUrl: string;
+  mediaType: "image" | "video";
+  fileName?: string;
+  mimeType?: string;
+  durationSeconds?: number | null;
+}
+
 async function parseApiJson(response: Response, fallbackMessage: string) {
   const text = await response.text();
   if (!text.trim()) {
@@ -208,5 +221,21 @@ export async function upsertCuevasBusinessProfile(input: {
   return {
     businessName: String(json.business?.businessName || input.businessName),
     businessHandle: String(json.business?.businessHandle || input.businessHandle),
+  };
+}
+
+export async function submitMissionProof(input: MissionProofInput): Promise<{ proofId: string; mediaUrl: string }> {
+  const response = await fetch(`${BASE_URL}/missionProof`, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify({ ...input, clientKey: CUEVAS_CLIENT_KEY }),
+  });
+  const json = await parseApiJson(response, "Failed to save mission proof");
+  if (!response.ok || !json?.success) {
+    throw new Error(json?.error || "Failed to save mission proof");
+  }
+  return {
+    proofId: String(json.proof?.id || json.proof?._id || ""),
+    mediaUrl: String(json.proof?.mediaUrl || input.mediaUrl),
   };
 }

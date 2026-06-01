@@ -12,6 +12,7 @@ import {
   CuevasMission,
   fetchCuevasMissions,
   joinCuevasMission,
+  submitMissionProof,
 } from "../api/cuevas-missions";
 import { Ionicons } from "../components/Ionicons";
 import { useAppStore } from "../state/appStore";
@@ -26,8 +27,11 @@ type ProofMedia = {
   type: "image" | "video";
   name: string;
   mime: string;
+  durationSeconds?: number;
   uploadedUrl?: string;
 };
+
+const MISSION_PROOF_VIDEO_MAX_SECONDS = 60;
 
 const fallbackMissions: CuevasMission[] = [
   {
@@ -685,33 +689,51 @@ export default function MissionsScreen({ navigation }: Props) {
     });
     if (result.canceled) return;
 
-    const selected = (result.assets || [])
-      .filter((asset) => !!asset.uri)
-      .map((asset) => {
-        const isVideo = asset.type === "video" || /\.(mp4|mov|m4v)$/i.test(asset.uri);
-        const mime =
-          (asset as any).mimeType ||
-          (isVideo
-            ? asset.uri.toLowerCase().endsWith(".mov")
-              ? "video/quicktime"
-              : "video/mp4"
-            : "image/jpeg");
-        const extension = mime === "video/quicktime" ? "mov" : mime.startsWith("video/") ? "mp4" : "jpg";
-        return {
-          id: `proof-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          uri: asset.uri,
-          type: isVideo ? "video" : "image",
-          name: (asset as any).fileName || `mission-proof-${Date.now()}.${extension}`,
-          mime,
-        } as ProofMedia;
+    const selected: ProofMedia[] = [];
+    const rejectedVideos = [];
+    for (const asset of result.assets || []) {
+      if (!asset.uri) continue;
+      const isVideo = asset.type === "video" || /\.(mp4|mov|m4v)$/i.test(asset.uri);
+      const durationSeconds =
+        typeof asset.duration === "number"
+          ? asset.duration > 1000
+            ? asset.duration / 1000
+            : asset.duration
+          : undefined;
+      if (isVideo && durationSeconds && durationSeconds > MISSION_PROOF_VIDEO_MAX_SECONDS + 1) {
+        rejectedVideos.push(asset);
+        continue;
+      }
+      const mime =
+        (asset as any).mimeType ||
+        (isVideo
+          ? asset.uri.toLowerCase().endsWith(".mov")
+            ? "video/quicktime"
+            : "video/mp4"
+          : "image/jpeg");
+      const extension = mime === "video/quicktime" ? "mov" : mime.startsWith("video/") ? "mp4" : "jpg";
+      selected.push({
+        id: `proof-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        uri: asset.uri,
+        type: isVideo ? "video" : "image",
+        name: (asset as any).fileName || `mission-proof-${Date.now()}.${extension}`,
+        mime,
+        durationSeconds,
       });
+    }
+    if (rejectedVideos.length) {
+      setProofErrors((current) => ({
+        ...current,
+        [missionId]: `Videos must be ${MISSION_PROOF_VIDEO_MAX_SECONDS} seconds or less.`,
+      }));
+    }
 
     if (selected.length > 0) {
       setProofMedia((current) => ({
         ...current,
         [missionId]: [...(current[missionId] || []), ...selected],
       }));
-      setProofErrors((current) => ({ ...current, [missionId]: "" }));
+      if (!rejectedVideos.length) setProofErrors((current) => ({ ...current, [missionId]: "" }));
     }
   };
 
@@ -732,6 +754,7 @@ export default function MissionsScreen({ navigation }: Props) {
     setUploadingProofIds((current) => ({ ...current, [missionId]: true }));
     setProofErrors((current) => ({ ...current, [missionId]: "" }));
     try {
+      const mission = missions.find((item) => item.id === missionId) || completedMissions.find((item) => item.id === missionId);
       const uploadedItems: ProofMedia[] = [];
       for (const proof of pendingMedia) {
         let uploadUri = proof.uri;
@@ -757,6 +780,18 @@ export default function MissionsScreen({ navigation }: Props) {
           "mission-proof"
         );
         const uploadedUrl = await uploadMediaFile(encodedUri, "mission-proof");
+        await submitMissionProof({
+          missionId,
+          missionTitle: mission?.title,
+          userEmail,
+          userHandle: displayName || userEmail?.split("@")[0] || "anonymous",
+          businessHandle: mission?.businessHandle,
+          mediaUrl: uploadedUrl,
+          mediaType: proof.type,
+          fileName,
+          mimeType,
+          durationSeconds: proof.durationSeconds,
+        });
         uploadedItems.push({ ...proof, uri: uploadedUrl, uploadedUrl });
       }
 
@@ -767,6 +802,7 @@ export default function MissionsScreen({ navigation }: Props) {
           return uploaded || proof;
         }),
       }));
+      setProofErrors((current) => ({ ...current, [missionId]: "Proof submitted." }));
     } catch (error) {
       setProofErrors((current) => ({
         ...current,
