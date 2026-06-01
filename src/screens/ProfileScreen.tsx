@@ -7,6 +7,7 @@ import {
   FlatList,
   Image as RNImage,
   Modal,
+  TextInput,
 } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import Animated, {
@@ -211,6 +212,8 @@ export default function ProfileScreen({ navigation }: Props) {
   const friends = useAppStore((s) => s.friends);
   const addFriend = useAppStore((s) => s.addFriend);
   const removeFriend = useAppStore((s) => s.removeFriend);
+  const businessProfileUnlocked = useAppStore((s) => s.businessProfileUnlocked);
+  const unlockBusinessProfile = useAppStore((s) => s.unlockBusinessProfile);
 
   const posts = useFeedStore((s) => s.posts);
   const toggleLike = useFeedStore((s) => s.toggleLike);
@@ -223,8 +226,28 @@ export default function ProfileScreen({ navigation }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [networkOpen, setNetworkOpen] = useState(false);
   const [businessProfileOpen, setBusinessProfileOpen] = useState(false);
+  const [businessPasswordOpen, setBusinessPasswordOpen] = useState(false);
+  const [businessPassword, setBusinessPassword] = useState("");
+  const [businessPasswordError, setBusinessPasswordError] = useState<string | null>(null);
 
   const openBusinessProfile = () => {
+    if (!businessProfileUnlocked) {
+      setBusinessPassword("");
+      setBusinessPasswordError(null);
+      setBusinessPasswordOpen(true);
+      return;
+    }
+    setSettingsOpen(false);
+    setTimeout(() => setBusinessProfileOpen(true), 250);
+  };
+
+  const submitBusinessPassword = () => {
+    if (businessPassword.trim().toLowerCase() !== "peace") {
+      setBusinessPasswordError("Incorrect access phrase.");
+      return;
+    }
+    unlockBusinessProfile();
+    setBusinessPasswordOpen(false);
     setSettingsOpen(false);
     setTimeout(() => setBusinessProfileOpen(true), 250);
   };
@@ -1057,6 +1080,103 @@ export default function ProfileScreen({ navigation }: Props) {
         visible={businessProfileOpen}
         onClose={() => setBusinessProfileOpen(false)}
       />
+
+      <Modal
+        visible={businessPasswordOpen}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setBusinessPasswordOpen(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.72)",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 24,
+          }}
+        >
+          <View
+            style={{
+              width: "100%",
+              borderRadius: 24,
+              borderWidth: 1,
+              borderColor: "rgba(6,167,161,0.45)",
+              backgroundColor: isDarkMode ? "#081920" : "#FFFFFF",
+              padding: 18,
+            }}
+          >
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="flex-row items-center">
+                <View
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 16,
+                    backgroundColor: "rgba(6,167,161,0.18)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 10,
+                  }}
+                >
+                  <Ionicons name="lock-closed-outline" size={22} color="#06A7A1" />
+                </View>
+                <View>
+                  <Text className={`font-bold text-lg ${textColor}`}>Business Access</Text>
+                  <Text className={`text-xs ${subText}`}>Enter the partner phrase once.</Text>
+                </View>
+              </View>
+              <Pressable onPress={() => setBusinessPasswordOpen(false)} hitSlop={10}>
+                <Ionicons name="close" size={24} color={isDarkMode ? "#CFEFEC" : "#1F2937"} />
+              </Pressable>
+            </View>
+
+            <TextInput
+              value={businessPassword}
+              onChangeText={(value) => {
+                setBusinessPassword(value);
+                if (businessPasswordError) setBusinessPasswordError(null);
+              }}
+              placeholder="Access phrase"
+              placeholderTextColor="#6B7280"
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              onSubmitEditing={submitBusinessPassword}
+              style={{
+                borderRadius: 18,
+                borderWidth: 1,
+                borderColor: businessPasswordError ? "#FF3B30" : "rgba(6,167,161,0.45)",
+                backgroundColor: isDarkMode ? "rgba(255,255,255,0.06)" : "#F3F4F6",
+                color: isDarkMode ? "#CFEFEC" : "#111827",
+                fontWeight: "800",
+                paddingHorizontal: 14,
+                paddingVertical: 12,
+                marginTop: 8,
+              }}
+            />
+            {businessPasswordError ? (
+              <Text style={{ color: "#FF3B30", fontSize: 12, fontWeight: "800", marginTop: 8 }}>
+                {businessPasswordError}
+              </Text>
+            ) : null}
+
+            <Pressable
+              onPress={submitBusinessPassword}
+              style={({ pressed }) => ({
+                marginTop: 14,
+                borderRadius: 18,
+                paddingVertical: 13,
+                alignItems: "center",
+                backgroundColor: "#06A7A1",
+                opacity: pressed ? 0.75 : 1,
+              })}
+            >
+              <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>Unlock Business Profile</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={completedMissionsOpen}

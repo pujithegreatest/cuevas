@@ -18,6 +18,7 @@ interface AppState {
   userBio: string | null;
   isBusinessAccount: boolean;
   businessName: string | null;
+  businessProfileUnlocked: boolean;
 
   rewardsBalance: number;
   defaultPostPrivacy: PrivacyLevel;
@@ -37,6 +38,7 @@ interface AppState {
   setUserBio: (bio: string | null) => void;
   setBusinessProfile: (businessName: string) => void;
   clearBusinessProfile: () => void;
+  unlockBusinessProfile: () => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -50,6 +52,7 @@ export const useAppStore = create<AppState>()(
       userBio: null,
       isBusinessAccount: false,
       businessName: null,
+      businessProfileUnlocked: false,
       rewardsBalance: 300,
       defaultPostPrivacy: "public",
       friends: [
@@ -126,6 +129,10 @@ export const useAppStore = create<AppState>()(
         set({
           isBusinessAccount: false,
           businessName: null,
+        }),
+      unlockBusinessProfile: () =>
+        set({
+          businessProfileUnlocked: true,
         }),
     }),
     {
