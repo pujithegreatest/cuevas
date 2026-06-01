@@ -173,6 +173,7 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
   const isBusinessAccount = useAppStore((state) => state.isBusinessAccount);
   const storedBusinessName = useAppStore((state) => state.businessName);
   const setBusinessProfile = useAppStore((state) => state.setBusinessProfile);
+  const setRewardsBalance = useAppStore((state) => state.setRewardsBalance);
   const handle = slugHandle(displayName || userEmail?.split("@")[0] || "cuevas-partner");
   const [permission, requestPermission] = useCameraPermissions();
   const [activeTab, setActiveTab] = useState<BusinessTab>("profile");
@@ -345,6 +346,9 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
             ? `${result.email} awarded ${result.awardedPoints} Cuevas.`
             : `${result.email} was already checked in.`,
       }));
+      if (userEmail && result.email.toLowerCase() === userEmail.toLowerCase() && typeof result.loyaltyPoints === "number") {
+        setRewardsBalance(result.loyaltyPoints);
+      }
       setManualEmail((current) => ({ ...current, [mission.id]: "" }));
       await loadAttendees(mission.id);
     } catch (error) {

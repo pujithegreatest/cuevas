@@ -2,6 +2,7 @@ import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
 import { useAppStore } from "../state/appStore";
+import { useCuevasBalanceSync } from "../hooks/useCuevasBalanceSync";
 
 // Screens
 import LoginScreen from "../screens/LoginScreen";
@@ -12,6 +13,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
+  useCuevasBalanceSync();
 
   return (
     <Stack.Navigator

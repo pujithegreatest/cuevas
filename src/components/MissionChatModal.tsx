@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   MissionChatMessage,
   MissionChatRole,
@@ -53,6 +54,7 @@ export default function MissionChatModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const listRef = useRef<FlatList<MissionChatMessage>>(null);
+  const insets = useSafeAreaInsets();
   const textColor = isDarkMode ? "#CFEFEC" : "#1F2937";
   const mutedColor = isDarkMode ? "#9CA3AF" : "#5F6B73";
 
@@ -116,12 +118,16 @@ export default function MissionChatModal({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
+        style={{ flex: 1 }}
+      >
         <LinearGradient colors={isDarkMode ? ["#081920", "#0A0A0A"] : ["#E8FFFC", "#FFFFFF"]} style={{ flex: 1 }}>
           <View
             style={{
-              paddingTop: 18,
+              paddingTop: insets.top + 12,
               paddingHorizontal: 16,
               paddingBottom: 12,
               borderBottomWidth: 1,
@@ -227,7 +233,9 @@ export default function MissionChatModal({
             style={{
               flexDirection: "row",
               alignItems: "center",
-              padding: 12,
+              paddingHorizontal: 12,
+              paddingTop: 12,
+              paddingBottom: Math.max(insets.bottom, 10),
               borderTopWidth: 1,
               borderTopColor: "rgba(6,167,161,0.20)",
               gap: 8,

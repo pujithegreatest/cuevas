@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { Video, ResizeMode } from "expo-av";
 import * as Calendar from "expo-calendar";
@@ -642,7 +643,7 @@ export default function MissionsScreen({ navigation }: Props) {
   const [chatMission, setChatMission] = useState<CuevasMission | null>(null);
   const [missionActionStatus, setMissionActionStatus] = useState<Record<string, string>>({});
 
-  useEffect(() => {
+  const refreshMissions = React.useCallback(() => {
     let cancelled = false;
     setIsLoadingMissions(true);
     fetchCuevasMissions()
@@ -665,6 +666,15 @@ export default function MissionsScreen({ navigation }: Props) {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => refreshMissions(), [refreshMissions]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const cancel = refreshMissions();
+      return cancel;
+    }, [refreshMissions])
+  );
 
   const queuedMissions = useMemo(
     () => missions.filter((mission) => queuedMissionIds.includes(mission.id)),
