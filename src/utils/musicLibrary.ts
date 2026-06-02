@@ -18,7 +18,29 @@ const SONG_IMTHEONE: LibrarySong = {
   durationMs: 0,
 };
 
-export const MUSIC_LIBRARY: LibrarySong[] = [SONG_IMTHEONE];
+const SONG_MESIENTO_BIEN: LibrarySong = {
+  id: "amba-mesientobien",
+  title: "Me Siento Bien",
+  artist: "Amba",
+  cover: require("../../assets/song-imtheone-cover.png"),
+  source: require("../../assets/song-amba-mesientobien.m4a"),
+  durationMs: 0,
+};
+
+const SONG_MONSTRUOS_EN_MI_CABEZA: LibrarySong = {
+  id: "amba-monstruosenmicabeza",
+  title: "Monstruos En Mi Cabeza",
+  artist: "Amba",
+  cover: require("../../assets/song-imtheone-cover.png"),
+  source: require("../../assets/song-amba-monstruosenmicabeza.m4a"),
+  durationMs: 0,
+};
+
+export const MUSIC_LIBRARY: LibrarySong[] = [
+  SONG_IMTHEONE,
+  SONG_MESIENTO_BIEN,
+  SONG_MONSTRUOS_EN_MI_CABEZA,
+];
 
 export function getSongById(id?: string | null): LibrarySong | null {
   if (!id) return null;

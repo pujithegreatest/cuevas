@@ -4,7 +4,6 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 import Svg, {
-  Circle,
   Defs,
   LinearGradient as SvgLinearGradient,
   Path,
@@ -47,9 +46,9 @@ const MATRICES: Record<StoryFilter, number[] | null> = {
   none: null,
 
   heatwave: [
-    1.95, -0.35, 0.15, 0, -0.08,
-    0.18, 0.55, 0.95, 0, -0.02,
-    1.15, -0.2, 0.85, 0, 0.02,
+    0.35, 0.1, 1.35, 0, -0.04,
+    0.58, 0.18, 0.64, 0, -0.02,
+    1.25, -0.12, 0.22, 0, 0.02,
     0, 0, 0, 1, 0,
   ],
 
@@ -205,7 +204,7 @@ function ScanlineOverlay({ width, height }: { width: number; height: number }) {
 // since Skia color matrix only runs on the still-image branch.
 const VIDEO_TINTS: Record<StoryFilter, string | null> = {
   none: null,
-  heatwave: "rgba(50,0,105,0.18)",
+  heatwave: "rgba(13,0,140,0.26)",
   hologram: "rgba(0,200,255,0.25)",
   vaporwave: "rgba(255,0,200,0.18)",
   infrared: "rgba(200,0,80,0.28)",
@@ -284,8 +283,21 @@ function getHeatwaveTelemetry(tick: number, width: number, height: number) {
 function HeatwaveThermalMap({ width, height, tick }: { width: number; height: number; tick: number }) {
   const hotX = width * (0.48 + Math.sin(tick * 0.37) * 0.05);
   const hotY = height * (0.43 + Math.cos(tick * 0.29) * 0.04);
-  const coolX = width * (0.34 + Math.cos(tick * 0.19) * 0.08);
-  const lungPulse = 0.04 + Math.abs(Math.sin(tick * 0.8)) * 0.03;
+  const drift = Math.sin(tick * 0.42) * width * 0.025;
+  const coolDrift = Math.cos(tick * 0.22) * width * 0.035;
+  const hotShape = `M ${hotX - width * 0.2} ${hotY - height * 0.14}
+    C ${hotX - width * 0.08 + drift} ${hotY - height * 0.23}, ${hotX + width * 0.14} ${hotY - height * 0.2}, ${hotX + width * 0.2} ${hotY - height * 0.04}
+    C ${hotX + width * 0.27} ${hotY + height * 0.12}, ${hotX + width * 0.1 - drift} ${hotY + height * 0.25}, ${hotX - width * 0.06} ${hotY + height * 0.19}
+    C ${hotX - width * 0.21} ${hotY + height * 0.14}, ${hotX - width * 0.32} ${hotY + height * 0.02}, ${hotX - width * 0.2} ${hotY - height * 0.14} Z`;
+  const coolShape = `M ${width * 0.05 + coolDrift} ${height * 0.08}
+    C ${width * 0.28} ${height * 0.02}, ${width * 0.62} ${height * 0.05}, ${width * 0.95} ${height * 0.18}
+    L ${width * 0.94} ${height * 0.94}
+    C ${width * 0.7} ${height * 0.78}, ${width * 0.46} ${height * 0.7}, ${width * 0.18} ${height * 0.92}
+    C ${width * 0.05} ${height * 0.62}, ${width * 0.02} ${height * 0.34}, ${width * 0.05 + coolDrift} ${height * 0.08} Z`;
+  const torsoShape = `M ${hotX - width * 0.28} ${hotY + height * 0.08}
+    C ${hotX - width * 0.14} ${hotY + height * 0.2}, ${hotX + width * 0.2} ${hotY + height * 0.2}, ${hotX + width * 0.32} ${hotY + height * 0.02}
+    C ${hotX + width * 0.23} ${hotY + height * 0.3}, ${hotX + width * 0.08} ${hotY + height * 0.47}, ${hotX - width * 0.08} ${hotY + height * 0.43}
+    C ${hotX - width * 0.22} ${hotY + height * 0.38}, ${hotX - width * 0.33} ${hotY + height * 0.24}, ${hotX - width * 0.28} ${hotY + height * 0.08} Z`;
 
   return (
     <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -308,16 +320,29 @@ function HeatwaveThermalMap({ width, height, tick }: { width: number; height: nu
           <Stop offset="0.65" stopColor="#4f00ff" stopOpacity="0.36" />
           <Stop offset="1" stopColor="#10002c" stopOpacity="0.46" />
         </SvgLinearGradient>
+        <SvgLinearGradient id="torsoHeat" x1="0" y1="0" x2="1" y2="1">
+          <Stop offset="0" stopColor="#ff3b00" stopOpacity="0.56" />
+          <Stop offset="0.42" stopColor="#ffe600" stopOpacity="0.44" />
+          <Stop offset="0.72" stopColor="#00ffc8" stopOpacity="0.34" />
+          <Stop offset="1" stopColor="#004fff" stopOpacity="0.38" />
+        </SvgLinearGradient>
       </Defs>
       <Rect x="0" y="0" width={width} height={height} fill="url(#heatBase)" />
-      <Circle cx={coolX} cy={height * 0.22} r={width * 0.48} fill="url(#coolWash)" opacity="0.64" />
-      <Circle cx={hotX} cy={hotY} r={Math.max(width, height) * (0.18 + lungPulse)} fill="url(#hotCore)" opacity="0.58" />
-      <Circle cx={hotX - width * 0.08} cy={hotY + height * 0.12} r={width * 0.23} fill="#00e76f" opacity="0.32" />
-      <Circle cx={hotX + width * 0.13} cy={hotY - height * 0.12} r={width * 0.16} fill="#ffef00" opacity="0.34" />
-      <Circle cx={hotX - width * 0.15} cy={hotY - height * 0.04} r={width * 0.11} fill="#ff2a00" opacity="0.48" />
-      <Circle cx={hotX + width * 0.16} cy={hotY + height * 0.08} r={width * 0.12} fill="#fffa00" opacity="0.42" />
-      <Circle cx={width * 0.12} cy={height * 0.82} r={width * 0.32} fill="#ff6a00" opacity="0.28" />
-      <Circle cx={width * 0.88} cy={height * 0.76} r={width * 0.28} fill="#00c7ff" opacity="0.28" />
+      <Path d={coolShape} fill="url(#coolWash)" opacity="0.72" />
+      <Path d={torsoShape} fill="url(#torsoHeat)" opacity="0.62" />
+      <Path d={hotShape} fill="url(#hotCore)" opacity="0.74" />
+      <Path
+        d={`M ${hotX - width * 0.11} ${hotY - height * 0.04}
+          C ${hotX - width * 0.03} ${hotY - height * 0.08}, ${hotX + width * 0.08} ${hotY - height * 0.06}, ${hotX + width * 0.1} ${hotY + height * 0.04}
+          C ${hotX + width * 0.03} ${hotY + height * 0.1}, ${hotX - width * 0.1} ${hotY + height * 0.09}, ${hotX - width * 0.11} ${hotY - height * 0.04} Z`}
+        fill="#f6fff1"
+        opacity="0.52"
+      />
+      <Path
+        d={`M ${width * 0.02} ${height * 0.86} C ${width * 0.22} ${height * 0.76}, ${width * 0.44} ${height * 0.85}, ${width * 0.62} ${height * 0.72} L ${width} ${height * 0.78} L ${width} ${height} L 0 ${height} Z`}
+        fill="#005cff"
+        opacity="0.32"
+      />
     </Svg>
   );
 }
@@ -397,7 +422,16 @@ function HeatwaveThermoGun({
         strokeOpacity="0.72"
         fill="none"
       />
-      <Circle cx={centerX} cy={centerY} r={10 + phase * 18} stroke="#8afcff" strokeWidth="1.4" strokeOpacity={0.62 - phase * 0.36} fill="none" />
+      <Rect
+        x={centerX - 11 - phase * 14}
+        y={centerY - 11 - phase * 14}
+        width={22 + phase * 28}
+        height={22 + phase * 28}
+        stroke="#8afcff"
+        strokeWidth="1.4"
+        strokeOpacity={0.62 - phase * 0.36}
+        fill="none"
+      />
       <Path d={`M ${centerX - 24} ${centerY} L ${centerX + 24} ${centerY} M ${centerX} ${centerY - 24} L ${centerX} ${centerY + 24}`} stroke="#aaffff" strokeWidth="1.5" strokeOpacity="0.86" />
     </Svg>
   );

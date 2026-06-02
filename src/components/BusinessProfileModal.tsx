@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -11,16 +13,24 @@ import {
   View,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { Video, ResizeMode } from "expo-av";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 import {
   CreateMissionInput,
   CuevasMission,
   MissionAttendee,
+  MissionProof,
   checkInCuevasMission,
+  completeCuevasMission,
   createCuevasMission,
+  deleteCuevasMission,
   fetchCuevasMissions,
   fetchMissionAttendees,
+  fetchMissionProofs,
   upsertCuevasBusinessProfile,
 } from "../api/cuevas-missions";
 import { useAppStore } from "../state/appStore";
@@ -187,10 +197,13 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
   const [attendees, setAttendees] = useState<Record<string, MissionAttendee[]>>({});
   const [checkInStatus, setCheckInStatus] = useState<Record<string, string>>({});
   const [chatMission, setChatMission] = useState<CuevasMission | null>(null);
+  const [missionProofs, setMissionProofs] = useState<MissionProof[]>([]);
+  const [proofsStatus, setProofsStatus] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
+  const [eventUrl, setEventUrl] = useState("");
   const [eventDateTime, setEventDateTime] = useState<Date>(() => defaultMissionDate());
   const [datePickerMode, setDatePickerMode] = useState<"date" | "time" | null>(null);
   const [durationHours, setDurationHours] = useState(1);
@@ -210,6 +223,10 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
         return businessHandle === handle || businessTitle === businessName.trim().toLowerCase();
       }),
     [businessName, handle, missions]
+  );
+  const activeMissions = useMemo(
+    () => filteredMissions.filter((mission) => !["completed", "deleted"].includes(String(mission.status || "active").toLowerCase())),
+    [filteredMissions]
   );
 
   useEffect(() => {
@@ -238,10 +255,27 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
   };
 
   useEffect(() => {
-    filteredMissions.slice(0, 4).forEach((mission) => {
+    activeMissions.slice(0, 4).forEach((mission) => {
       if (!attendees[mission.id]) loadAttendees(mission.id);
     });
-  }, [filteredMissions.map((mission) => mission.id).join("|")]);
+  }, [activeMissions.map((mission) => mission.id).join("|")]);
+
+  const loadProofs = async () => {
+    setProofsStatus("Loading mission submissions...");
+    try {
+      const list = await fetchMissionProofs({ businessHandle: handle });
+      setMissionProofs(list);
+      setProofsStatus(list.length ? null : "No user submissions yet.");
+    } catch (error) {
+      setProofsStatus(`Could not load submissions: ${String((error as any)?.message || error)}`);
+    }
+  };
+
+  useEffect(() => {
+    if (visible && isBusinessAccount && activeTab === "submissions") {
+      loadProofs();
+    }
+  }, [activeTab, handle, isBusinessAccount, visible]);
 
   const saveBusinessProfile = async () => {
     const nextName = businessNameDraft.trim();
@@ -289,6 +323,7 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
         peopleNeeded: normalizedPeopleNeeded(peopleNeeded),
         gearProvided,
         materialsNote: materialsNote.trim(),
+        eventUrl: eventUrl.trim(),
         businessName: businessName.trim() || `${handle} Lab`,
         businessHandle: handle,
         businessVerified: true,
@@ -298,6 +333,7 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
       setTitle("");
       setDescription("");
       setLocation("");
+      setEventUrl("");
       setEventDateTime(defaultMissionDate());
       setDurationHours(1);
       setPeopleNeeded("4");
@@ -357,6 +393,98 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
         [mission.id]: `Check-in failed: ${String((error as any)?.message || error)}`,
       }));
     }
+  };
+
+  const missionQrPayload = (mission: CuevasMission) =>
+    JSON.stringify({
+      type: "cuevas-mission-checkin",
+      missionId: mission.id,
+      title: mission.title,
+      businessHandle: mission.businessHandle || handle,
+    });
+
+  const generateMissionQrPdf = async (mission: CuevasMission) => {
+    setCheckInStatus((current) => ({ ...current, [mission.id]: "Generating check-in QR PDF..." }));
+    try {
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&margin=18&data=${encodeURIComponent(
+        missionQrPayload(mission)
+      )}`;
+      const html = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body { margin: 0; padding: 42px; background: #081920; color: #CFEFEC; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+      .sheet { border: 3px solid #06A7A1; border-radius: 28px; padding: 36px; text-align: center; }
+      h1 { margin: 0; font-size: 42px; letter-spacing: 1px; }
+      h2 { color: #06A7A1; margin: 12px 0 0; font-size: 28px; }
+      p { font-size: 20px; color: #9CA3AF; line-height: 1.45; }
+      img { width: 380px; height: 380px; margin: 28px auto; display: block; background: white; padding: 18px; border-radius: 24px; }
+      .points { display: inline-block; margin-top: 8px; padding: 14px 24px; border-radius: 999px; background: #06A7A1; color: white; font-size: 24px; font-weight: 800; }
+    </style>
+  </head>
+  <body>
+    <div class="sheet">
+      <h1>Scan to Check In</h1>
+      <h2>${mission.title}</h2>
+      <p>${mission.location}<br />${mission.eventDate}<br />Hosted by ${mission.businessName || businessName}</p>
+      <img src="${qrUrl}" />
+      <div class="points">+${mission.points} Cuevas</div>
+      <p>Open Cuevas → Missions → Scan QR.</p>
+    </div>
+  </body>
+</html>`;
+      const printed = await Print.printToFileAsync({ html });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(printed.uri, {
+          mimeType: "application/pdf",
+          dialogTitle: `${mission.title} check-in QR`,
+          UTI: "com.adobe.pdf",
+        });
+      }
+      setCheckInStatus((current) => ({ ...current, [mission.id]: "Check-in QR PDF ready." }));
+    } catch (error) {
+      setCheckInStatus((current) => ({
+        ...current,
+        [mission.id]: `QR PDF failed: ${String((error as any)?.message || error)}`,
+      }));
+    }
+  };
+
+  const completeMission = async (mission: CuevasMission) => {
+    setCheckInStatus((current) => ({ ...current, [mission.id]: "Completing mission..." }));
+    try {
+      const updated = await completeCuevasMission({ missionId: mission.id, businessHandle: handle });
+      setMissions((current) => current.map((item) => (item.id === mission.id ? updated : item)));
+      setCheckInStatus((current) => ({ ...current, [mission.id]: "Mission completed." }));
+    } catch (error) {
+      setCheckInStatus((current) => ({
+        ...current,
+        [mission.id]: `Complete failed: ${String((error as any)?.message || error)}`,
+      }));
+    }
+  };
+
+  const confirmDeleteMission = (mission: CuevasMission) => {
+    Alert.alert("Delete mission?", `Remove "${mission.title}" from the civic grid?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          setCheckInStatus((current) => ({ ...current, [mission.id]: "Deleting mission..." }));
+          try {
+            await deleteCuevasMission({ missionId: mission.id, businessHandle: handle });
+            setMissions((current) => current.filter((item) => item.id !== mission.id));
+          } catch (error) {
+            setCheckInStatus((current) => ({
+              ...current,
+              [mission.id]: `Delete failed: ${String((error as any)?.message || error)}`,
+            }));
+          }
+        },
+      },
+    ]);
   };
 
   const renderHeader = () => (
@@ -424,7 +552,7 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
             <Ionicons name="checkmark-circle" size={18} color="#06A7A1" style={{ marginLeft: 6 }} />
           </View>
           <Text style={{ color: "#9CA3AF", fontWeight: "800", marginTop: 2 }}>
-            @{handle} · {filteredMissions.length} active mission{filteredMissions.length === 1 ? "" : "s"}
+            @{handle} · {activeMissions.length} active mission{activeMissions.length === 1 ? "" : "s"}
           </Text>
         </View>
       </View>
@@ -514,6 +642,7 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
       <Field label="Event name" value={title} onChangeText={setTitle} placeholder="Community Cleanup" />
       <Field label="Description" value={description} onChangeText={setDescription} placeholder="Short mission preview for users." multiline />
       <Field label="Location" value={location} onChangeText={setLocation} placeholder="Downtown Trail Loop" />
+      <Field label="Event URL (optional)" value={eventUrl} onChangeText={setEventUrl} placeholder="https://example.org/event" />
       <View style={{ marginBottom: 12 }}>
         <Text style={{ color: "#9CA3AF", fontSize: 11, fontWeight: "900", letterSpacing: 1.3, marginBottom: 6 }}>
           Date / time
@@ -656,6 +785,15 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
         <Text style={{ color: "#9CA3AF", fontSize: 12, marginTop: 10 }}>
           Scan QR to award {mission.points} Cuevas, or type an attendee email manually.
         </Text>
+        {mission.eventUrl ? (
+          <Pressable
+            onPress={() => Linking.openURL(mission.eventUrl || "").catch(() => null)}
+            style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}
+          >
+            <Ionicons name="globe-outline" size={16} color="#06A7A1" />
+            <Text style={{ color: "#06A7A1", fontSize: 12, fontWeight: "900", marginLeft: 6 }}>Open event page</Text>
+          </Pressable>
+        ) : null}
         <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
           <TextInput
             value={manualEmail[mission.id] || ""}
@@ -729,6 +867,60 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
           <Ionicons name="chatbubbles-outline" size={18} color="#06A7A1" />
           <Text style={{ color: "#06A7A1", fontWeight: "900" }}>Open Mission Chat</Text>
         </Pressable>
+        <Pressable
+          onPress={() => generateMissionQrPdf(mission)}
+          style={{
+            marginTop: 10,
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: "rgba(6,167,161,0.45)",
+            paddingVertical: 12,
+            alignItems: "center",
+            flexDirection: "row",
+            justifyContent: "center",
+            gap: 8,
+            backgroundColor: "rgba(6,167,161,0.08)",
+          }}
+        >
+          <Ionicons name="download-outline" size={18} color="#06A7A1" />
+          <Text style={{ color: "#06A7A1", fontWeight: "900" }}>Generate QR PDF</Text>
+        </Pressable>
+        <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
+          <Pressable
+            onPress={() => completeMission(mission)}
+            style={{
+              flex: 1,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: "rgba(6,167,161,0.45)",
+              paddingVertical: 12,
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "row",
+              gap: 7,
+            }}
+          >
+            <Ionicons name="checkmark-circle" size={17} color="#06A7A1" />
+            <Text style={{ color: "#06A7A1", fontWeight: "900" }}>Complete</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => confirmDeleteMission(mission)}
+            style={{
+              flex: 1,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: "rgba(239,68,68,0.45)",
+              paddingVertical: 12,
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "row",
+              gap: 7,
+            }}
+          >
+            <Ionicons name="trash-outline" size={17} color="#EF4444" />
+            <Text style={{ color: "#EF4444", fontWeight: "900" }}>Delete</Text>
+          </Pressable>
+        </View>
         {isScanning ? (
           <View style={{ height: 250, borderRadius: 18, overflow: "hidden", marginTop: 10, backgroundColor: "#000" }}>
             {permission?.granted ? (
@@ -784,8 +976,8 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
       <Text style={{ color: "#9CA3AF", lineHeight: 19, marginBottom: 12 }}>
         Use this station at the event table. Scan QR codes or manually enter emails to award points.
       </Text>
-      {filteredMissions.length ? (
-        filteredMissions.map(renderMissionScanner)
+      {activeMissions.length ? (
+        activeMissions.map(renderMissionScanner)
       ) : (
         <View style={{ borderRadius: 22, padding: 16, borderWidth: 1, borderColor: "rgba(6,167,161,0.22)", backgroundColor: "rgba(255,255,255,0.05)" }}>
           <Text style={{ color: "#9CA3AF" }}>No active missions yet. Create an event first.</Text>
@@ -824,12 +1016,46 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
     <>
       <Text style={{ color: "#CFEFEC", fontSize: 18, fontWeight: "900", marginBottom: 8 }}>Mission Proof Submissions</Text>
       <Text style={{ color: "#9CA3AF", lineHeight: 19, marginBottom: 12 }}>
-        User photos and videos submitted after completed missions will show here for organizer review.
+        User photos and videos submitted after check-in or mission completion show here for organizer review.
       </Text>
-      <View style={{ borderRadius: 22, borderWidth: 1, borderColor: "rgba(6,167,161,0.22)", padding: 16, backgroundColor: "rgba(255,255,255,0.05)" }}>
-        <Text style={{ color: "#06A7A1", fontWeight: "900" }}>Demo queue ready</Text>
-        <Text style={{ color: "#9CA3AF", marginTop: 6 }}>Backend review workflow can attach uploads to mission IDs next.</Text>
-      </View>
+      <Pressable
+        onPress={loadProofs}
+        style={{ borderRadius: 16, borderWidth: 1, borderColor: "rgba(6,167,161,0.35)", paddingVertical: 11, alignItems: "center", marginBottom: 12 }}
+      >
+        <Text style={{ color: "#06A7A1", fontWeight: "900" }}>Refresh Submissions</Text>
+      </Pressable>
+      {proofsStatus ? (
+        <Text style={{ color: proofsStatus.includes("Could not") ? "#EF4444" : "#9CA3AF", fontWeight: "800", marginBottom: 10 }}>
+          {proofsStatus}
+        </Text>
+      ) : null}
+      {missionProofs.length ? (
+        missionProofs.map((proof) => (
+          <View
+            key={proof.id || `${proof.missionId}-${proof.mediaUrl}`}
+            style={{
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: "rgba(6,167,161,0.22)",
+              padding: 12,
+              marginBottom: 12,
+              backgroundColor: "rgba(255,255,255,0.05)",
+            }}
+          >
+            <View style={{ height: 180, borderRadius: 18, overflow: "hidden", backgroundColor: "#000", marginBottom: 10 }}>
+              {proof.mediaType === "video" ? (
+                <Video source={{ uri: proof.mediaUrl }} style={{ flex: 1 }} resizeMode={ResizeMode.COVER} useNativeControls />
+              ) : (
+                <Image source={{ uri: proof.mediaUrl }} style={{ flex: 1 }} contentFit="cover" />
+              )}
+            </View>
+            <Text style={{ color: "#CFEFEC", fontWeight: "900" }}>{proof.missionTitle || proof.missionId}</Text>
+            <Text style={{ color: "#9CA3AF", marginTop: 3, fontSize: 12 }}>
+              @{proof.userHandle || proof.userEmail || "volunteer"} · {proof.submittedAt ? new Date(proof.submittedAt).toLocaleString() : "submitted"}
+            </Text>
+          </View>
+        ))
+      ) : null}
     </>
   );
 

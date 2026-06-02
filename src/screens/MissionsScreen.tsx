@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Linking, Modal, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { useFocusEffect } from "@react-navigation/native";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { Image } from "expo-image";
 import { Video, ResizeMode } from "expo-av";
 import * as Calendar from "expo-calendar";
@@ -11,7 +12,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   CuevasMission,
+  checkInCuevasMission,
   fetchCuevasMissions,
+  fetchMissionCheckIns,
   joinCuevasMission,
   submitMissionProof,
 } from "../api/cuevas-missions";
@@ -209,13 +212,32 @@ async function getWritableCuevasCalendarId() {
   });
 }
 
+function extractMissionQrMissionId(rawValue: string) {
+  const raw = String(rawValue || "").trim();
+  if (!raw) return "";
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed?.type === "cuevas-mission-checkin" && parsed?.missionId) {
+      return String(parsed.missionId);
+    }
+    if (parsed?.missionId) return String(parsed.missionId);
+  } catch {}
+  try {
+    const url = new URL(raw);
+    return url.searchParams.get("missionId") || "";
+  } catch {}
+  return raw.startsWith("mission-") || raw.length > 8 ? raw : "";
+}
+
 function MissionCard({
   mission,
   isDarkMode,
   isQueued,
   isCompleted,
+  canSubmitProof,
   onToggle,
   onAddCalendar,
+  onOpenEventUrl,
   onOpenChat,
   canChat,
   actionStatus,
@@ -230,8 +252,10 @@ function MissionCard({
   isDarkMode: boolean;
   isQueued?: boolean;
   isCompleted?: boolean;
+  canSubmitProof?: boolean;
   onToggle?: () => void;
   onAddCalendar?: () => void;
+  onOpenEventUrl?: () => void;
   onOpenChat?: () => void;
   canChat?: boolean;
   actionStatus?: string;
@@ -247,6 +271,7 @@ function MissionCard({
   const muted = isDarkMode ? "#9CA3AF" : "#5F6B73";
   const border = isQueued ? "#06A7A1" : isDarkMode ? "rgba(6,167,161,0.22)" : "rgba(8,25,32,0.10)";
   const pendingProofCount = (proofMedia || []).filter((item) => !item.uploadedUrl).length;
+  const showProofTools = Boolean(isCompleted || canSubmitProof);
 
   return (
     <View
@@ -369,6 +394,28 @@ function MissionCard({
         </Text>
       ) : null}
 
+      {mission.eventUrl && onOpenEventUrl ? (
+        <Pressable
+          onPress={onOpenEventUrl}
+          style={({ pressed }) => ({
+            marginTop: 10,
+            borderRadius: 16,
+            paddingVertical: 12,
+            paddingHorizontal: 12,
+            alignItems: "center",
+            backgroundColor: isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(8,25,32,0.05)",
+            borderWidth: 1,
+            borderColor: "rgba(6,167,161,0.35)",
+            opacity: pressed ? 0.78 : 1,
+          })}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Ionicons name="globe-outline" size={18} color="#06A7A1" />
+            <Text style={{ color: "#06A7A1", fontWeight: "900", marginLeft: 8 }}>Open Event Page</Text>
+          </View>
+        </Pressable>
+      ) : null}
+
       {!isCompleted && onToggle ? (
         <>
           <Pressable
@@ -467,7 +514,7 @@ function MissionCard({
         </>
       ) : null}
 
-      {isCompleted ? (
+      {showProofTools ? (
         <View style={{ marginTop: 10 }}>
           {(proofMedia || []).length > 0 ? (
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
@@ -633,10 +680,15 @@ export default function MissionsScreen({ navigation }: Props) {
   const rewardsBalance = useAppStore((state) => state.rewardsBalance);
   const userEmail = useAppStore((state) => state.userEmail);
   const displayName = useAppStore((state) => state.displayName);
+  const setRewardsBalance = useAppStore((state) => state.setRewardsBalance);
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [missions, setMissions] = useState<CuevasMission[]>(fallbackMissions);
   const [isLoadingMissions, setIsLoadingMissions] = useState(false);
   const [missionError, setMissionError] = useState<string | null>(null);
   const [queuedMissionIds, setQueuedMissionIds] = useState<string[]>(["community-cleanup"]);
+  const [checkedInMissionIds, setCheckedInMissionIds] = useState<string[]>([]);
+  const [scanVisible, setScanVisible] = useState(false);
+  const [scanLocked, setScanLocked] = useState(false);
   const [proofMedia, setProofMedia] = useState<Record<string, ProofMedia[]>>({});
   const [uploadingProofIds, setUploadingProofIds] = useState<Record<string, boolean>>({});
   const [proofErrors, setProofErrors] = useState<Record<string, string>>({});
@@ -676,9 +728,30 @@ export default function MissionsScreen({ navigation }: Props) {
     }, [refreshMissions])
   );
 
+  const refreshCheckIns = React.useCallback(async () => {
+    if (!userEmail) return;
+    try {
+      const checkIns = await fetchMissionCheckIns({ userEmail });
+      const missionIds = checkIns
+        .map((item: any) => String(item.missionId || item.MissionId || ""))
+        .filter(Boolean);
+      setCheckedInMissionIds(Array.from(new Set(missionIds)));
+    } catch (error) {
+      console.log("[MISSIONS] check-in sync failed", String((error as any)?.message || error));
+    }
+  }, [userEmail]);
+
+  useEffect(() => {
+    refreshCheckIns();
+  }, [refreshCheckIns, missions.length]);
+
   const queuedMissions = useMemo(
-    () => missions.filter((mission) => queuedMissionIds.includes(mission.id)),
+    () => missions.filter((mission) => queuedMissionIds.includes(mission.id) && !["archived", "deleted"].includes(String(mission.status || "").toLowerCase())),
     [missions, queuedMissionIds]
+  );
+  const visibleMissions = useMemo(
+    () => missions.filter((mission) => !["completed", "archived", "deleted"].includes(String(mission.status || "active").toLowerCase())),
+    [missions]
   );
 
   const updateGoingCount = (missionId: string, goingCount: number) => {
@@ -715,6 +788,64 @@ export default function MissionsScreen({ navigation }: Props) {
     }
   };
 
+  const openMissionScanner = async () => {
+    if (!cameraPermission?.granted) {
+      const next = await requestCameraPermission();
+      if (!next.granted) {
+        setMissionError("Camera permission is required to scan mission QR codes.");
+        return;
+      }
+    }
+    setScanLocked(false);
+    setScanVisible(true);
+  };
+
+  const checkInFromQr = async (rawValue: string) => {
+    if (scanLocked) return;
+    const missionId = extractMissionQrMissionId(rawValue);
+    const mission = visibleMissions.find((item) => item.id === missionId) || missions.find((item) => item.id === missionId);
+    if (!mission || !userEmail) {
+      setScanVisible(false);
+      setMissionError(!userEmail ? "Sign in before scanning mission QR codes." : "Mission QR did not match an active Cuevas mission.");
+      return;
+    }
+    setScanLocked(true);
+    setScanVisible(false);
+    setMissionActionStatus((current) => ({ ...current, [mission.id]: "Checking you into mission..." }));
+    try {
+      if (!queuedMissionIds.includes(mission.id)) {
+        setQueuedMissionIds((current) => [...current, mission.id]);
+      }
+      await joinCuevasMission({
+        missionId: mission.id,
+        userEmail,
+        userHandle: displayName || userEmail.split("@")[0],
+      }).catch(() => null);
+      const result = await checkInCuevasMission({
+        missionId: mission.id,
+        userEmail,
+        userHandle: displayName || userEmail.split("@")[0],
+        businessHandle: mission.businessHandle,
+      });
+      if (typeof result.loyaltyPoints === "number") {
+        setRewardsBalance(result.loyaltyPoints);
+      }
+      setCheckedInMissionIds((current) => Array.from(new Set([...current, mission.id])));
+      setMissionActionStatus((current) => ({
+        ...current,
+        [mission.id]: result.awardedPoints > 0 ? `Checked in. +${result.awardedPoints} Cuevas.` : "Already checked in.",
+      }));
+      await refreshCheckIns();
+    } catch (error) {
+      setMissionActionStatus((current) => ({
+        ...current,
+        [mission.id]: `Check-in failed: ${String((error as any)?.message || error)}`,
+      }));
+    } finally {
+      setScanLocked(false);
+    }
+  };
+
   const addMissionToCalendar = async (mission: CuevasMission) => {
     try {
       setMissionActionStatus((current) => ({ ...current, [mission.id]: "Adding mission to calendar..." }));
@@ -734,7 +865,7 @@ export default function MissionsScreen({ navigation }: Props) {
       const eventId = await Calendar.createEventAsync(calendarId, {
         title: `Cuevas Mission: ${mission.title}`,
         location: mission.location,
-        notes: `${mission.description}\n\nHost: ${mission.businessName || "Cuevas Partner"}\nDuration: ${durationHours} hour${durationHours === 1 ? "" : "s"}\nPoints: ${mission.points} Cuevas`,
+        notes: `${mission.description}\n\nHost: ${mission.businessName || "Cuevas Partner"}\nDuration: ${durationHours} hour${durationHours === 1 ? "" : "s"}\nPoints: ${mission.points} Cuevas${mission.eventUrl ? `\nEvent page: ${mission.eventUrl}` : ""}`,
         startDate,
         endDate,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -960,6 +1091,24 @@ export default function MissionsScreen({ navigation }: Props) {
                   {missionError}
                 </Text>
               ) : null}
+              <Pressable
+                onPress={openMissionScanner}
+                style={{
+                  alignSelf: "flex-start",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginTop: 12,
+                  borderRadius: 999,
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  backgroundColor: "rgba(6,167,161,0.18)",
+                  borderWidth: 1,
+                  borderColor: "rgba(6,167,161,0.35)",
+                }}
+              >
+                <Ionicons name="qr-code-outline" size={15} color="#06A7A1" />
+                <Text style={{ color: "#06A7A1", fontSize: 11, fontWeight: "900", marginLeft: 6 }}>Scan Mission QR</Text>
+              </Pressable>
             </View>
           </View>
         </LinearGradient>
@@ -979,9 +1128,17 @@ export default function MissionsScreen({ navigation }: Props) {
               isQueued
               onToggle={() => toggleMission(mission)}
               onAddCalendar={() => addMissionToCalendar(mission)}
+              onOpenEventUrl={mission.eventUrl ? () => Linking.openURL(mission.eventUrl || "").catch(() => null) : undefined}
               canChat
               onOpenChat={() => setChatMission(mission)}
               actionStatus={missionActionStatus[mission.id]}
+              canSubmitProof={checkedInMissionIds.includes(mission.id)}
+              proofMedia={proofMedia[mission.id] || []}
+              isUploadingProof={!!uploadingProofIds[mission.id]}
+              proofError={proofErrors[mission.id]}
+              onPickProof={() => pickProofMedia(mission.id)}
+              onRemoveProof={(proofId) => removeProofMedia(mission.id, proofId)}
+              onSubmitProof={() => submitProofMedia(mission.id)}
             />
           ))
         ) : (
@@ -1006,7 +1163,7 @@ export default function MissionsScreen({ navigation }: Props) {
           icon="radio-button-on"
           isDarkMode={isDarkMode}
         />
-        {missions.map((mission) => (
+        {visibleMissions.map((mission) => (
           <MissionCard
             key={mission.id}
             mission={mission}
@@ -1014,9 +1171,17 @@ export default function MissionsScreen({ navigation }: Props) {
             isQueued={queuedMissionIds.includes(mission.id)}
             onToggle={() => toggleMission(mission)}
             onAddCalendar={() => addMissionToCalendar(mission)}
+            onOpenEventUrl={mission.eventUrl ? () => Linking.openURL(mission.eventUrl || "").catch(() => null) : undefined}
             canChat={queuedMissionIds.includes(mission.id)}
             onOpenChat={() => setChatMission(mission)}
             actionStatus={missionActionStatus[mission.id]}
+            canSubmitProof={checkedInMissionIds.includes(mission.id)}
+            proofMedia={proofMedia[mission.id] || []}
+            isUploadingProof={!!uploadingProofIds[mission.id]}
+            proofError={proofErrors[mission.id]}
+            onPickProof={() => pickProofMedia(mission.id)}
+            onRemoveProof={(proofId) => removeProofMedia(mission.id, proofId)}
+            onSubmitProof={() => submitProofMedia(mission.id)}
           />
         ))}
 
@@ -1041,6 +1206,45 @@ export default function MissionsScreen({ navigation }: Props) {
           />
         ))}
       </ScrollView>
+      <Modal visible={scanVisible} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setScanVisible(false)}>
+        <LinearGradient colors={["#081920", "#0A0A0A"]} style={{ flex: 1, paddingTop: insets.top }}>
+          <View
+            style={{
+              paddingHorizontal: 18,
+              paddingVertical: 14,
+              borderBottomWidth: 1,
+              borderBottomColor: "rgba(6,167,161,0.22)",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Pressable onPress={() => setScanVisible(false)} hitSlop={10}>
+              <Ionicons name="close" size={28} color="#CFEFEC" />
+            </Pressable>
+            <Text style={{ color: "#CFEFEC", fontSize: 18, fontWeight: "900" }}>Scan Mission QR</Text>
+            <View style={{ width: 28 }} />
+          </View>
+          <View style={{ flex: 1, padding: 18 }}>
+            <View style={{ flex: 1, borderRadius: 28, overflow: "hidden", backgroundColor: "#000", borderWidth: 1, borderColor: "rgba(6,167,161,0.35)" }}>
+              {cameraPermission?.granted ? (
+                <CameraView
+                  style={{ flex: 1 }}
+                  barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+                  onBarcodeScanned={(result) => checkInFromQr(result.data)}
+                />
+              ) : (
+                <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 18 }}>
+                  <Text style={{ color: "#CFEFEC", fontWeight: "900", textAlign: "center" }}>Camera permission is required.</Text>
+                </View>
+              )}
+            </View>
+            <Text style={{ color: "#9CA3AF", fontSize: 12, lineHeight: 18, marginTop: 14, textAlign: "center" }}>
+              Scan a Cuevas event QR from a vendor table to join, check in, unlock proof submissions, and update your wallet balance.
+            </Text>
+          </View>
+        </LinearGradient>
+      </Modal>
       <MissionChatModal
         visible={!!chatMission}
         mission={chatMission}

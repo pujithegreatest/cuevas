@@ -121,7 +121,7 @@ export default function MissionChatModal({
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? -24 : 0}
         style={{ flex: 1 }}
       >
         <LinearGradient colors={isDarkMode ? ["#081920", "#0A0A0A"] : ["#E8FFFC", "#FFFFFF"]} style={{ flex: 1 }}>

@@ -18,6 +18,7 @@ export interface CuevasMission {
   peopleNeeded?: number | string;
   gearProvided?: boolean;
   materialsNote?: string;
+  eventUrl?: string;
   businessName?: string;
   businessHandle?: string;
   businessVerified?: boolean;
@@ -37,6 +38,7 @@ export interface CreateMissionInput {
   peopleNeeded: number;
   gearProvided: boolean;
   materialsNote?: string;
+  eventUrl?: string;
   businessName: string;
   businessHandle: string;
   businessVerified?: boolean;
@@ -44,12 +46,26 @@ export interface CreateMissionInput {
 }
 
 export interface MissionAttendee {
+  missionId?: string;
   email: string;
   handle?: string;
   status?: string;
   checkedIn?: boolean;
   awardedPoints?: number;
   checkedInAt?: string;
+}
+
+export interface MissionProof {
+  id: string;
+  missionId: string;
+  missionTitle?: string;
+  userEmail?: string;
+  userHandle?: string;
+  businessHandle?: string;
+  mediaUrl: string;
+  mediaType: "image" | "video";
+  status?: string;
+  submittedAt?: string;
 }
 
 export interface MissionProofInput {
@@ -107,6 +123,7 @@ function normalizeMission(item: any): CuevasMission {
     peopleNeeded: Number.isFinite(peopleNeededCount) && peopleNeededCount > 0 ? peopleNeededCount : rawPeopleNeeded || "",
     gearProvided: Boolean(item?.gearProvided ?? item?.GearProvided ?? false),
     materialsNote: item?.materialsNote || item?.MaterialsNote || "",
+    eventUrl: item?.eventUrl || item?.EventUrl || "",
     businessName: item?.businessName || item?.BusinessName || "Cuevas Partner",
     businessHandle: item?.businessHandle || item?.BusinessHandle || "cuevas-partner",
     businessVerified: Boolean(item?.businessVerified ?? item?.BusinessVerified ?? false),
@@ -174,6 +191,7 @@ export async function fetchMissionAttendees(missionId: string): Promise<MissionA
     throw new Error(json?.error || "Failed to load mission attendees");
   }
   return (json.attendees || []).map((item: any) => ({
+    missionId: String(item?.missionId || item?.MissionId || ""),
     email: String(item?.email || item?.UserEmail || ""),
     handle: item?.handle || item?.UserHandle || "",
     status: item?.status || item?.Status || "going",
@@ -188,7 +206,7 @@ export async function checkInCuevasMission(input: {
   userEmail: string;
   userHandle?: string | null;
   businessHandle?: string | null;
-}): Promise<{ missionId: string; email: string; awardedPoints: number; loyaltyPoints?: number }> {
+}): Promise<{ missionId: string; email: string; awardedPoints: number; loyaltyPoints?: number; alreadyCheckedIn?: boolean }> {
   const response = await fetch(`${BASE_URL}/missionCheckIn`, {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
@@ -203,7 +221,66 @@ export async function checkInCuevasMission(input: {
     email: String(json.email || input.userEmail),
     awardedPoints: Number(json.awardedPoints || 0),
     loyaltyPoints: typeof json.loyaltyPoints === "number" ? json.loyaltyPoints : undefined,
+    alreadyCheckedIn: Boolean(json.alreadyCheckedIn),
   };
+}
+
+export async function completeCuevasMission(input: {
+  missionId: string;
+  businessHandle?: string | null;
+}): Promise<CuevasMission> {
+  const response = await fetch(`${BASE_URL}/missionComplete`, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify({ ...input, clientKey: CUEVAS_CLIENT_KEY }),
+  });
+  const json = await parseApiJson(response, "Failed to complete mission");
+  if (!response.ok || !json?.success) {
+    throw new Error(json?.error || "Failed to complete mission");
+  }
+  return normalizeMission(json.mission);
+}
+
+export async function deleteCuevasMission(input: {
+  missionId: string;
+  businessHandle?: string | null;
+}): Promise<{ missionId: string }> {
+  const response = await fetch(`${BASE_URL}/missionDelete`, {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify({ ...input, clientKey: CUEVAS_CLIENT_KEY }),
+  });
+  const json = await parseApiJson(response, "Failed to delete mission");
+  if (!response.ok || !json?.success) {
+    throw new Error(json?.error || "Failed to delete mission");
+  }
+  return { missionId: String(json.missionId || input.missionId) };
+}
+
+export async function fetchMissionCheckIns(input: {
+  missionId?: string;
+  userEmail?: string | null;
+}): Promise<MissionAttendee[]> {
+  const params = new URLSearchParams({ clientKey: CUEVAS_CLIENT_KEY });
+  if (input.missionId) params.set("missionId", input.missionId);
+  if (input.userEmail) params.set("userEmail", input.userEmail);
+  const response = await fetch(`${BASE_URL}/missionCheckIns?${params.toString()}`, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
+  const json = await parseApiJson(response, "Failed to load mission check-ins");
+  if (!response.ok || !json?.success) {
+    throw new Error(json?.error || "Failed to load mission check-ins");
+  }
+  return (json.checkIns || []).map((item: any) => ({
+    missionId: String(item?.missionId || item?.MissionId || ""),
+    email: String(item?.email || item?.UserEmail || ""),
+    handle: item?.handle || item?.UserHandle || "",
+    status: item?.status || item?.Status || "checked-in",
+    checkedIn: true,
+    awardedPoints: Number(item?.awardedPoints ?? item?.AwardedPoints ?? 0),
+    checkedInAt: item?.checkedInAt || item?.CheckedInAt || "",
+  }));
 }
 
 export async function upsertCuevasBusinessProfile(input: {
@@ -240,4 +317,35 @@ export async function submitMissionProof(input: MissionProofInput): Promise<{ pr
     proofId: String(json.proof?.id || json.proof?._id || ""),
     mediaUrl: String(json.proof?.mediaUrl || input.mediaUrl),
   };
+}
+
+export async function fetchMissionProofs(input: {
+  missionId?: string;
+  userEmail?: string | null;
+  businessHandle?: string | null;
+}): Promise<MissionProof[]> {
+  const params = new URLSearchParams({ clientKey: CUEVAS_CLIENT_KEY });
+  if (input.missionId) params.set("missionId", input.missionId);
+  if (input.userEmail) params.set("userEmail", input.userEmail);
+  if (input.businessHandle) params.set("businessHandle", input.businessHandle);
+  const response = await fetch(`${BASE_URL}/missionProofs?${params.toString()}`, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
+  const json = await parseApiJson(response, "Failed to load mission proofs");
+  if (!response.ok || !json?.success) {
+    throw new Error(json?.error || "Failed to load mission proofs");
+  }
+  return (json.proofs || []).map((item: any) => ({
+    id: String(item?.id || item?._id || ""),
+    missionId: String(item?.missionId || item?.MissionId || ""),
+    missionTitle: item?.missionTitle || item?.MissionTitle || "",
+    userEmail: item?.userEmail || item?.UserEmail || "",
+    userHandle: item?.userHandle || item?.UserHandle || "",
+    businessHandle: item?.businessHandle || item?.BusinessHandle || "",
+    mediaUrl: String(item?.mediaUrl || item?.MediaUrl || ""),
+    mediaType: String(item?.mediaType || item?.MediaType || "image").toLowerCase() === "video" ? "video" : "image",
+    status: item?.status || item?.Status || "submitted",
+    submittedAt: item?.submittedAt || item?.SubmittedAt || "",
+  }));
 }

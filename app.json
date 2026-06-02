@@ -2,6 +2,7 @@
   "expo": {
     "name": "vibecode",
     "slug": "vibecode",
+    "icon": "./assets/icon.png",
     "scheme": [
       "com.googleusercontent.apps.863626649134-qti4ohta0m03uhaetm4l8urra7s66d0m",
       "com.ecothot.cuevas",
