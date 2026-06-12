@@ -15,10 +15,20 @@ interface GoogleLoginRequest {
   clientKey: string;
   email: string;
   googleToken: string;
+  displayName?: string;
+}
+
+interface AppleLoginRequest {
+  clientKey: string;
+  email?: string;
+  appleUserId: string;
+  appleIdentityToken?: string | null;
+  displayName?: string;
 }
 
 interface LoginResponse {
   success: boolean;
+  email?: string;
   cuevas?: number;
   displayName?: string;
   error?: string;
@@ -112,6 +122,7 @@ export async function loginToEcothot(
     if (data.success) {
       return {
         success: true,
+        email: data.email || email,
         cuevas: data.cuevas,
         displayName: data.displayName,
       };
@@ -191,6 +202,7 @@ export async function signupToCuevas(
 
     return {
       success: true,
+      email: data.email || email,
       cuevas: data.cuevas,
       displayName: data.displayName,
     };
@@ -217,7 +229,8 @@ export async function signupToCuevas(
  */
 export async function loginWithGoogle(
   email: string,
-  googleToken: string
+  googleToken: string,
+  displayName?: string
 ): Promise<LoginResponse> {
   try {
     if (!CUEVAS_CLIENT_KEY) {
@@ -231,6 +244,7 @@ export async function loginWithGoogle(
       clientKey: CUEVAS_CLIENT_KEY,
       email: email,
       googleToken: googleToken,
+      displayName,
     };
 
     // Use the existing login endpoint since it supports the same logic
@@ -290,6 +304,7 @@ export async function loginWithGoogle(
     if (data.success) {
       return {
         success: true,
+        email: data.email || email,
         cuevas: data.cuevas,
         displayName: data.displayName,
       };
@@ -307,6 +322,78 @@ export async function loginWithGoogle(
           error: "No internet connection. Please check your network.",
         };
       }
+    }
+
+    return {
+      success: false,
+      error: "Unable to connect to server. Please try again.",
+    };
+  }
+}
+
+export async function loginWithApple(input: {
+  email?: string | null;
+  appleUserId: string;
+  appleIdentityToken?: string | null;
+  displayName?: string | null;
+}): Promise<LoginResponse> {
+  try {
+    if (!CUEVAS_CLIENT_KEY) {
+      return {
+        success: false,
+        error: "Configuration error: Missing client key. Please restart the app.",
+      };
+    }
+
+    const requestBody: AppleLoginRequest = {
+      clientKey: CUEVAS_CLIENT_KEY,
+      email: input.email?.trim().toLowerCase() || undefined,
+      appleUserId: input.appleUserId,
+      appleIdentityToken: input.appleIdentityToken || null,
+      displayName: input.displayName?.trim() || undefined,
+    };
+
+    const response = await fetch("https://www.ecothot.com/_functions/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    const responseText = await response.text();
+    let data: any = {};
+    if (responseText && responseText.trim()) {
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        return {
+          success: false,
+          error: `Invalid server response (${response.status}). Please try again.`,
+        };
+      }
+    }
+
+    if (!response.ok || !data.success) {
+      return {
+        success: false,
+        error: data.error || `Server error (${response.status})`,
+      };
+    }
+
+    return {
+      success: true,
+      email: data.email || input.email || `apple:${input.appleUserId}`,
+      cuevas: data.cuevas,
+      displayName: data.displayName,
+    };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("Network request failed")) {
+      return {
+        success: false,
+        error: "No internet connection. Please check your network.",
+      };
     }
 
     return {

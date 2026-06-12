@@ -14,9 +14,10 @@ import {
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
 import { useAppStore } from "../state/appStore";
-import { loginToEcothot, loginWithGoogle, signupToCuevas } from "../api/ecothot-auth";
+import { loginToEcothot, loginWithApple, loginWithGoogle, signupToCuevas } from "../api/ecothot-auth";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
+import * as AppleAuthentication from "expo-apple-authentication";
 import { Ionicons } from "../components/Ionicons";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
@@ -53,10 +54,12 @@ function GoogleAuthButton({
 }: {
   isDarkMode: boolean;
   isLoading: boolean;
-  onLoginSuccess: (email: string, cuevas: number) => void;
+  onLoginSuccess: (email: string, cuevas: number, displayName?: string) => void;
   onError: (error: string) => void;
 }) {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
+  const [isAppleAvailable, setIsAppleAvailable] = useState(false);
 
   const redirectUri = Platform.select({
     ios: "com.googleusercontent.apps.863626649134-qti4ohta0m03uhaetm4l8urra7s66d0m:/oauth2redirect/google",
@@ -69,6 +72,13 @@ function GoogleAuthButton({
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
     redirectUri,
   });
+
+  useEffect(() => {
+    if (Platform.OS !== "ios") return;
+    AppleAuthentication.isAvailableAsync()
+      .then(setIsAppleAvailable)
+      .catch(() => setIsAppleAvailable(false));
+  }, []);
 
   // Debug: Log the redirect URI
   useEffect(() => {
@@ -134,10 +144,14 @@ function GoogleAuthButton({
       console.log("Google Email:", userInfo.email); // Debug log
 
       // Login to Ecothot with Google credentials
-      const echothotResponse = await loginWithGoogle(userInfo.email, accessToken);
+      const echothotResponse = await loginWithGoogle(userInfo.email, accessToken, userInfo.name);
 
       if (echothotResponse.success && echothotResponse.cuevas !== undefined) {
-        onLoginSuccess(userInfo.email, echothotResponse.cuevas);
+        onLoginSuccess(
+          echothotResponse.email || userInfo.email,
+          echothotResponse.cuevas,
+          echothotResponse.displayName || userInfo.name
+        );
       } else {
         onError(echothotResponse.error || "Google login failed. Please try again.");
       }
@@ -161,6 +175,46 @@ function GoogleAuthButton({
       console.log("Google prompt error:", err);
       onError("Google sign-in failed to start. Please try again.");
       setIsGoogleLoading(false);
+    }
+  };
+
+  const handleApplePress = async () => {
+    onError("");
+    setIsAppleLoading(true);
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+      const displayName = [credential.fullName?.givenName, credential.fullName?.familyName]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      const cuevasResponse = await loginWithApple({
+        email: credential.email,
+        appleUserId: credential.user,
+        appleIdentityToken: credential.identityToken,
+        displayName,
+      });
+
+      if (cuevasResponse.success && cuevasResponse.cuevas !== undefined) {
+        onLoginSuccess(
+          cuevasResponse.email || credential.email || `apple:${credential.user}`,
+          cuevasResponse.cuevas,
+          cuevasResponse.displayName || displayName
+        );
+      } else {
+        onError(cuevasResponse.error || "Apple sign-in failed. Please try again.");
+      }
+    } catch (err: any) {
+      if (err?.code !== "ERR_REQUEST_CANCELED") {
+        console.log("Apple login error:", err);
+        onError("Apple sign-in failed. Please try again.");
+      }
+    } finally {
+      setIsAppleLoading(false);
     }
   };
 
@@ -188,10 +242,35 @@ function GoogleAuthButton({
         />
       </View>
 
+      {isAppleAvailable ? (
+        <Pressable
+          onPress={handleApplePress}
+          disabled={isLoading || isAppleLoading || isGoogleLoading}
+          className={`py-4 px-6 border-2 items-center flex-row justify-center mb-3 ${
+            isAppleLoading
+              ? isDarkMode
+                ? "bg-dark-surface border-gray-600"
+                : "bg-gray-100 border-gray-300"
+              : "bg-black border-black"
+          }`}
+          style={({ pressed }) => ({
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          {isAppleLoading ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text className="text-lg font-bold text-white" style={{ fontFamily: "Courier New" }}>
+               SIGN IN WITH APPLE
+            </Text>
+          )}
+        </Pressable>
+      ) : null}
+
       {/* Google Sign-In Button */}
       <Pressable
         onPress={handleGooglePress}
-        disabled={isLoading || isGoogleLoading || !request}
+        disabled={isLoading || isAppleLoading || isGoogleLoading || !request}
         className={`py-4 px-6 border-2 items-center flex-row justify-center ${
           isGoogleLoading || !request
             ? isDarkMode
@@ -244,8 +323,11 @@ export default function LoginScreen({ navigation }: Props) {
   const setRewardsBalance = useAppStore((s) => s.setRewardsBalance);
   const isDarkMode = useAppStore((s) => s.isDarkMode);
 
-  const handleGoogleLoginSuccess = (userEmail: string, cuevas: number) => {
+  const handleGoogleLoginSuccess = (userEmail: string, cuevas: number, authDisplayName?: string) => {
     setRewardsBalance(cuevas);
+    if (authDisplayName?.trim()) {
+      setDisplayName(authDisplayName.trim());
+    }
     login(userEmail);
   };
 
@@ -405,12 +487,12 @@ export default function LoginScreen({ navigation }: Props) {
               {isSignup ? (
                 <View style={{ marginBottom: 14 }}>
                   <Text style={{ color: textColor, fontFamily: "Courier New", fontSize: 12, fontWeight: "900", marginBottom: 7 }}>
-                    DISPLAY NAME
+                    USERNAME
                   </Text>
                   <TextInput
                     value={displayName}
                     onChangeText={setDisplayNameInput}
-                    placeholder="pujiedits"
+                    placeholder="username"
                     placeholderTextColor={isDarkMode ? "#66777A" : "#8A9A9D"}
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -548,7 +630,7 @@ export default function LoginScreen({ navigation }: Props) {
               <Text style={{ color: mutedColor, fontFamily: "Courier New", fontSize: 11, textAlign: "center", lineHeight: 16, marginTop: 4 }}>
                 {isSignup
                   ? "Create a Cuevas account for rewards, missions, posts, and wallet sync."
-                  : "Use Cuevas credentials or Google to access rewards."}
+                  : "Use Cuevas credentials, Apple, or Google to access rewards."}
               </Text>
             </View>
           </ScrollView>
