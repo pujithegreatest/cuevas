@@ -384,7 +384,10 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
                   style={{ width: 40, height: 40 }}
                 />
               ) : (
-                <Text className="text-white font-bold text-lg">
+                <Text
+                  className="font-bold text-lg"
+                  style={{ color: isDarkMode ? "#FFFFFF" : "#10252B" }}
+                >
                   {post.author[0].toUpperCase()}
                 </Text>
               )}

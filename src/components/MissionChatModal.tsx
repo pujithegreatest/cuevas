@@ -181,6 +181,16 @@ export default function MissionChatModal({
               renderItem={({ item }) => {
                 const mine = item.authorEmail && userEmail && item.authorEmail.toLowerCase() === userEmail.toLowerCase();
                 const vendor = item.authorRole === "vendor";
+                const bubbleBg = mine
+                  ? "#06A7A1"
+                  : vendor
+                  ? isDarkMode
+                    ? "rgba(128,23,31,0.28)"
+                    : "rgba(128,23,31,0.10)"
+                  : isDarkMode
+                  ? "rgba(255,255,255,0.08)"
+                  : "#FFFFFF";
+                const bubbleText = mine ? (isDarkMode ? "#FFFFFF" : "#10252B") : textColor;
                 return (
                   <View style={{ alignItems: mine ? "flex-end" : "flex-start", marginBottom: 10 }}>
                     <View
@@ -189,13 +199,13 @@ export default function MissionChatModal({
                         borderRadius: 20,
                         paddingHorizontal: 13,
                         paddingVertical: 10,
-                        backgroundColor: mine ? "#06A7A1" : vendor ? "rgba(128,23,31,0.28)" : "rgba(255,255,255,0.08)",
+                        backgroundColor: bubbleBg,
                         borderWidth: 1,
                         borderColor: vendor ? "rgba(255,86,100,0.38)" : "rgba(6,167,161,0.25)",
                       }}
                     >
                       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
-                        <Text style={{ color: mine ? "#FFFFFF" : "#06A7A1", fontWeight: "900", fontSize: 11 }}>
+                        <Text style={{ color: mine ? bubbleText : "#06A7A1", fontWeight: "900", fontSize: 11 }}>
                           @{item.authorHandle || "cuevas"}
                         </Text>
                         {vendor ? (
@@ -208,11 +218,11 @@ export default function MissionChatModal({
                               backgroundColor: "rgba(255,255,255,0.12)",
                             }}
                           >
-                            <Text style={{ color: "#FFFFFF", fontWeight: "900", fontSize: 8 }}>VENDOR</Text>
+                            <Text style={{ color: isDarkMode ? "#FFFFFF" : "#80171F", fontWeight: "900", fontSize: 8 }}>VENDOR</Text>
                           </View>
                         ) : null}
                       </View>
-                      <Text style={{ color: "#FFFFFF", fontWeight: "800", lineHeight: 19 }}>{item.text}</Text>
+                      <Text style={{ color: bubbleText, fontWeight: "800", lineHeight: 19 }}>{item.text}</Text>
                       <Text style={{ color: mine ? "rgba(255,255,255,0.75)" : mutedColor, fontSize: 10, marginTop: 5 }}>
                         {formatMessageTime(item.createdAt)}
                       </Text>

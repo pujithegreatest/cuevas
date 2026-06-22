@@ -1050,9 +1050,10 @@ export default function CreateStoryModal({
                   }`}
                 >
                   <Text
-                    className={`font-bold ${
-                      !mediaUri || isSaving ? "text-gray-500" : "text-white"
-                    }`}
+                    className="font-bold"
+                    style={{
+                      color: !mediaUri || isSaving ? "#6B7280" : isDarkMode ? "#FFFFFF" : "#10252B",
+                    }}
                   >
                     {isSaving ? "Sharing..." : "Share"}
                   </Text>

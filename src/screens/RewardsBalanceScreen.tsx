@@ -241,7 +241,10 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
             elevation: 3,
           })}
         >
-          <Text className="text-white text-base font-semibold">
+          <Text
+            className="text-base font-semibold"
+            style={{ color: isDarkMode ? "#FFFFFF" : "#10252B" }}
+          >
             Save as PNG
           </Text>
         </Pressable>
@@ -316,8 +319,11 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
           })}
         >
           <View className="flex-row items-center justify-center">
-            <Ionicons name="trending-up" size={20} color={isDarkMode ? "#06A7A1" : "#FFFFFF"} />
-            <Text className={`ml-2 text-base font-semibold ${isDarkMode ? "text-dark-accent" : "text-white"}`}>
+            <Ionicons name="trending-up" size={20} color={isDarkMode ? "#06A7A1" : "#CFEFEC"} />
+            <Text
+              className="ml-2 text-base font-semibold"
+              style={{ color: isDarkMode ? "#06A7A1" : "#CFEFEC" }}
+            >
               View Crypto Stock
             </Text>
           </View>

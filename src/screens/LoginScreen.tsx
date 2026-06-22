@@ -500,7 +500,7 @@ export default function LoginScreen({ navigation }: Props) {
                         borderColor: active ? "#057D78" : isDarkMode ? "rgba(6,167,161,0.24)" : "rgba(6,167,161,0.30)",
                       }}
                     >
-                      <Text style={{ color: active ? "#FFFFFF" : isDarkMode ? "#CFEFEC" : "#057D78", fontFamily: "Courier New", fontWeight: "900" }}>
+                      <Text style={{ color: active ? (isDarkMode ? "#FFFFFF" : "#10252B") : isDarkMode ? "#CFEFEC" : "#057D78", fontFamily: "Courier New", fontWeight: "900" }}>
                         {item === "login" ? "SIGN IN" : "SIGN UP"}
                       </Text>
                     </Pressable>
@@ -648,8 +648,8 @@ export default function LoginScreen({ navigation }: Props) {
               })}
               >
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Ionicons name={isSignup ? "person-add-outline" : "log-in-outline"} size={18} color="#FFFFFF" />
-                  <Text style={{ color: "#FFFFFF", fontFamily: "Courier New", fontSize: 16, fontWeight: "900", letterSpacing: 1, marginLeft: 8 }}>
+                  <Ionicons name={isSignup ? "person-add-outline" : "log-in-outline"} size={18} color={isDarkMode ? "#FFFFFF" : "#10252B"} />
+                  <Text style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontFamily: "Courier New", fontSize: 16, fontWeight: "900", letterSpacing: 1, marginLeft: 8 }}>
                     {isLoading ? (isSignup ? "CREATING..." : "SIGNING IN...") : isSignup ? "CREATE ACCOUNT" : "SIGN IN"}
                   </Text>
                 </View>

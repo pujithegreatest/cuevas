@@ -319,11 +319,11 @@ function MissionCard({
               <Ionicons
                 name={isQueued ? "checkmark-circle" : "add"}
                 size={18}
-                color="#FFFFFF"
+                color={isQueued || isDarkMode ? "#FFFFFF" : "#10252B"}
               />
               <Text
                 style={{
-                  color: "#FFFFFF",
+                  color: isQueued || isDarkMode ? "#FFFFFF" : "#10252B",
                   fontWeight: "900",
                   marginLeft: 8,
                 }}
@@ -484,8 +484,8 @@ function MissionCard({
             })}
           >
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons name="images-outline" size={18} color="#FFFFFF" />
-              <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>
+              <Ionicons name="images-outline" size={18} color={isDarkMode ? "#FFFFFF" : "#10252B"} />
+              <Text style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontWeight: "900", marginLeft: 8 }}>
                 Upload Multiple Proof Files
               </Text>
             </View>

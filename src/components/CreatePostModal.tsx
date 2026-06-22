@@ -485,11 +485,14 @@ export default function CreatePostModal({
               }`}
             >
               <Text
-                className={`font-bold ${
-                  isSubmitting || (!content.trim() && media.length === 0 && !selectedAudio)
-                    ? "text-gray-500"
-                    : "text-white"
-                }`}
+                className="font-bold"
+                style={{
+                  color: isSubmitting || (!content.trim() && media.length === 0 && !selectedAudio)
+                    ? "#6B7280"
+                    : isDarkMode
+                    ? "#FFFFFF"
+                    : "#10252B",
+                }}
               >
                 {isSubmitting ? "Posting..." : "Post"}
               </Text>
@@ -528,7 +531,10 @@ export default function CreatePostModal({
                   isDarkMode ? "bg-dark-accent" : "bg-pixel-teal"
                 }`}
               >
-                <Text className="text-white font-bold text-lg">
+                <Text
+                  className="font-bold text-lg"
+                  style={{ color: isDarkMode ? "#FFFFFF" : "#10252B" }}
+                >
                   {(userEmail?.[0] || "A").toUpperCase()}
                 </Text>
               </View>

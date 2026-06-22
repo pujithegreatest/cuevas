@@ -598,7 +598,10 @@ export default function StockBalanceScreen({ navigation }: Props) {
                 elevation: 3,
               })}
             >
-              <Text className="text-white text-base font-semibold text-center">
+              <Text
+                className="text-base font-semibold text-center"
+                style={{ color: isDarkMode ? "#FFFFFF" : "#10252B" }}
+              >
                 Save as PNG
               </Text>
             </Pressable>

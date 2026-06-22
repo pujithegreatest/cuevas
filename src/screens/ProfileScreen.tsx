@@ -753,8 +753,8 @@ export default function ProfileScreen({ navigation }: Props) {
                     justifyContent: "center",
                   }}
                 >
-                  <Ionicons name="shield-check" size={17} color="#FFFFFF" />
-                  <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>
+                  <Ionicons name="shield-check" size={17} color={isDarkMode ? "#FFFFFF" : "#10252B"} />
+                  <Text style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontWeight: "900", marginLeft: 8 }}>
                     View Completed Missions
                   </Text>
                 </View>
@@ -1124,8 +1124,8 @@ export default function ProfileScreen({ navigation }: Props) {
                     gap: 8,
                   }}
                 >
-                  <Ionicons name="person-add-outline" size={18} color="#FFFFFF" />
-                  <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>Add to Network</Text>
+                  <Ionicons name="person-add-outline" size={18} color={isDarkMode ? "#FFFFFF" : "#10252B"} />
+                  <Text style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontWeight: "900" }}>Add to Network</Text>
                 </Pressable>
               </View>
             )}
@@ -1274,8 +1274,8 @@ export default function ProfileScreen({ navigation }: Props) {
               })}
             >
               <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Ionicons name="business-outline" size={18} color="#FFFFFF" />
-                <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>Unlock Business Profile</Text>
+                <Ionicons name="business-outline" size={18} color={isDarkMode ? "#FFFFFF" : "#10252B"} />
+                <Text style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontWeight: "900", marginLeft: 8 }}>Unlock Business Profile</Text>
               </View>
             </Pressable>
           </View>
@@ -1347,8 +1347,8 @@ export default function ProfileScreen({ navigation }: Props) {
                     alignItems: "center",
                   })}
                 >
-                  <Ionicons name="arrow-back-outline" size={17} color="#FFFFFF" />
-                  <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>
+                  <Ionicons name="arrow-back-outline" size={17} color={isDarkMode ? "#FFFFFF" : "#10252B"} />
+                  <Text style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontWeight: "900", marginLeft: 8 }}>
                     Back to Profile
                   </Text>
                 </Pressable>
