@@ -9,7 +9,6 @@ import {
   StatusBar,
   StyleSheet,
 } from "react-native";
-import type { ViewStyle } from "react-native";
 import {
   CameraView,
   CameraType,
@@ -29,7 +28,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "./Ionicons";
-import { LiveFilterHud } from "./StoryFilterCanvas";
+import StoryFilterCanvas, { LiveFilterHud } from "./StoryFilterCanvas";
 import { StoryFilter } from "../types/story";
 
 interface StoryCameraModalProps {
@@ -46,6 +45,7 @@ interface StoryCameraModalProps {
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const MAX_RECORD_MS = 15000;
+const LIVE_SNAPSHOT_PREVIEW_MS = 520;
 const RECORD_BTN_SIZE = 84;
 const RING_SIZE = 104;
 type LiveFilter =
@@ -87,39 +87,6 @@ const LIVE_FILTER_OPTIONS: {
   { id: "void", label: "Gravity", icon: "moon", accent: "#9b87ff" },
 ];
 
-function getLiveCameraPreviewFilter(filter: LiveFilter): ViewStyle["filter"] {
-  switch (filter) {
-    case "hologram":
-      return "saturate(1.35) contrast(1.08) brightness(1.05) hue-rotate(170deg)";
-    case "glitch":
-      return "contrast(1.16) saturate(1.55) brightness(1.02)";
-    case "matrix":
-      return "saturate(1.85) hue-rotate(80deg) contrast(1.22) brightness(0.95)";
-    case "scanner":
-      return "saturate(1.7) hue-rotate(145deg) contrast(1.18) brightness(1.05)";
-    case "xray":
-      return "invert(1) grayscale(0.38) contrast(1.18) brightness(1.06) saturate(0.7)";
-    case "infrared":
-      return "saturate(1.65) hue-rotate(305deg) contrast(1.18) brightness(0.96)";
-    case "neon":
-      return "saturate(1.8) contrast(1.18) brightness(1.05) hue-rotate(25deg)";
-    case "vaporwave":
-      return "saturate(1.45) hue-rotate(285deg) contrast(1.12) brightness(1.06)";
-    case "thermal":
-      return "saturate(1.7) hue-rotate(330deg) contrast(1.2) brightness(1.02)";
-    case "predator":
-      return "saturate(1.75) hue-rotate(115deg) contrast(1.2) brightness(0.95)";
-    case "chrome":
-      return "grayscale(1) contrast(1.24) brightness(1.08) saturate(0.25)";
-    case "radioactive":
-      return "saturate(1.9) hue-rotate(80deg) contrast(1.15) brightness(0.98)";
-    case "void":
-      return "grayscale(0.65) contrast(1.35) brightness(0.72) saturate(0.85)";
-    default:
-      return undefined;
-  }
-}
-
 export default function StoryCameraModal({
   visible,
   onClose,
@@ -133,6 +100,8 @@ export default function StoryCameraModal({
   const [isRecording, setIsRecording] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [liveFilter, setLiveFilter] = useState<LiveFilter>("none");
+  const [cameraReady, setCameraReady] = useState(false);
+  const [previewFrameUri, setPreviewFrameUri] = useState<string | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [micPermission, requestMicPermission] = useMicrophonePermissions();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -141,9 +110,21 @@ export default function StoryCameraModal({
   const redDot = useSharedValue(0);
   const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previewFrameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isPreviewCaptureInFlightRef = useRef(false);
+  const isFinalCaptureInFlightRef = useRef(false);
   const recordStartRef = useRef<number>(0);
   const cameraModeRef = useRef<CameraMode>("picture");
-  const cameraPreviewFilter = getLiveCameraPreviewFilter(liveFilter);
+  const shouldUseSnapshotPreview =
+    visible &&
+    permission?.granted &&
+    cameraReady &&
+    mode === "picture" &&
+    cameraMode === "picture" &&
+    !isRecording &&
+    liveFilter !== "none";
+  const isShowingSnapshotPreview =
+    shouldUseSnapshotPreview && previewFrameUri !== null;
 
   const setNativeCameraMode = (nextMode: CameraMode) => {
     cameraModeRef.current = nextMode;
@@ -194,11 +175,78 @@ export default function StoryCameraModal({
       setMode("picture");
       setNativeCameraMode("picture");
       setLiveFilter("none");
+      setCameraReady(false);
+      setPreviewFrameUri(null);
       setErrorMsg(null);
       progress.value = 0;
       redDot.value = 0;
     }
   }, [visible]);
+
+  useEffect(() => {
+    if (!shouldUseSnapshotPreview) {
+      if (previewFrameTimerRef.current) {
+        clearTimeout(previewFrameTimerRef.current);
+        previewFrameTimerRef.current = null;
+      }
+      isPreviewCaptureInFlightRef.current = false;
+      setPreviewFrameUri(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const scheduleNextPreviewFrame = () => {
+      if (!cancelled) {
+        previewFrameTimerRef.current = setTimeout(
+          capturePreviewFrame,
+          LIVE_SNAPSHOT_PREVIEW_MS
+        );
+      }
+    };
+
+    const capturePreviewFrame = async () => {
+      if (
+        cancelled ||
+        !cameraRef.current ||
+        isPreviewCaptureInFlightRef.current ||
+        isFinalCaptureInFlightRef.current ||
+        cameraModeRef.current !== "picture"
+      ) {
+        scheduleNextPreviewFrame();
+        return;
+      }
+
+      isPreviewCaptureInFlightRef.current = true;
+      try {
+        const photo = await cameraRef.current.takePictureAsync({
+          quality: 0.35,
+          skipProcessing: true,
+          shutterSound: false,
+        });
+        if (!cancelled && photo?.uri) {
+          setPreviewFrameUri(photo.uri);
+        }
+      } catch {
+        if (!cancelled) {
+          setPreviewFrameUri(null);
+        }
+      } finally {
+        isPreviewCaptureInFlightRef.current = false;
+        scheduleNextPreviewFrame();
+      }
+    };
+
+    previewFrameTimerRef.current = setTimeout(capturePreviewFrame, 120);
+
+    return () => {
+      cancelled = true;
+      if (previewFrameTimerRef.current) {
+        clearTimeout(previewFrameTimerRef.current);
+        previewFrameTimerRef.current = null;
+      }
+    };
+  }, [shouldUseSnapshotPreview, liveFilter, facing]);
 
   useEffect(() => {
     if (isRecording) {
@@ -244,6 +292,8 @@ export default function StoryCameraModal({
 
   const flipCamera = () => {
     if (isRecording) return;
+    setCameraReady(false);
+    setPreviewFrameUri(null);
     setFacing((f) => (f === "back" ? "front" : "back"));
   };
 
@@ -251,6 +301,14 @@ export default function StoryCameraModal({
     setErrorMsg(null);
     if (!cameraRef.current) return;
     try {
+      isFinalCaptureInFlightRef.current = true;
+      if (previewFrameTimerRef.current) {
+        clearTimeout(previewFrameTimerRef.current);
+        previewFrameTimerRef.current = null;
+      }
+      for (let i = 0; i < 10 && isPreviewCaptureInFlightRef.current; i += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
       await prepareNativeCameraMode("picture");
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.85,
@@ -266,6 +324,8 @@ export default function StoryCameraModal({
       }
     } catch {
       setErrorMsg("Failed to take photo.");
+    } finally {
+      isFinalCaptureInFlightRef.current = false;
     }
   };
 
@@ -462,13 +522,11 @@ export default function StoryCameraModal({
         {permission?.granted ? (
           <CameraView
             ref={cameraRef}
-            style={[
-              { flex: 1 },
-              cameraPreviewFilter ? { filter: cameraPreviewFilter } : null,
-            ]}
+            style={{ flex: 1 }}
             facing={facing}
             mode={cameraMode}
             videoQuality="720p"
+            onCameraReady={() => setCameraReady(true)}
           />
         ) : (
           <View
@@ -507,7 +565,21 @@ export default function StoryCameraModal({
           </View>
         )}
 
-        {liveFilter !== "none" && (
+        {isShowingSnapshotPreview && previewFrameUri ? (
+          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+            <StoryFilterCanvas
+              uri={previewFrameUri}
+              filter={liveFilter}
+              width={SCREEN_W}
+              height={SCREEN_H}
+              mediaType="image"
+              effectMode="live"
+              heatwaveAnimated
+            />
+          </View>
+        ) : null}
+
+        {liveFilter !== "none" && !isShowingSnapshotPreview && (
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
             <LiveFilterHud
               filter={liveFilter}
