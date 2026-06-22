@@ -12,6 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   CuevasMission,
+  MissionAttendee,
   checkInCuevasMission,
   fetchCuevasMissions,
   fetchMissionCheckIns,
@@ -578,6 +579,7 @@ export default function MissionsScreen({ navigation }: Props) {
   const [missionError, setMissionError] = useState<string | null>(null);
   const [queuedMissionIds, setQueuedMissionIds] = useState<string[]>([]);
   const [checkedInMissionIds, setCheckedInMissionIds] = useState<string[]>([]);
+  const [missionCheckIns, setMissionCheckIns] = useState<MissionAttendee[]>([]);
   const [scanVisible, setScanVisible] = useState(false);
   const [scanLocked, setScanLocked] = useState(false);
   const [proofMedia, setProofMedia] = useState<Record<string, ProofMedia[]>>({});
@@ -626,6 +628,7 @@ export default function MissionsScreen({ navigation }: Props) {
       const missionIds = checkIns
         .map((item: any) => String(item.missionId || item.MissionId || ""))
         .filter(Boolean);
+      setMissionCheckIns(checkIns);
       setCheckedInMissionIds(Array.from(new Set(missionIds)));
     } catch (error) {
       console.log("[MISSIONS] check-in sync failed", String((error as any)?.message || error));
@@ -645,12 +648,38 @@ export default function MissionsScreen({ navigation }: Props) {
     [missions]
   );
   const completedMissions = useMemo(
-    () =>
-      missions.filter((mission) => {
+    () => {
+      const checkedInIds = new Set(checkedInMissionIds);
+      const completed = missions.filter((mission) => {
         const status = String(mission.status || "").toLowerCase();
-        return status === "completed" || checkedInMissionIds.includes(mission.id);
-      }),
-    [checkedInMissionIds, missions]
+        return status === "completed" || checkedInIds.has(mission.id);
+      });
+      const knownIds = new Set(completed.map((mission) => mission.id));
+      const fallbackCheckedInMissions = missionCheckIns
+        .filter((checkIn) => checkIn.missionId && !knownIds.has(checkIn.missionId))
+        .map((checkIn) => ({
+          id: String(checkIn.missionId),
+          title: checkIn.missionTitle || "Checked-in Mission",
+          points: Number(checkIn.missionPoints || checkIn.awardedPoints || 100),
+          durationHours: Number(checkIn.missionDurationHours || 1),
+          location: checkIn.missionLocation || "Location TBD",
+          eventDate: checkIn.missionEventDate || checkIn.checkedInAt || "Checked in",
+          eventDateISO: checkIn.missionEventDateISO || checkIn.checkedInAt,
+          type: "One time" as const,
+          description: "You checked into this Cuevas mission. Proof uploads are unlocked for this completed mission.",
+          difficulty: "Easy" as const,
+          peopleNeeded: "",
+          gearProvided: false,
+          materialsNote: "",
+          businessName: checkIn.missionBusinessName || "Cuevas Partner",
+          businessHandle: checkIn.missionBusinessHandle || "cuevas-partner",
+          businessVerified: true,
+          goingCount: 1,
+          status: "completed",
+        }));
+      return [...completed, ...fallbackCheckedInMissions];
+    },
+    [checkedInMissionIds, missionCheckIns, missions]
   );
 
   const updateGoingCount = (missionId: string, goingCount: number) => {
@@ -729,6 +758,29 @@ export default function MissionsScreen({ navigation }: Props) {
       if (typeof result.loyaltyPoints === "number") {
         setRewardsBalance(result.loyaltyPoints);
       }
+      setMissionCheckIns((current) => {
+        const nextCheckIn: MissionAttendee = {
+          missionId: mission.id,
+          email: result.email,
+          handle: displayName || userEmail.split("@")[0],
+          status: "checked-in",
+          checkedIn: true,
+          awardedPoints: result.awardedPoints || mission.points,
+          checkedInAt: new Date().toISOString(),
+          missionTitle: mission.title,
+          missionLocation: mission.location,
+          missionEventDate: mission.eventDate,
+          missionEventDateISO: mission.eventDateISO,
+          missionBusinessName: mission.businessName,
+          missionBusinessHandle: mission.businessHandle,
+          missionPoints: mission.points,
+          missionDurationHours: mission.durationHours,
+        };
+        const filtered = current.filter(
+          (item) => !(item.missionId === mission.id && item.email?.toLowerCase?.() === result.email.toLowerCase())
+        );
+        return [nextCheckIn, ...filtered];
+      });
       setCheckedInMissionIds((current) => Array.from(new Set([...current, mission.id])));
       setMissionActionStatus((current) => ({
         ...current,
@@ -926,7 +978,14 @@ export default function MissionsScreen({ navigation }: Props) {
         contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 34 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={isLoadingMissions} onRefresh={refreshMissions} tintColor="#06A7A1" />
+          <RefreshControl
+            refreshing={isLoadingMissions}
+            onRefresh={() => {
+              refreshMissions();
+              refreshCheckIns();
+            }}
+            tintColor="#06A7A1"
+          />
         }
       >
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 16 }}>

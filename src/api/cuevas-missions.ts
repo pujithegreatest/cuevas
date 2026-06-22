@@ -53,6 +53,14 @@ export interface MissionAttendee {
   checkedIn?: boolean;
   awardedPoints?: number;
   checkedInAt?: string;
+  missionTitle?: string;
+  missionLocation?: string;
+  missionEventDate?: string;
+  missionEventDateISO?: string;
+  missionBusinessName?: string;
+  missionBusinessHandle?: string;
+  missionPoints?: number;
+  missionDurationHours?: number;
 }
 
 export interface MissionProof {
@@ -198,6 +206,14 @@ export async function fetchMissionAttendees(missionId: string): Promise<MissionA
     checkedIn: Boolean(item?.checkedIn ?? item?.CheckedIn ?? false),
     awardedPoints: Number(item?.awardedPoints ?? item?.AwardedPoints ?? 0),
     checkedInAt: item?.checkedInAt || item?.CheckedInAt || "",
+    missionTitle: item?.missionTitle || item?.MissionTitle || "",
+    missionLocation: item?.missionLocation || item?.MissionLocation || "",
+    missionEventDate: item?.missionEventDate || item?.MissionEventDate || "",
+    missionEventDateISO: item?.missionEventDateISO || item?.MissionEventDateISO || "",
+    missionBusinessName: item?.missionBusinessName || item?.MissionBusinessName || "",
+    missionBusinessHandle: item?.missionBusinessHandle || item?.MissionBusinessHandle || "",
+    missionPoints: Number(item?.missionPoints ?? item?.MissionPoints ?? 0) || undefined,
+    missionDurationHours: Number(item?.missionDurationHours ?? item?.MissionDurationHours ?? 0) || undefined,
   }));
 }
 
@@ -280,6 +296,14 @@ export async function fetchMissionCheckIns(input: {
     checkedIn: true,
     awardedPoints: Number(item?.awardedPoints ?? item?.AwardedPoints ?? 0),
     checkedInAt: item?.checkedInAt || item?.CheckedInAt || "",
+    missionTitle: item?.missionTitle || item?.MissionTitle || "",
+    missionLocation: item?.missionLocation || item?.MissionLocation || "",
+    missionEventDate: item?.missionEventDate || item?.MissionEventDate || "",
+    missionEventDateISO: item?.missionEventDateISO || item?.MissionEventDateISO || "",
+    missionBusinessName: item?.missionBusinessName || item?.MissionBusinessName || "",
+    missionBusinessHandle: item?.missionBusinessHandle || item?.MissionBusinessHandle || "",
+    missionPoints: Number(item?.missionPoints ?? item?.MissionPoints ?? 0) || undefined,
+    missionDurationHours: Number(item?.missionDurationHours ?? item?.MissionDurationHours ?? 0) || undefined,
   }));
 }
 

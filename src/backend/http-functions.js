@@ -863,10 +863,6 @@ async function buildApplePkpass(params) {
   const coinB64 = await getCoinPngBase64();
   const coinBuf = Buffer.from(String(coinB64 || ""), "base64");
 
-  // NOTE on fonts:
-  // Apple Wallet controls fonts (system UI). You can't force Chicago via pass.json fields.
-  // We keep the pass styling clean (black/white) and rely on Wallet's typography.
-  const name = displayNameFromEmail(email);
   const serialNumber = sha1Hex(email).slice(0, 32);
   const qrMessage = JSON.stringify({ email, points });
 
@@ -884,7 +880,15 @@ async function buildApplePkpass(params) {
     // Store card layout
     storeCard: {
       primaryFields: [],
-      secondaryFields: [{ key: "points", label: "POINTS", value: String(points) }],
+      secondaryFields: [{ key: "member", label: "MEMBER", value: String(email) }],
+      auxiliaryFields: [
+        { key: "status", label: "STATUS", value: "ACTIVE" },
+        {
+          key: "updated",
+          label: "UPDATED",
+          value: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+        },
+      ],
     },
     // Barcode (QR)
     barcode: { format: "PKBarcodeFormatQR", message: qrMessage, messageEncoding: "utf-8" },

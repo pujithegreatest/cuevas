@@ -430,6 +430,33 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
         userHandle: email.split("@")[0],
         businessHandle: handle,
       });
+      setAttendees((current) => {
+        const nextAttendee: MissionAttendee = {
+          missionId: mission.id,
+          email: result.email,
+          handle: result.email.split("@")[0],
+          status: "checked-in",
+          checkedIn: true,
+          awardedPoints: result.awardedPoints || mission.points,
+          checkedInAt: new Date().toISOString(),
+          missionTitle: mission.title,
+          missionLocation: mission.location,
+          missionEventDate: mission.eventDate,
+          missionEventDateISO: mission.eventDateISO,
+          missionBusinessName: mission.businessName,
+          missionBusinessHandle: mission.businessHandle,
+          missionPoints: mission.points,
+          missionDurationHours: mission.durationHours,
+        };
+        const currentList = current[mission.id] || [];
+        return {
+          ...current,
+          [mission.id]: [
+            nextAttendee,
+            ...currentList.filter((item) => item.email.toLowerCase() !== result.email.toLowerCase()),
+          ],
+        };
+      });
       setCheckInStatus((current) => ({
         ...current,
         [mission.id]:
@@ -1024,13 +1051,31 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
           </Text>
         ) : null}
         <View style={{ marginTop: 12 }}>
-          <Text style={{ color: "#CFEFEC", fontWeight: "900", marginBottom: 6 }}>Registered emails</Text>
+          <Text style={{ color: "#CFEFEC", fontWeight: "900", marginBottom: 6 }}>Attendee emails</Text>
           {attendeeList.length ? (
             attendeeList.slice(0, 8).map((item) => (
-              <View key={`${mission.id}-${item.email}`} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 4 }}>
-                <Text style={{ color: "#9CA3AF", fontSize: 12 }}>{item.email}</Text>
-                <Text style={{ color: item.checkedIn ? "#06A7A1" : "#9CA3AF", fontSize: 12, fontWeight: "800" }}>
-                  {item.checkedIn ? `+${item.awardedPoints || mission.points} ₡` : item.status || "going"}
+              <View
+                key={`${mission.id}-${item.email}`}
+                style={{
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: item.checkedIn ? "rgba(6,167,161,0.42)" : "rgba(255,255,255,0.10)",
+                  backgroundColor: item.checkedIn ? "rgba(6,167,161,0.10)" : "rgba(255,255,255,0.04)",
+                  padding: 10,
+                  marginBottom: 7,
+                }}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                  <Text style={{ color: "#CFEFEC", fontSize: 12, fontWeight: "900", flex: 1 }} numberOfLines={1}>
+                    {item.email || "No email recorded"}
+                  </Text>
+                  <Text style={{ color: item.checkedIn ? "#06A7A1" : "#9CA3AF", fontSize: 12, fontWeight: "900", marginLeft: 8 }}>
+                    {item.checkedIn ? `+${item.awardedPoints || mission.points} ₡` : item.status || "going"}
+                  </Text>
+                </View>
+                <Text style={{ color: "#9CA3AF", fontSize: 11, marginTop: 3 }}>
+                  @{item.handle || item.email?.split("@")[0] || "attendee"}
+                  {item.checkedInAt ? ` · ${new Date(item.checkedInAt).toLocaleString()}` : ""}
                 </Text>
               </View>
             ))

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Image as RNImage, ScrollView, Modal, RefreshControl } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { MainTabParamList } from "../types/navigation";
@@ -12,6 +12,8 @@ import { Image } from "expo-image";
 import { sharePngUriToInstagramStory } from "../utils/instagramStories";
 import { addRewardsCardToWallet } from "../utils/walletAdd";
 import { QRCodeDisplay } from "../components/QRCodeDisplay";
+import { fetchCuevasLeaderboard } from "../api/cuevas-leaderboard";
+import type { CuevasLeaderboardEntry } from "../api/cuevas-leaderboard";
 
 type Props = BottomTabScreenProps<MainTabParamList, "RewardsBalance">;
 
@@ -19,9 +21,10 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
   const viewShotRef = useRef<ViewShot>(null);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<CuevasLeaderboardEntry[]>([]);
+  const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
   const rewardsBalance = useAppStore((s) => s.rewardsBalance);
   const userEmail = useAppStore((s) => s.userEmail);
-  const displayName = useAppStore((s) => s.displayName);
   const isDarkMode = useAppStore((s) => s.isDarkMode);
   const toggleDarkMode = useAppStore((s) => s.toggleDarkMode);
   const logout = useAppStore((s) => s.logout);
@@ -81,12 +84,26 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
     await addRewardsCardToWallet({ email: userEmail, rewardsBalance });
   };
 
-  const currentHandle = displayName || userEmail?.split("@")[0] || "pujiedits";
+  const loadLeaderboard = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const entries = await fetchCuevasLeaderboard(50);
+      setLeaderboard(entries);
+      setLeaderboardError(null);
+    } catch (error) {
+      console.log("[REWARDS] leaderboard sync failed", String((error as any)?.message || error));
+      setLeaderboard([]);
+      setLeaderboardError("Leaderboard sync failed. Pull down to retry.");
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
 
-  const leaderboard = (rewardsBalance > 0
-    ? [{ rank: 1, name: currentHandle, points: rewardsBalance, badge: "LIVE BALANCE" }]
-    : []
-  ).sort((a, b) => b.points - a.points);
+  useEffect(() => {
+    if (leaderboardOpen) {
+      loadLeaderboard();
+    }
+  }, [leaderboardOpen, loadLeaderboard]);
 
   return (
     <LinearGradient
@@ -337,10 +354,7 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
-                onRefresh={() => {
-                  setRefreshing(true);
-                  setTimeout(() => setRefreshing(false), 450);
-                }}
+                onRefresh={loadLeaderboard}
                 tintColor="#06A7A1"
               />
             }
@@ -363,7 +377,14 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
               </Text>
             </LinearGradient>
 
-            {leaderboard.length === 0 ? (
+            {leaderboardError ? (
+              <View className={`rounded-3xl p-4 mb-3 border ${isDarkMode ? "bg-dark-surface border-gray-800" : "bg-white border-gray-200"}`}>
+                <Text className={`text-base font-bold ${isDarkMode ? "text-dark-text" : "text-pixel-text"}`}>Could not load leaderboard.</Text>
+                <Text className={`text-sm mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{leaderboardError}</Text>
+              </View>
+            ) : null}
+
+            {!leaderboardError && leaderboard.length === 0 ? (
               <View className={`rounded-3xl p-4 border ${isDarkMode ? "bg-dark-surface border-gray-800" : "bg-white border-gray-200"}`}>
                 <Text className={`text-base font-bold ${isDarkMode ? "text-dark-text" : "text-pixel-text"}`}>No ranked holders yet.</Text>
                 <Text className={`text-sm mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Complete or check into a mission to appear here.</Text>
