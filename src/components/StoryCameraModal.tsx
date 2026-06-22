@@ -5,6 +5,7 @@ import {
   Pressable,
   Modal,
   Dimensions,
+  ScrollView,
   StatusBar,
   StyleSheet,
 } from "react-native";
@@ -27,7 +28,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "./Ionicons";
-import { HeatwaveHud } from "./StoryFilterCanvas";
+import { LiveFilterHud } from "./StoryFilterCanvas";
 import { StoryFilter } from "../types/story";
 
 interface StoryCameraModalProps {
@@ -46,7 +47,21 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const MAX_RECORD_MS = 15000;
 const RECORD_BTN_SIZE = 84;
 const RING_SIZE = 104;
-type LiveFilter = "none" | "heatwave";
+type LiveFilter = "none" | "heatwave" | "hologram" | "glitch" | "matrix" | "scanner" | "xray";
+
+const LIVE_FILTER_OPTIONS: {
+  id: Exclude<LiveFilter, "none">;
+  label: string;
+  icon: string;
+  accent: string;
+}[] = [
+  { id: "heatwave", label: "Heatwave", icon: "flame-outline", accent: "#ff9f1c" },
+  { id: "hologram", label: "Holo", icon: "sparkles-outline", accent: "#00eaff" },
+  { id: "glitch", label: "Glitch", icon: "flash-outline", accent: "#ff3bd4" },
+  { id: "matrix", label: "Matrix", icon: "pulse-outline", accent: "#58ff39" },
+  { id: "scanner", label: "Scanner", icon: "qr-code-outline", accent: "#00ffc8" },
+  { id: "xray", label: "X-Ray", icon: "eye-outline", accent: "#cfefff" },
+];
 
 export default function StoryCameraModal({
   visible,
@@ -188,7 +203,7 @@ export default function StoryCameraModal({
         onCapture({
           uri: photo.uri,
           type: "image",
-          liveFilter: liveFilter === "heatwave" ? "heatwave" : undefined,
+          liveFilter: liveFilter === "none" ? undefined : liveFilter,
         });
       }
     } catch {
@@ -299,7 +314,7 @@ export default function StoryCameraModal({
           uri: video.uri,
           type: "video",
           durationMs: finalMs,
-          liveFilter: liveFilter === "heatwave" ? "heatwave" : undefined,
+          liveFilter: liveFilter === "none" ? undefined : liveFilter,
         });
       }
     } catch {
@@ -431,19 +446,10 @@ export default function StoryCameraModal({
           </View>
         )}
 
-        {liveFilter === "heatwave" && (
+        {liveFilter !== "none" && (
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            <LinearGradient
-              colors={[
-                "rgba(5,8,75,0.40)",
-                "rgba(98,0,170,0.22)",
-                "rgba(255,122,0,0.12)",
-                "rgba(0,216,255,0.10)",
-              ]}
-              locations={[0, 0.42, 0.7, 1]}
-              style={StyleSheet.absoluteFill}
-            />
-            <HeatwaveHud
+            <LiveFilterHud
+              filter={liveFilter}
               width={SCREEN_W}
               height={SCREEN_H}
               topInset={96}
@@ -738,9 +744,7 @@ export default function StoryCameraModal({
           >
             <View
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
+                maxWidth: "100%",
                 paddingHorizontal: 12,
                 paddingVertical: 8,
                 borderRadius: 999,
@@ -749,59 +753,68 @@ export default function StoryCameraModal({
                 backgroundColor: "rgba(0,0,0,0.48)",
               }}
             >
-              <Pressable
-                onPress={() =>
-                  setLiveFilter((current) =>
-                    current === "heatwave" ? "none" : "heatwave"
-                  )
-                }
-                style={({ pressed }) => ({
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  minWidth: 88,
-                  gap: 3,
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 999,
-                  borderWidth: 1,
-                  borderColor:
-                    liveFilter === "heatwave"
-                      ? "#06A7A1"
-                      : "rgba(255,255,255,0.22)",
-                  backgroundColor:
-                    liveFilter === "heatwave"
-                      ? "rgba(6,167,161,0.28)"
-                      : "rgba(255,255,255,0.08)",
-                  opacity: pressed ? 0.72 : 1,
-                })}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: 8 }}
               >
-                <View
-                  style={{
-                    width: 18,
-                    height: 18,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Ionicons
-                    name={liveFilter === "heatwave" ? "flame" : "flame-outline"}
-                    size={15}
-                    color="#CFEFEC"
-                  />
-                </View>
-                <Text
-                  style={{
-                    color: liveFilter === "heatwave" ? "#CFEFEC" : "#9CA3AF",
-                    fontSize: 12,
-                    fontWeight: "900",
-                    lineHeight: 14,
-                    textAlign: "center",
-                  }}
-                >
-                  Heatwave
-                </Text>
-              </Pressable>
+                {LIVE_FILTER_OPTIONS.map((item) => {
+                  const active = liveFilter === item.id;
+                  return (
+                    <Pressable
+                      key={item.id}
+                      onPress={() =>
+                        setLiveFilter((current) =>
+                          current === item.id ? "none" : item.id
+                        )
+                      }
+                      style={({ pressed }) => ({
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        minWidth: 80,
+                        gap: 3,
+                        paddingHorizontal: 13,
+                        paddingVertical: 8,
+                        borderRadius: 999,
+                        borderWidth: 1,
+                        borderColor: active ? item.accent : "rgba(255,255,255,0.22)",
+                        backgroundColor: active ? `${item.accent}33` : "rgba(255,255,255,0.08)",
+                        opacity: pressed ? 0.72 : 1,
+                      })}
+                    >
+                      <View
+                        style={{
+                          width: 18,
+                          height: 18,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Ionicons
+                          name={active && item.id === "heatwave" ? "flame" : item.icon}
+                          size={15}
+                          color={active ? item.accent : "#CFEFEC"}
+                        />
+                      </View>
+                      <Text
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.78}
+                        style={{
+                          color: active ? "#CFEFEC" : "#9CA3AF",
+                          fontSize: 12,
+                          fontWeight: "900",
+                          lineHeight: 14,
+                          textAlign: "center",
+                        }}
+                      >
+                        {item.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
             </View>
           </View>
         )}

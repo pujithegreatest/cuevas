@@ -637,7 +637,7 @@ export function HeatwaveHud({
   );
 }
 
-function FilterEffects({
+export function FilterEffects({
   filter,
   width,
   height,
@@ -922,6 +922,43 @@ function FilterEffects({
     default:
       return null;
   }
+}
+
+export function LiveFilterHud({
+  filter,
+  width,
+  height,
+  animated = true,
+  topInset = 0,
+  bottomInset = 0,
+}: {
+  filter: StoryFilter;
+  width: number;
+  height: number;
+  animated?: boolean;
+  topInset?: number;
+  bottomInset?: number;
+}) {
+  if (filter === "none") return null;
+  if (filter === "heatwave") {
+    return (
+      <HeatwaveHud
+        width={width}
+        height={height}
+        animated={animated}
+        topInset={topInset}
+        bottomInset={bottomInset}
+      />
+    );
+  }
+  return (
+    <FilterEffects
+      filter={filter}
+      width={width}
+      height={height}
+      heatwaveAnimated={animated}
+    />
+  );
 }
 
 export default function StoryFilterCanvas({
