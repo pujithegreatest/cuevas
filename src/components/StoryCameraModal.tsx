@@ -55,6 +55,9 @@ type LiveFilter =
   | "matrix"
   | "scanner"
   | "xray"
+  | "infrared"
+  | "neon"
+  | "vaporwave"
   | "thermal"
   | "predator"
   | "chrome"
@@ -73,8 +76,11 @@ const LIVE_FILTER_OPTIONS: {
   { id: "matrix", label: "Matrix", icon: "pulse-outline", accent: "#58ff39" },
   { id: "scanner", label: "Scanner", icon: "qr-code-outline", accent: "#00ffc8" },
   { id: "xray", label: "X-Ray", icon: "eye-outline", accent: "#cfefff" },
+  { id: "infrared", label: "Infrared", icon: "radio-button-on-outline", accent: "#ff2d55" },
+  { id: "neon", label: "Neon", icon: "flash-outline", accent: "#00f5ff" },
+  { id: "vaporwave", label: "Synth", icon: "color-wand-outline", accent: "#ff4dff" },
   { id: "thermal", label: "Thermal", icon: "sunny", accent: "#ff6a00" },
-  { id: "predator", label: "Predator", icon: "radio-button-on-outline", accent: "#ff4d26" },
+  { id: "predator", label: "Tracker", icon: "radio-button-on-outline", accent: "#ff4d26" },
   { id: "chrome", label: "Chrome", icon: "globe-outline", accent: "#dbeafe" },
   { id: "radioactive", label: "Rad", icon: "flash-outline", accent: "#b6ff00" },
   { id: "void", label: "Void", icon: "moon", accent: "#9b87ff" },
