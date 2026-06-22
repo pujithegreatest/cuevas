@@ -793,16 +793,26 @@ export default function StoryCameraModal({
           style={{
             position: "absolute",
             bottom: 182,
-            left: 0,
-            right: 0,
+            alignSelf: "center",
             flexDirection: "row",
             justifyContent: "center",
-            gap: 28,
+            gap: 4,
+            borderRadius: 999,
+            borderWidth: 1,
+            borderColor: "rgba(255,255,255,0.18)",
+            backgroundColor: "rgba(0,0,0,0.45)",
+            padding: 4,
           }}
         >
           <Pressable
             onPress={() => !isRecording && setMode("picture")}
             disabled={isRecording}
+            style={{
+              borderRadius: 999,
+              paddingHorizontal: 18,
+              paddingVertical: 8,
+              backgroundColor: mode === "picture" ? "rgba(6,167,161,0.26)" : "transparent",
+            }}
           >
             <Text
               style={{
@@ -818,6 +828,12 @@ export default function StoryCameraModal({
           <Pressable
             onPress={() => !isRecording && setMode("video")}
             disabled={isRecording}
+            style={{
+              borderRadius: 999,
+              paddingHorizontal: 18,
+              paddingVertical: 8,
+              backgroundColor: mode === "video" ? "rgba(6,167,161,0.26)" : "transparent",
+            }}
           >
             <Text
               style={{

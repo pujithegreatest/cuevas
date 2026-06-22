@@ -771,7 +771,18 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
               themeVariant="dark"
             />
             {Platform.OS === "ios" ? (
-              <Pressable onPress={() => setDatePickerMode(null)} style={{ alignSelf: "flex-end", paddingVertical: 6, paddingHorizontal: 12 }}>
+              <Pressable
+                onPress={() => setDatePickerMode(null)}
+                style={{
+                  alignSelf: "flex-end",
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor: "rgba(6,167,161,0.45)",
+                  backgroundColor: "rgba(6,167,161,0.12)",
+                  paddingVertical: 8,
+                  paddingHorizontal: 16,
+                }}
+              >
                 <Text style={{ color: "#06A7A1", fontWeight: "900" }}>Done</Text>
               </Pressable>
             ) : null}
@@ -887,7 +898,18 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
         {mission.eventUrl ? (
           <Pressable
             onPress={() => Linking.openURL(mission.eventUrl || "").catch(() => null)}
-            style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}
+            style={{
+              alignSelf: "flex-start",
+              flexDirection: "row",
+              alignItems: "center",
+              marginTop: 10,
+              borderRadius: 999,
+              borderWidth: 1,
+              borderColor: "rgba(6,167,161,0.42)",
+              backgroundColor: "rgba(6,167,161,0.10)",
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+            }}
           >
             <Ionicons name="globe-outline" size={16} color="#06A7A1" />
             <Text style={{ color: "#06A7A1", fontSize: 12, fontWeight: "900", marginLeft: 6 }}>Open event page</Text>
@@ -1171,7 +1193,15 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
       </Text>
       <Pressable
         onPress={loadProofs}
-        style={{ borderRadius: 16, borderWidth: 1, borderColor: "rgba(6,167,161,0.35)", paddingVertical: 11, alignItems: "center", marginBottom: 12 }}
+        style={{
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: "rgba(6,167,161,0.35)",
+          backgroundColor: "rgba(6,167,161,0.08)",
+          paddingVertical: 11,
+          alignItems: "center",
+          marginBottom: 12,
+        }}
       >
         <Text style={{ color: "#06A7A1", fontWeight: "900" }}>Refresh Submissions</Text>
       </Pressable>

@@ -1867,11 +1867,26 @@ export default function CreateStoryModal({
             >
               <Pressable
                 onPress={pickFromLibrary}
-                style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: 2, paddingVertical: 8 }}
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 4,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: "rgba(6,167,161,0.32)",
+                  backgroundColor: isDarkMode ? "rgba(6,167,161,0.10)" : "#E8FFFC",
+                  paddingHorizontal: 4,
+                  paddingVertical: 9,
+                }}
               >
-                <Ionicons name="image-outline" size={22} color="#06A7A1" />
+                <Ionicons name="image-outline" size={18} color="#06A7A1" />
                 <Text
-                  className={`font-semibold ${
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.76}
+                  className={`font-semibold text-xs ${
                     isDarkMode ? "text-dark-text" : "text-pixel-text"
                   }`}
                 >
@@ -1881,11 +1896,26 @@ export default function CreateStoryModal({
 
               <Pressable
                 onPress={openCamera}
-                style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: 2, paddingVertical: 8 }}
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 4,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: "rgba(6,167,161,0.32)",
+                  backgroundColor: isDarkMode ? "rgba(6,167,161,0.10)" : "#E8FFFC",
+                  paddingHorizontal: 4,
+                  paddingVertical: 9,
+                }}
               >
-                <Ionicons name="camera-outline" size={22} color="#06A7A1" />
+                <Ionicons name="camera-outline" size={18} color="#06A7A1" />
                 <Text
-                  className={`font-semibold ${
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.76}
+                  className={`font-semibold text-xs ${
                     isDarkMode ? "text-dark-text" : "text-pixel-text"
                   }`}
                 >
@@ -1900,11 +1930,26 @@ export default function CreateStoryModal({
                   setSelectedStickerId(null);
                   setShowMusicPicker(true);
                 }}
-                style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: 2, paddingVertical: 8 }}
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 4,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: "rgba(6,167,161,0.32)",
+                  backgroundColor: isDarkMode ? "rgba(6,167,161,0.10)" : "#E8FFFC",
+                  paddingHorizontal: 4,
+                  paddingVertical: 9,
+                }}
               >
-                <Ionicons name="musical-note" size={22} color="#06A7A1" />
+                <Ionicons name="musical-note" size={18} color="#06A7A1" />
                 <Text
-                  className={`font-semibold ${
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.76}
+                  className={`font-semibold text-xs ${
                     isDarkMode ? "text-dark-text" : "text-pixel-text"
                   }`}
                 >
@@ -1926,7 +1971,23 @@ export default function CreateStoryModal({
                       startVoiceoverRecording().catch(() => {});
                     }
                   }}
-                  style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: 2, paddingVertical: 8 }}
+                  style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 4,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: isRecordingVO ? "rgba(255,59,48,0.55)" : "rgba(6,167,161,0.32)",
+                    backgroundColor: isRecordingVO
+                      ? "rgba(255,59,48,0.14)"
+                      : isDarkMode
+                      ? "rgba(6,167,161,0.10)"
+                      : "#E8FFFC",
+                    paddingHorizontal: 4,
+                    paddingVertical: 9,
+                  }}
                 >
                   <Ionicons
                     name={
@@ -1936,7 +1997,7 @@ export default function CreateStoryModal({
                         ? "mic"
                         : "mic-outline"
                     }
-                    size={20}
+                    size={18}
                     color={isRecordingVO ? "#ff3b30" : "#06A7A1"}
                   />
                   <Text

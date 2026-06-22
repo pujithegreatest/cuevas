@@ -1185,7 +1185,18 @@ export default function MissionsScreen({ navigation }: Props) {
                 Completed Missions
               </Text>
             </View>
-            <Text style={{ color: "#06A7A1", fontSize: 12, fontWeight: "900" }}>Refresh</Text>
+            <View
+              style={{
+                borderRadius: 999,
+                borderWidth: 1,
+                borderColor: "rgba(6,167,161,0.45)",
+                backgroundColor: isDarkMode ? "rgba(6,167,161,0.16)" : "#E8FFFC",
+                paddingHorizontal: 11,
+                paddingVertical: 6,
+              }}
+            >
+              <Text style={{ color: "#057D78", fontSize: 12, fontWeight: "900" }}>Refresh</Text>
+            </View>
           </Pressable>
         ) : null}
         {completedMissions.map((mission) => (
