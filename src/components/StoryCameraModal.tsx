@@ -425,7 +425,12 @@ export default function StoryCameraModal({
               locations={[0, 0.42, 0.7, 1]}
               style={StyleSheet.absoluteFill}
             />
-            <HeatwaveHud width={SCREEN_W} height={SCREEN_H} />
+            <HeatwaveHud
+              width={SCREEN_W}
+              height={SCREEN_H}
+              topInset={96}
+              bottomInset={250}
+            />
           </View>
         )}
 
@@ -736,9 +741,10 @@ export default function StoryCameraModal({
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: 2,
-                  paddingHorizontal: 14,
-                  paddingVertical: 7,
+                  minWidth: 88,
+                  gap: 3,
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
                   borderRadius: 999,
                   borderWidth: 1,
                   borderColor:
@@ -752,16 +758,27 @@ export default function StoryCameraModal({
                   opacity: pressed ? 0.72 : 1,
                 })}
               >
-                <Ionicons
-                  name="flame-outline"
-                  size={14}
-                  color={liveFilter === "heatwave" ? "#06A7A1" : "#CFEFEC"}
-                />
+                <View
+                  style={{
+                    width: 18,
+                    height: 18,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ionicons
+                    name={liveFilter === "heatwave" ? "flame" : "flame-outline"}
+                    size={15}
+                    color="#CFEFEC"
+                  />
+                </View>
                 <Text
                   style={{
                     color: liveFilter === "heatwave" ? "#CFEFEC" : "#9CA3AF",
                     fontSize: 12,
                     fontWeight: "900",
+                    lineHeight: 14,
+                    textAlign: "center",
                   }}
                 >
                   Heatwave

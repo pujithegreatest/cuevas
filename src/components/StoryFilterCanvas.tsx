@@ -423,7 +423,19 @@ function HeatwaveThermoGun({
   );
 }
 
-export function HeatwaveHud({ width, height, animated = true }: { width: number; height: number; animated?: boolean }) {
+export function HeatwaveHud({
+  width,
+  height,
+  animated = true,
+  topInset = 0,
+  bottomInset = 0,
+}: {
+  width: number;
+  height: number;
+  animated?: boolean;
+  topInset?: number;
+  bottomInset?: number;
+}) {
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
@@ -450,7 +462,7 @@ export function HeatwaveHud({ width, height, animated = true }: { width: number;
       <View
         style={{
           position: "absolute",
-          top: Math.max(8, height * 0.025),
+          top: topInset + Math.max(8, height * 0.025),
           left: Math.max(8, width * 0.035),
           right: Math.max(8, width * 0.035),
           flexDirection: "row",
@@ -603,7 +615,7 @@ export function HeatwaveHud({ width, height, animated = true }: { width: number;
           position: "absolute",
           left: Math.max(8, width * 0.04),
           right: Math.max(8, width * 0.04),
-          bottom: Math.max(10, height * 0.025),
+          bottom: bottomInset + Math.max(10, height * 0.025),
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
