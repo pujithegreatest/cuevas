@@ -1860,13 +1860,13 @@ export default function CreateStoryModal({
 
             {/* Bottom actions */}
             <View
-              className={`flex-row items-center justify-around px-4 py-4 mt-auto border-t ${
+              className={`flex-row items-center justify-between px-2 py-3 mt-auto border-t ${
                 isDarkMode ? "border-gray-700" : "border-gray-200"
               }`}
             >
               <Pressable
                 onPress={pickFromLibrary}
-                className="flex-row items-center gap-2 px-4 py-2"
+                style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: 2, paddingVertical: 8 }}
               >
                 <Ionicons name="image-outline" size={22} color="#06A7A1" />
                 <Text
@@ -1880,7 +1880,7 @@ export default function CreateStoryModal({
 
               <Pressable
                 onPress={openCamera}
-                className="flex-row items-center gap-2 px-4 py-2"
+                style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: 2, paddingVertical: 8 }}
               >
                 <Ionicons name="camera-outline" size={22} color="#06A7A1" />
                 <Text
@@ -1899,7 +1899,7 @@ export default function CreateStoryModal({
                   setSelectedStickerId(null);
                   setShowMusicPicker(true);
                 }}
-                className="flex-row items-center gap-2 px-4 py-2"
+                style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: 2, paddingVertical: 8 }}
               >
                 <Ionicons name="musical-note" size={22} color="#06A7A1" />
                 <Text
@@ -1925,7 +1925,7 @@ export default function CreateStoryModal({
                       startVoiceoverRecording().catch(() => {});
                     }
                   }}
-                  className="flex-row items-center gap-2 px-4 py-2"
+                  style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: 2, paddingVertical: 8 }}
                 >
                   <Ionicons
                     name={
@@ -1935,19 +1935,22 @@ export default function CreateStoryModal({
                         ? "mic"
                         : "mic-outline"
                     }
-                    size={22}
+                    size={20}
                     color={isRecordingVO ? "#ff3b30" : "#06A7A1"}
                   />
                   <Text
-                    className={`font-semibold ${
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.74}
+                    className={`font-semibold text-xs ${
                       isDarkMode ? "text-dark-text" : "text-pixel-text"
                     }`}
                   >
                     {isRecordingVO
                       ? "Stop"
                       : voiceover
-                      ? "Voice \u2713"
-                      : "Voice"}
+                      ? "VoiceOver ✓"
+                      : "VoiceOver"}
                   </Text>
                 </Pressable>
               )}

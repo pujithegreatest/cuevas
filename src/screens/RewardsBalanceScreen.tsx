@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { View, Text, Pressable, Image as RNImage, ScrollView, Modal } from "react-native";
+import { View, Text, Pressable, Image as RNImage, ScrollView, Modal, RefreshControl } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { MainTabParamList } from "../types/navigation";
 import { useAppStore } from "../state/appStore";
@@ -18,6 +18,7 @@ type Props = BottomTabScreenProps<MainTabParamList, "RewardsBalance">;
 export default function RewardsBalanceScreen({ navigation }: Props) {
   const viewShotRef = useRef<ViewShot>(null);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const rewardsBalance = useAppStore((s) => s.rewardsBalance);
   const userEmail = useAppStore((s) => s.userEmail);
   const displayName = useAppStore((s) => s.displayName);
@@ -82,12 +83,10 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
 
   const currentHandle = displayName || userEmail?.split("@")[0] || "pujiedits";
 
-  const leaderboard = [
-    { rank: 1, name: currentHandle, points: rewardsBalance || 95, badge: "MISSION PRIME" },
-    { rank: 2, name: "howstringy", points: 75, badge: "CLEANUP CREW" },
-    { rank: 3, name: "gianttoes69", points: 55, badge: "SERVICE NODE" },
-    { rank: 4, name: "cuevas_guest", points: 40, badge: "NEW SIGNAL" },
-  ].sort((a, b) => b.points - a.points);
+  const leaderboard = (rewardsBalance > 0
+    ? [{ rank: 1, name: currentHandle, points: rewardsBalance, badge: "LIVE BALANCE" }]
+    : []
+  ).sort((a, b) => b.points - a.points);
 
   return (
     <LinearGradient
@@ -333,7 +332,19 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
             <Ionicons name="trophy" size={24} color="#FFD700" />
           </View>
 
-          <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
+          <ScrollView
+            contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={() => {
+                  setRefreshing(true);
+                  setTimeout(() => setRefreshing(false), 450);
+                }}
+                tintColor="#06A7A1"
+              />
+            }
+          >
             <LinearGradient
               colors={isDarkMode ? ["rgba(6,167,161,0.24)", "rgba(128,23,31,0.18)"] : ["#FFFFFF", "#E8FFFC"]}
               style={{
@@ -348,11 +359,16 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
                 Top Cuevas Holders
               </Text>
               <Text className={`mt-1 text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
-                Demo ranking from current reward balances and mission activity.
+                Live ranking from current reward balances and mission activity.
               </Text>
             </LinearGradient>
 
-            {leaderboard.map((entry) => (
+            {leaderboard.length === 0 ? (
+              <View className={`rounded-3xl p-4 border ${isDarkMode ? "bg-dark-surface border-gray-800" : "bg-white border-gray-200"}`}>
+                <Text className={`text-base font-bold ${isDarkMode ? "text-dark-text" : "text-pixel-text"}`}>No ranked holders yet.</Text>
+                <Text className={`text-sm mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>Complete or check into a mission to appear here.</Text>
+              </View>
+            ) : leaderboard.map((entry) => (
               <View
                 key={entry.name}
                 className={`rounded-3xl p-4 mb-3 border ${

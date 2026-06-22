@@ -8,6 +8,7 @@ import {
   Image as RNImage,
   Modal,
   TextInput,
+  RefreshControl,
 } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import Animated, {
@@ -229,6 +230,9 @@ export default function ProfileScreen({ navigation }: Props) {
   const [businessPasswordOpen, setBusinessPasswordOpen] = useState(false);
   const [businessPassword, setBusinessPassword] = useState("");
   const [businessPasswordError, setBusinessPasswordError] = useState<string | null>(null);
+  const [networkHandleDraft, setNetworkHandleDraft] = useState("");
+  const [networkTagDraft, setNetworkTagDraft] = useState("");
+  const [profileRefreshing, setProfileRefreshing] = useState(false);
 
   const openBusinessProfile = () => {
     if (!businessProfileUnlocked) {
@@ -466,6 +470,16 @@ export default function ProfileScreen({ navigation }: Props) {
       <FlatList
         data={myPosts}
         keyExtractor={(item) => item.id}
+        refreshControl={
+          <RefreshControl
+            refreshing={profileRefreshing}
+            onRefresh={() => {
+              setProfileRefreshing(true);
+              setTimeout(() => setProfileRefreshing(false), 350);
+            }}
+            tintColor="#06A7A1"
+          />
+        }
         renderItem={({ item }) => (
           <PostCard
             post={item}
@@ -1026,24 +1040,81 @@ export default function ProfileScreen({ navigation }: Props) {
               <Ionicons name="close" size={26} color={isDarkMode ? "#CFEFEC" : "#1F2937"} />
             </Pressable>
             <Text className={`font-bold text-lg ${textColor}`}>Research Network</Text>
-            <Pressable
-              onPress={() =>
-                addFriend({
-                  id: `lab-${Date.now()}`,
-                  handle: `scientist${(friends || []).length + 1}`,
-                  title: "New Contact",
-                })
-              }
-              hitSlop={10}
-            >
-              <Ionicons name="person-add-outline" size={24} color="#06A7A1" />
-            </Pressable>
+            <View style={{ width: 26 }} />
           </View>
 
           <FlatList
             data={friends || []}
             keyExtractor={(item) => item.id}
             contentContainerStyle={{ padding: 16 }}
+            ListHeaderComponent={(
+              <View className={`rounded-2xl border p-4 mb-4 ${statBg} ${statBorder}`}>
+                <Text className={`font-black text-base mb-3 ${textColor}`}>Add Research Contact</Text>
+                <TextInput
+                  value={networkHandleDraft}
+                  onChangeText={setNetworkHandleDraft}
+                  placeholder="Search or enter @handle"
+                  placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                  autoCapitalize="none"
+                  style={{
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: "rgba(6,167,161,0.35)",
+                    paddingHorizontal: 14,
+                    paddingVertical: 12,
+                    color: isDarkMode ? "#CFEFEC" : "#1F2937",
+                    fontWeight: "800",
+                    marginBottom: 10,
+                  }}
+                />
+                <TextInput
+                  value={networkTagDraft}
+                  onChangeText={setNetworkTagDraft}
+                  placeholder="Custom call tag, e.g. Cleanup Lead"
+                  placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                  style={{
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: "rgba(6,167,161,0.35)",
+                    paddingHorizontal: 14,
+                    paddingVertical: 12,
+                    color: isDarkMode ? "#CFEFEC" : "#1F2937",
+                    fontWeight: "800",
+                    marginBottom: 12,
+                  }}
+                />
+                <Pressable
+                  onPress={() => {
+                    const handle = networkHandleDraft.trim().replace(/^@+/, "");
+                    if (!handle) return;
+                    addFriend({
+                      id: `lab-${handle.toLowerCase()}`,
+                      handle,
+                      title: networkTagDraft.trim() || "Research Contact",
+                    });
+                    setNetworkHandleDraft("");
+                    setNetworkTagDraft("");
+                  }}
+                  style={{
+                    borderRadius: 18,
+                    backgroundColor: "#06A7A1",
+                    paddingVertical: 13,
+                    alignItems: "center",
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}
+                >
+                  <Ionicons name="person-add-outline" size={18} color="#FFFFFF" />
+                  <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>Add to Network</Text>
+                </Pressable>
+              </View>
+            )}
+            ListEmptyComponent={(
+              <Text className={`text-sm text-center mt-4 ${subText}`}>
+                Your private research network is empty. Add a handle and custom call tag to start.
+              </Text>
+            )}
             renderItem={({ item }) => (
               <View className={`rounded-2xl border p-4 mb-3 ${statBg} ${statBorder}`}>
                 <View className="flex-row items-center justify-between">

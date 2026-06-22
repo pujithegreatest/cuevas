@@ -66,6 +66,8 @@ import {
   Briefcase,
   Building2,
   QrCode,
+  Clock,
+  Mic,
   LucideIcon,
 } from "lucide-react-native";
 
@@ -147,8 +149,10 @@ const map: Record<string, LucideIcon> = {
   "volume-mute": VolumeX,
   "musical-note": Music,
   "musical-notes-outline": Music,
-  mic: Volume2,
-  "mic-outline": Volume2,
+  mic: Mic,
+  "mic-outline": Mic,
+  time: Clock,
+  "time-outline": Clock,
   stop: XCircle,
   "stop-circle": XCircle,
   "stop-circle-outline": XCircle,

@@ -883,7 +883,7 @@ async function buildApplePkpass(params) {
     logoText: "Ecothot Rewards",
     // Store card layout
     storeCard: {
-      primaryFields: [{ key: "name", label: "NAME", value: name }],
+      primaryFields: [],
       secondaryFields: [{ key: "points", label: "POINTS", value: String(points) }],
     },
     // Barcode (QR)

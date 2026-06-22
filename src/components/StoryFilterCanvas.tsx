@@ -32,6 +32,7 @@ interface StoryFilterCanvasProps {
   videoEndMs?: number;
   onVideoLoad?: (durationMs: number) => void;
   onVideoTrimComplete?: () => void;
+  heatwaveAnimated?: boolean;
 }
 
 const HEATWAVE_ASSETS = {
@@ -280,68 +281,53 @@ function getHeatwaveTelemetry(tick: number, width: number, height: number) {
   };
 }
 
-function HeatwaveThermalMap({ width, height, tick }: { width: number; height: number; tick: number }) {
-  const hotX = width * (0.48 + Math.sin(tick * 0.37) * 0.05);
-  const hotY = height * (0.43 + Math.cos(tick * 0.29) * 0.04);
-  const drift = Math.sin(tick * 0.42) * width * 0.025;
-  const coolDrift = Math.cos(tick * 0.22) * width * 0.035;
-  const hotShape = `M ${hotX - width * 0.2} ${hotY - height * 0.14}
-    C ${hotX - width * 0.08 + drift} ${hotY - height * 0.23}, ${hotX + width * 0.14} ${hotY - height * 0.2}, ${hotX + width * 0.2} ${hotY - height * 0.04}
-    C ${hotX + width * 0.27} ${hotY + height * 0.12}, ${hotX + width * 0.1 - drift} ${hotY + height * 0.25}, ${hotX - width * 0.06} ${hotY + height * 0.19}
-    C ${hotX - width * 0.21} ${hotY + height * 0.14}, ${hotX - width * 0.32} ${hotY + height * 0.02}, ${hotX - width * 0.2} ${hotY - height * 0.14} Z`;
-  const coolShape = `M ${width * 0.05 + coolDrift} ${height * 0.08}
-    C ${width * 0.28} ${height * 0.02}, ${width * 0.62} ${height * 0.05}, ${width * 0.95} ${height * 0.18}
-    L ${width * 0.94} ${height * 0.94}
-    C ${width * 0.7} ${height * 0.78}, ${width * 0.46} ${height * 0.7}, ${width * 0.18} ${height * 0.92}
-    C ${width * 0.05} ${height * 0.62}, ${width * 0.02} ${height * 0.34}, ${width * 0.05 + coolDrift} ${height * 0.08} Z`;
-  const torsoShape = `M ${hotX - width * 0.28} ${hotY + height * 0.08}
-    C ${hotX - width * 0.14} ${hotY + height * 0.2}, ${hotX + width * 0.2} ${hotY + height * 0.2}, ${hotX + width * 0.32} ${hotY + height * 0.02}
-    C ${hotX + width * 0.23} ${hotY + height * 0.3}, ${hotX + width * 0.08} ${hotY + height * 0.47}, ${hotX - width * 0.08} ${hotY + height * 0.43}
-    C ${hotX - width * 0.22} ${hotY + height * 0.38}, ${hotX - width * 0.33} ${hotY + height * 0.24}, ${hotX - width * 0.28} ${hotY + height * 0.08} Z`;
+function HeatwaveThermalMap({ width, height, tick, animated = true }: { width: number; height: number; tick: number; animated?: boolean }) {
+  const phase = animated ? tick : 8;
+  const drift = Math.sin(phase * 0.32) * width * 0.018;
+  const scanY = height * (0.18 + ((phase % 24) / 24) * 0.62);
+  const bands = Array.from({ length: 9 }).map((_, index) => {
+    const y = height * (0.08 + index * 0.105) + Math.sin(phase * 0.2 + index) * 8;
+    const warm = index % 3 === 1;
+    return { y, warm };
+  });
 
   return (
     <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
       <Defs>
         <SvgLinearGradient id="heatBase" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#02002b" stopOpacity="0.78" />
-          <Stop offset="0.28" stopColor="#4f00b8" stopOpacity="0.68" />
-          <Stop offset="0.52" stopColor="#002dff" stopOpacity="0.42" />
-          <Stop offset="0.76" stopColor="#00f0ff" stopOpacity="0.30" />
-          <Stop offset="1" stopColor="#ff6200" stopOpacity="0.34" />
+          <Stop offset="0" stopColor="#2d006e" stopOpacity="0.62" />
+          <Stop offset="0.28" stopColor="#2636ff" stopOpacity="0.46" />
+          <Stop offset="0.56" stopColor="#00a7ff" stopOpacity="0.34" />
+          <Stop offset="0.76" stopColor="#ff4c00" stopOpacity="0.26" />
+          <Stop offset="1" stopColor="#fff1b0" stopOpacity="0.20" />
         </SvgLinearGradient>
-        <SvgLinearGradient id="hotCore" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#ffffff" stopOpacity="0.92" />
-          <Stop offset="0.26" stopColor="#fff200" stopOpacity="0.84" />
-          <Stop offset="0.58" stopColor="#ff3b00" stopOpacity="0.72" />
-          <Stop offset="1" stopColor="#00ff75" stopOpacity="0.46" />
+        <SvgLinearGradient id="thermalBand" x1="0" y1="0" x2="1" y2="0">
+          <Stop offset="0" stopColor="#1437ff" stopOpacity="0.08" />
+          <Stop offset="0.24" stopColor="#006dff" stopOpacity="0.18" />
+          <Stop offset="0.5" stopColor="#19ffd5" stopOpacity="0.16" />
+          <Stop offset="0.72" stopColor="#ffdb35" stopOpacity="0.14" />
+          <Stop offset="1" stopColor="#ff3b00" stopOpacity="0.12" />
         </SvgLinearGradient>
-        <SvgLinearGradient id="coolWash" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#00d5ff" stopOpacity="0.36" />
-          <Stop offset="0.65" stopColor="#4f00ff" stopOpacity="0.36" />
-          <Stop offset="1" stopColor="#10002c" stopOpacity="0.46" />
-        </SvgLinearGradient>
-        <SvgLinearGradient id="torsoHeat" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#ff3b00" stopOpacity="0.56" />
-          <Stop offset="0.42" stopColor="#ffe600" stopOpacity="0.44" />
-          <Stop offset="0.72" stopColor="#00ffc8" stopOpacity="0.34" />
-          <Stop offset="1" stopColor="#004fff" stopOpacity="0.38" />
+        <SvgLinearGradient id="warmEdge" x1="0" y1="0" x2="1" y2="1">
+          <Stop offset="0" stopColor="#fff6c7" stopOpacity="0.22" />
+          <Stop offset="0.45" stopColor="#ff6f00" stopOpacity="0.18" />
+          <Stop offset="1" stopColor="#00e5ff" stopOpacity="0.12" />
         </SvgLinearGradient>
       </Defs>
       <Rect x="0" y="0" width={width} height={height} fill="url(#heatBase)" />
-      <Path d={coolShape} fill="url(#coolWash)" opacity="0.72" />
-      <Path d={torsoShape} fill="url(#torsoHeat)" opacity="0.62" />
-      <Path d={hotShape} fill="url(#hotCore)" opacity="0.74" />
-      <Path
-        d={`M ${hotX - width * 0.11} ${hotY - height * 0.04}
-          C ${hotX - width * 0.03} ${hotY - height * 0.08}, ${hotX + width * 0.08} ${hotY - height * 0.06}, ${hotX + width * 0.1} ${hotY + height * 0.04}
-          C ${hotX + width * 0.03} ${hotY + height * 0.1}, ${hotX - width * 0.1} ${hotY + height * 0.09}, ${hotX - width * 0.11} ${hotY - height * 0.04} Z`}
-        fill="#f6fff1"
-        opacity="0.52"
-      />
+      {bands.map((band, index) => (
+        <Path
+          key={`heat-band-${index}`}
+          d={`M ${-width * 0.1} ${band.y} C ${width * 0.18 + drift} ${band.y - 42}, ${width * 0.48 - drift} ${band.y + 46}, ${width * 1.1} ${band.y - 24} L ${width * 1.1} ${band.y + 62} C ${width * 0.62} ${band.y + 90}, ${width * 0.32} ${band.y + 26}, ${-width * 0.1} ${band.y + 82} Z`}
+          fill={band.warm ? "url(#warmEdge)" : "url(#thermalBand)"}
+          opacity={band.warm ? 0.55 : 0.42}
+        />
+      ))}
+      <Rect x="0" y={scanY} width={width} height="2" fill="#caffff" opacity="0.18" />
       <Path
         d={`M ${width * 0.02} ${height * 0.86} C ${width * 0.22} ${height * 0.76}, ${width * 0.44} ${height * 0.85}, ${width * 0.62} ${height * 0.72} L ${width} ${height * 0.78} L ${width} ${height} L 0 ${height} Z`}
-        fill="#005cff"
-        opacity="0.32"
+        fill="#002fff"
+        opacity="0.18"
       />
     </Svg>
   );
@@ -437,13 +423,14 @@ function HeatwaveThermoGun({
   );
 }
 
-export function HeatwaveHud({ width, height }: { width: number; height: number }) {
+export function HeatwaveHud({ width, height, animated = true }: { width: number; height: number; animated?: boolean }) {
   const [tick, setTick] = useState(0);
 
   useEffect(() => {
+    if (!animated) return;
     const id = setInterval(() => setTick((value) => value + 1), 550);
     return () => clearInterval(id);
-  }, []);
+  }, [animated]);
 
   const telemetry = getHeatwaveTelemetry(tick, width, height);
   const focusX = telemetry.focusX;
@@ -456,7 +443,7 @@ export function HeatwaveHud({ width, height }: { width: number; height: number }
 
   return (
     <>
-      <HeatwaveThermalMap width={width} height={height} tick={tick} />
+      <HeatwaveThermalMap width={width} height={height} tick={tick} animated={animated} />
       <HeatwaveThermoGun width={width} height={height} centerX={centerX} centerY={centerY} tick={tick} />
       <HeatwaveGrid width={width} height={height} />
       <ScanlineOverlay width={width} height={height} />
@@ -642,14 +629,16 @@ function FilterEffects({
   filter,
   width,
   height,
+  heatwaveAnimated = true,
 }: {
   filter: StoryFilter;
   width: number;
   height: number;
+  heatwaveAnimated?: boolean;
 }) {
   switch (filter) {
     case "heatwave":
-      return <HeatwaveHud width={width} height={height} />;
+      return <HeatwaveHud width={width} height={height} animated={heatwaveAnimated} />;
     case "hologram":
       return (
         <>
@@ -937,6 +926,7 @@ export default function StoryFilterCanvas({
   videoEndMs,
   onVideoLoad,
   onVideoTrimComplete,
+  heatwaveAnimated = mediaType === "video" && videoShouldPlay,
 }: StoryFilterCanvasProps) {
   const skImage = useImage(mediaType === "image" ? uri : null);
   const matrix = MATRICES[filter];
@@ -1003,7 +993,7 @@ export default function StoryFilterCanvas({
           />
         )}
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          <FilterEffects filter={filter} width={width} height={height} />
+          <FilterEffects filter={filter} width={width} height={height} heatwaveAnimated={heatwaveAnimated} />
         </View>
       </View>
     );
@@ -1043,7 +1033,7 @@ export default function StoryFilterCanvas({
         />
       )}
 
-      <FilterEffects filter={filter} width={width} height={height} />
+      <FilterEffects filter={filter} width={width} height={height} heatwaveAnimated={heatwaveAnimated} />
     </View>
   );
 }

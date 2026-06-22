@@ -733,10 +733,11 @@ export default function StoryCameraModal({
                   )
                 }
                 style={({ pressed }) => ({
-                  flexDirection: "row",
+                  flexDirection: "column",
                   alignItems: "center",
-                  gap: 6,
-                  paddingHorizontal: 12,
+                  justifyContent: "center",
+                  gap: 2,
+                  paddingHorizontal: 14,
                   paddingVertical: 7,
                   borderRadius: 999,
                   borderWidth: 1,

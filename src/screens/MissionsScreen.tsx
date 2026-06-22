@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Linking, Modal, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { useFocusEffect } from "@react-navigation/native";
 import { CameraView, useCameraPermissions } from "expo-camera";
@@ -38,136 +38,7 @@ type ProofMedia = {
 
 const MISSION_PROOF_VIDEO_MAX_SECONDS = 60;
 
-const fallbackMissions: CuevasMission[] = [
-  {
-    id: "community-service-day",
-    title: "Community Service Day",
-    points: 100,
-    location: "Cuevas HQ + Local Park",
-    eventDate: "June 8, 2026",
-    eventDateISO: "2026-06-08T14:00:00.000Z",
-    type: "One time",
-    description: "Join the Cuevas crew for a neighborhood reset: supplies, sorting, park support, and positive energy.",
-    difficulty: "Easy",
-    peopleNeeded: 12,
-    gearProvided: true,
-    materialsNote: "Cleanup kits provided.",
-    businessName: "Cuevas Civic Lab",
-    businessHandle: "cuevas-civic-lab",
-    businessVerified: true,
-    goingCount: 8,
-  },
-  {
-    id: "community-cleanup",
-    title: "Community Cleanup",
-    points: 120,
-    location: "Downtown Trail Loop",
-    eventDate: "June 15, 2026",
-    eventDateISO: "2026-06-15T15:00:00.000Z",
-    type: "Recurring",
-    description: "Scan in, grab a cleanup kit, and help restore high-traffic blocks with the weekly eco squad.",
-    difficulty: "Medium",
-    peopleNeeded: 20,
-    gearProvided: true,
-    materialsNote: "Gloves and bags provided.",
-    businessName: "Downtown Green Grid",
-    businessHandle: "green-grid",
-    businessVerified: true,
-    goingCount: 14,
-  },
-  {
-    id: "soup-kitchen",
-    title: "Soup Kitchen Shift",
-    points: 150,
-    location: "Hope Table Kitchen",
-    eventDate: "June 22, 2026",
-    eventDateISO: "2026-06-22T21:00:00.000Z",
-    type: "Weekly",
-    description: "Assist with meal prep, packing, and guest service during a high-impact community dinner window.",
-    difficulty: "High impact",
-    peopleNeeded: 6,
-    gearProvided: false,
-    materialsNote: "Bring closed-toe shoes.",
-    businessName: "Hope Table",
-    businessHandle: "hope-table",
-    businessVerified: true,
-    goingCount: 4,
-  },
-  {
-    id: "race-for-a-cure",
-    title: "Race for a Cure",
-    points: 175,
-    location: "Riverfront Start Line",
-    eventDate: "July 4, 2026",
-    eventDateISO: "2026-07-04T12:00:00.000Z",
-    type: "One time",
-    description: "Volunteer at water stations, check-in, or finish-line support for a charity race activation.",
-    difficulty: "Medium",
-    peopleNeeded: 18,
-    gearProvided: true,
-    materialsNote: "Volunteer shirt provided.",
-    businessName: "Riverfront Cure Run",
-    businessHandle: "cure-run",
-    businessVerified: true,
-    goingCount: 23,
-  },
-  {
-    id: "food-pantry-sort",
-    title: "Food Pantry Sort",
-    points: 90,
-    location: "Northside Pantry",
-    eventDate: "July 11, 2026",
-    eventDateISO: "2026-07-11T16:00:00.000Z",
-    type: "Monthly",
-    description: "Sort donated food, prepare shelf zones, and help make pickup smoother for local families.",
-    difficulty: "Easy",
-    peopleNeeded: 8,
-    gearProvided: true,
-    materialsNote: "All materials on site.",
-    businessName: "Northside Pantry",
-    businessHandle: "northside-pantry",
-    businessVerified: false,
-    goingCount: 3,
-  },
-  {
-    id: "senior-tech-hour",
-    title: "Senior Tech Hour",
-    points: 110,
-    location: "Community Library",
-    eventDate: "July 18, 2026",
-    eventDateISO: "2026-07-18T18:00:00.000Z",
-    type: "Recurring",
-    description: "Help neighbors with phone setup, email basics, and safe app usage in a friendly drop-in session.",
-    difficulty: "Medium",
-    peopleNeeded: 5,
-    gearProvided: false,
-    materialsNote: "Bring your own laptop if possible.",
-    businessName: "Community Library",
-    businessHandle: "library-lab",
-    businessVerified: true,
-    goingCount: 6,
-  },
-];
-
-const completedMissions: CuevasMission[] = [
-  {
-    id: "demo-completed",
-    title: "Park Supply Drop",
-    points: 80,
-    location: "West Garden Block",
-    eventDate: "Completed May 12, 2026",
-    type: "One time",
-    description: "Delivered cleanup supplies and logged the first Cuevas service checkpoint for the demo profile.",
-    difficulty: "Easy",
-    peopleNeeded: 3,
-    gearProvided: true,
-    materialsNote: "Proof upload demo.",
-    businessName: "Cuevas Civic Lab",
-    businessHandle: "cuevas-civic-lab",
-    businessVerified: true,
-    goingCount: 3,
-  },
-];
+const fallbackMissions: CuevasMission[] = [];
 
 function parseMissionStart(mission: CuevasMission) {
   const rawDate = mission.eventDateISO || mission.eventDate;
@@ -427,7 +298,7 @@ function MissionCard({
               paddingVertical: 12,
               paddingHorizontal: 12,
               alignItems: "center",
-              backgroundColor: isQueued ? "rgba(6,167,161,0.12)" : "#06A7A1",
+              backgroundColor: isQueued ? (isDarkMode ? "rgba(6,167,161,0.12)" : "#E8FFFC") : "#06A7A1",
               borderWidth: 1,
               borderColor: "#06A7A1",
               opacity: pressed ? 0.78 : 1,
@@ -454,8 +325,8 @@ function MissionCard({
           <Pressable
             onPress={onAddCalendar}
             style={({ pressed }) => ({
-              marginTop: 12,
-              marginBottom: 4,
+              marginTop: 13,
+              marginBottom: 7,
               borderRadius: 16,
               paddingVertical: 12,
               paddingHorizontal: 12,
@@ -478,8 +349,8 @@ function MissionCard({
             <Pressable
               onPress={onOpenChat}
               style={({ pressed }) => ({
-                marginTop: 12,
-                marginBottom: 4,
+                marginTop: 13,
+                marginBottom: 7,
                 borderRadius: 16,
                 paddingVertical: 12,
                 paddingHorizontal: 12,
@@ -594,7 +465,7 @@ function MissionCard({
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Ionicons name="images-outline" size={18} color="#FFFFFF" />
               <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>
-                Add Proof Media
+                Upload Multiple Proof Files
               </Text>
             </View>
           </Pressable>
@@ -682,10 +553,10 @@ export default function MissionsScreen({ navigation }: Props) {
   const displayName = useAppStore((state) => state.displayName);
   const setRewardsBalance = useAppStore((state) => state.setRewardsBalance);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-  const [missions, setMissions] = useState<CuevasMission[]>(fallbackMissions);
+  const [missions, setMissions] = useState<CuevasMission[]>([]);
   const [isLoadingMissions, setIsLoadingMissions] = useState(false);
   const [missionError, setMissionError] = useState<string | null>(null);
-  const [queuedMissionIds, setQueuedMissionIds] = useState<string[]>(["community-cleanup"]);
+  const [queuedMissionIds, setQueuedMissionIds] = useState<string[]>([]);
   const [checkedInMissionIds, setCheckedInMissionIds] = useState<string[]>([]);
   const [scanVisible, setScanVisible] = useState(false);
   const [scanLocked, setScanLocked] = useState(false);
@@ -700,17 +571,17 @@ export default function MissionsScreen({ navigation }: Props) {
     setIsLoadingMissions(true);
     fetchCuevasMissions()
       .then((nextMissions) => {
-        if (!cancelled && nextMissions.length > 0) {
+        if (!cancelled) {
           setMissions(nextMissions);
           setMissionError(null);
         }
       })
-    .catch((error) => {
-      if (!cancelled) {
+      .catch((error) => {
+        if (!cancelled) {
           console.log("[MISSIONS] sync failed", String((error as any)?.message || error));
-          setMissionError("Using demo missions while Wix syncs.");
-      }
-    })
+          setMissionError("Mission sync failed. Pull down to retry.");
+        }
+      })
       .finally(() => {
         if (!cancelled) setIsLoadingMissions(false);
       });
@@ -752,6 +623,14 @@ export default function MissionsScreen({ navigation }: Props) {
   const visibleMissions = useMemo(
     () => missions.filter((mission) => !["completed", "archived", "deleted"].includes(String(mission.status || "active").toLowerCase())),
     [missions]
+  );
+  const completedMissions = useMemo(
+    () =>
+      missions.filter((mission) => {
+        const status = String(mission.status || "").toLowerCase();
+        return status === "completed" || checkedInMissionIds.includes(mission.id);
+      }),
+    [checkedInMissionIds, missions]
   );
 
   const updateGoingCount = (missionId: string, goingCount: number) => {
@@ -1026,6 +905,9 @@ export default function MissionsScreen({ navigation }: Props) {
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: insets.bottom + 34 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isLoadingMissions} onRefresh={refreshMissions} tintColor="#06A7A1" />
+        }
       >
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 16 }}>
           <View>
@@ -1159,10 +1041,15 @@ export default function MissionsScreen({ navigation }: Props) {
 
         <SectionHeader
           title="Available Missions"
-          subtitle={isLoadingMissions ? "Syncing from Wix mission collection..." : "Live partner missions and demo fallbacks"}
+          subtitle={isLoadingMissions ? "Syncing from Wix mission collection..." : "Live partner missions"}
           icon="radio-button-on"
           isDarkMode={isDarkMode}
         />
+        {visibleMissions.length === 0 && !isLoadingMissions ? (
+          <Text style={{ color: isDarkMode ? "#9CA3AF" : "#5F6B73", fontWeight: "800", marginBottom: 14 }}>
+            No active missions yet. Business-created events will appear here after publishing.
+          </Text>
+        ) : null}
         {visibleMissions.map((mission) => (
           <MissionCard
             key={mission.id}
@@ -1191,6 +1078,11 @@ export default function MissionsScreen({ navigation }: Props) {
           icon="shield-check"
           isDarkMode={isDarkMode}
         />
+        {completedMissions.length === 0 ? (
+          <Text style={{ color: isDarkMode ? "#9CA3AF" : "#5F6B73", fontWeight: "800", marginBottom: 14 }}>
+            Completed missions will appear after you check in or finish an event.
+          </Text>
+        ) : null}
         {completedMissions.map((mission) => (
           <MissionCard
             key={mission.id}

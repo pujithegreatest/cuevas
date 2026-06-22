@@ -30,12 +30,15 @@ const openai_api_key = Constants.expoConfig.extra.apikey;
 
 export default function App() {
   const isDarkMode = useAppStore((s) => s.isDarkMode);
+  const hasThemeOverride = useAppStore((s) => s.hasThemeOverride);
+  const setSystemDarkMode = useAppStore((s) => s.setSystemDarkMode);
   const systemColorScheme = useColorScheme();
 
   useEffect(() => {
-    if (systemColorScheme === "dark" && !isDarkMode) {
+    if (!hasThemeOverride) {
+      setSystemDarkMode(systemColorScheme === "dark");
     }
-  }, [systemColorScheme]);
+  }, [hasThemeOverride, setSystemDarkMode, systemColorScheme]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

@@ -610,8 +610,13 @@ export default function LoginScreen({ navigation }: Props) {
                   paddingVertical: 15,
                   alignItems: "center",
                   backgroundColor: isLoading ? "rgba(6,167,161,0.34)" : "#06A7A1",
-                  borderWidth: 1,
-                  borderColor: "#39D8D0",
+                  borderWidth: 2,
+                  borderColor: isDarkMode ? "#39D8D0" : "#057D78",
+                  shadowColor: "#06A7A1",
+                  shadowOpacity: 0.24,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 6 },
+                  elevation: 4,
                   opacity: pressed || isLoading ? 0.72 : 1,
                 })}
               >

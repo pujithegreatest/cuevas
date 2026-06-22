@@ -25,11 +25,13 @@ interface AppState {
   friends: FriendNode[];
 
   isDarkMode: boolean;
+  hasThemeOverride: boolean;
 
   login: (email: string) => void;
   logout: () => void;
   setRewardsBalance: (balance: number) => void;
   toggleDarkMode: () => void;
+  setSystemDarkMode: (isDark: boolean) => void;
   setDefaultPostPrivacy: (privacy: PrivacyLevel) => void;
   addFriend: (friend: FriendNode) => void;
   removeFriend: (id: string) => void;
@@ -53,13 +55,11 @@ export const useAppStore = create<AppState>()(
       isBusinessAccount: false,
       businessName: null,
       businessProfileUnlocked: false,
-      rewardsBalance: 300,
+      rewardsBalance: 0,
       defaultPostPrivacy: "public",
-      friends: [
-        { id: "lab-1", handle: "howstringy", title: "Field Researcher" },
-        { id: "lab-2", handle: "gianttoes69", title: "Cleanup Lead" },
-      ],
+      friends: [],
       isDarkMode: false,
+      hasThemeOverride: false,
 
       login: (email: string) =>
         set((state) => {
@@ -89,7 +89,10 @@ export const useAppStore = create<AppState>()(
         set({ rewardsBalance: balance }),
 
       toggleDarkMode: () =>
-        set((state) => ({ isDarkMode: !state.isDarkMode })),
+        set((state) => ({ isDarkMode: !state.isDarkMode, hasThemeOverride: true })),
+
+      setSystemDarkMode: (isDark: boolean) =>
+        set({ isDarkMode: isDark }),
 
       setDefaultPostPrivacy: (privacy: PrivacyLevel) =>
         set({ defaultPostPrivacy: privacy }),

@@ -37,6 +37,39 @@ import { useAppStore } from "../state/appStore";
 import { Ionicons } from "./Ionicons";
 import MissionChatModal from "./MissionChatModal";
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const QRCodeLib = require("qrcode-terminal/vendor/QRCode");
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const QRErrorCorrectLevel = require("qrcode-terminal/vendor/QRCode/QRErrorCorrectLevel");
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function buildQrSvg(data: string, size = 380): string {
+  const qr = new QRCodeLib(-1, QRErrorCorrectLevel.M);
+  qr.addData(data);
+  qr.make();
+  const modules = qr.modules as boolean[][];
+  const count = modules.length;
+  const cell = size / count;
+  const rects: string[] = [];
+  modules.forEach((row, rowIndex) => {
+    row.forEach((dark, colIndex) => {
+      if (dark) {
+        rects.push(`<rect x="${(colIndex * cell).toFixed(3)}" y="${(rowIndex * cell).toFixed(3)}" width="${cell.toFixed(3)}" height="${cell.toFixed(3)}" fill="#000000"/>`);
+      }
+    });
+  });
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" fill="#ffffff"/>${rects.join("")}</svg>`;
+}
+
+
 interface Props {
   visible: boolean;
   onClose: () => void;
@@ -61,6 +94,15 @@ function formatDatePart(date: Date) {
 
 function formatTimePart(date: Date) {
   return date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+function formatBusinessMissionDate(mission: CuevasMission) {
+  const rawDate = mission.eventDateISO || mission.eventDate;
+  const parsed = rawDate ? new Date(rawDate) : null;
+  if (parsed && !Number.isNaN(parsed.getTime())) {
+    return parsed.toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+  return mission.eventDate || "Date TBD";
 }
 
 function normalizedPeopleNeeded(value: string) {
@@ -228,6 +270,10 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
     () => filteredMissions.filter((mission) => !["completed", "deleted"].includes(String(mission.status || "active").toLowerCase())),
     [filteredMissions]
   );
+  const pastMissions = useMemo(
+    () => filteredMissions.filter((mission) => String(mission.status || "active").toLowerCase() === "completed"),
+    [filteredMissions]
+  );
 
   useEffect(() => {
     if (!visible) return;
@@ -276,6 +322,15 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
       loadProofs();
     }
   }, [activeTab, handle, isBusinessAccount, visible]);
+
+  useEffect(() => {
+    if (!visible || !isBusinessAccount || !filteredMissions.length) return;
+    filteredMissions.forEach((mission) => {
+      if (!attendees[mission.id]) {
+        loadAttendees(mission.id);
+      }
+    });
+  }, [filteredMissions, isBusinessAccount, visible]);
 
   const saveBusinessProfile = async () => {
     const nextName = businessNameDraft.trim();
@@ -406,9 +461,7 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
   const generateMissionQrPdf = async (mission: CuevasMission) => {
     setCheckInStatus((current) => ({ ...current, [mission.id]: "Generating check-in QR PDF..." }));
     try {
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&margin=18&data=${encodeURIComponent(
-        missionQrPayload(mission)
-      )}`;
+      const qrSvg = buildQrSvg(missionQrPayload(mission), 380);
       const html = `<!doctype html>
 <html>
   <head>
@@ -419,17 +472,17 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
       h1 { margin: 0; font-size: 42px; letter-spacing: 1px; }
       h2 { color: #06A7A1; margin: 12px 0 0; font-size: 28px; }
       p { font-size: 20px; color: #9CA3AF; line-height: 1.45; }
-      img { width: 380px; height: 380px; margin: 28px auto; display: block; background: white; padding: 18px; border-radius: 24px; }
+      .qr { width: 380px; height: 380px; margin: 28px auto; display: block; background: white; padding: 18px; border-radius: 24px; }
       .points { display: inline-block; margin-top: 8px; padding: 14px 24px; border-radius: 999px; background: #06A7A1; color: white; font-size: 24px; font-weight: 800; }
     </style>
   </head>
   <body>
     <div class="sheet">
       <h1>Scan to Check In</h1>
-      <h2>${mission.title}</h2>
-      <p>${mission.location}<br />${mission.eventDate}<br />Hosted by ${mission.businessName || businessName}</p>
-      <img src="${qrUrl}" />
-      <div class="points">+${mission.points} Cuevas</div>
+      <h2>${escapeHtml(mission.title)}</h2>
+      <p>${escapeHtml(mission.location)}<br />${escapeHtml(mission.eventDate)}<br />Hosted by ${escapeHtml(mission.businessName || businessName)}</p>
+      <div class="qr">${qrSvg}</div>
+      <div class="points">+${escapeHtml(mission.points)} Cuevas</div>
       <p>Open Cuevas → Missions → Scan QR.</p>
     </div>
   </body>
@@ -593,6 +646,13 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
           paddingVertical: 14,
           alignItems: "center",
           backgroundColor: "#06A7A1",
+          borderWidth: 1,
+          borderColor: "#39D8D0",
+          shadowColor: "#06A7A1",
+          shadowOpacity: 0.22,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 3,
           opacity: pressed || isSavingProfile ? 0.72 : 1,
         })}
       >
@@ -748,6 +808,13 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
           paddingVertical: 14,
           alignItems: "center",
           backgroundColor: "#06A7A1",
+          borderWidth: 1,
+          borderColor: "#39D8D0",
+          shadowColor: "#06A7A1",
+          shadowOpacity: 0.22,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 3,
           opacity: pressed || isSubmitting ? 0.72 : 1,
         })}
       >
@@ -1009,6 +1076,40 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
           <Text style={{ color: "#9CA3AF", marginTop: 4, lineHeight: 18 }}>{body}</Text>
         </View>
       ))}
+      <Text style={{ color: "#CFEFEC", fontSize: 18, fontWeight: "900", marginTop: 8, marginBottom: 8 }}>Past Event History</Text>
+      {pastMissions.length ? (
+        pastMissions.map((mission) => {
+          const attendeeList = attendees[mission.id] || [];
+          const checkedInCount = attendeeList.filter((item) => item.checkedIn).length;
+          const proofCount = missionProofs.filter((proof) => proof.missionId === mission.id).length;
+          return (
+            <View
+              key={`past-${mission.id}`}
+              style={{
+                borderRadius: 18,
+                borderWidth: 1,
+                borderColor: "rgba(6,167,161,0.24)",
+                padding: 14,
+                marginBottom: 10,
+                backgroundColor: "rgba(6,167,161,0.07)",
+              }}
+            >
+              <Text style={{ color: "#CFEFEC", fontSize: 16, fontWeight: "900" }}>{mission.title}</Text>
+              <Text style={{ color: "#9CA3AF", marginTop: 4, lineHeight: 18 }}>{mission.location || "Location TBD"} · {formatBusinessMissionDate(mission)}</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
+                <Text style={{ color: "#06A7A1", fontWeight: "900" }}>{checkedInCount} checked in</Text>
+                <Text style={{ color: "#06A7A1", fontWeight: "900" }}>{attendeeList.length} registered</Text>
+                <Text style={{ color: "#06A7A1", fontWeight: "900" }}>{proofCount} submissions loaded</Text>
+              </View>
+              {mission.description ? <Text style={{ color: "#9CA3AF", marginTop: 8, lineHeight: 18 }}>{mission.description}</Text> : null}
+            </View>
+          );
+        })
+      ) : (
+        <View style={{ borderRadius: 18, borderWidth: 1, borderColor: "rgba(6,167,161,0.18)", padding: 14, backgroundColor: "rgba(255,255,255,0.05)" }}>
+          <Text style={{ color: "#9CA3AF", lineHeight: 18 }}>Completed events will appear here after a mission is marked complete.</Text>
+        </View>
+      )}
     </>
   );
 
