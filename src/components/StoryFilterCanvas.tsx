@@ -4,11 +4,14 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 import Svg, {
+  Circle,
   Defs,
+  Line,
   LinearGradient as SvgLinearGradient,
   Path,
   Rect,
   Stop,
+  Text as SvgText,
 } from "react-native-svg";
 import {
   Canvas,
@@ -637,6 +640,551 @@ export function HeatwaveHud({
   );
 }
 
+function useHudTick(enabled = true, intervalMs = 500) {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!enabled) return;
+    const id = setInterval(() => setTick((value) => value + 1), intervalMs);
+    return () => clearInterval(id);
+  }, [enabled, intervalMs]);
+  return tick;
+}
+
+function HudBadge({
+  label,
+  value,
+  accent,
+  style,
+}: {
+  label: string;
+  value?: string;
+  accent: string;
+  style?: any;
+}) {
+  return (
+    <View
+      style={[
+        styles.hudBadge,
+        { borderColor: `${accent}77`, backgroundColor: "rgba(0,8,18,0.56)" },
+        style,
+      ]}
+      pointerEvents="none"
+    >
+      <Text style={[styles.hudBadgeLabel, { color: accent }]}>{label}</Text>
+      {value ? <Text style={styles.hudBadgeValue}>{value}</Text> : null}
+    </View>
+  );
+}
+
+function FaceRecognitionHud({
+  width,
+  height,
+  accent = "#00ffc8",
+  label = "FACE LOCK",
+  value = "MATCH 98.7%",
+}: {
+  width: number;
+  height: number;
+  accent?: string;
+  label?: string;
+  value?: string;
+}) {
+  const tick = useHudTick(true, 430);
+  const faceW = width * 0.48;
+  const faceH = height * 0.28;
+  const faceX = width * 0.5 - faceW / 2 + Math.sin(tick * 0.55) * 5;
+  const faceY = height * 0.25 + Math.cos(tick * 0.38) * 4;
+  const scanY = faceY + (((tick % 12) + 1) / 13) * faceH;
+  const dot = [
+    [0.31, 0.34],
+    [0.44, 0.32],
+    [0.56, 0.32],
+    [0.69, 0.34],
+    [0.5, 0.47],
+    [0.38, 0.62],
+    [0.5, 0.68],
+    [0.62, 0.62],
+  ];
+
+  return (
+    <>
+      <LinearGradient
+        colors={["rgba(0,0,0,0.06)", `${accent}16`, "rgba(0,0,0,0.18)"]}
+        style={StyleSheet.absoluteFill}
+      />
+      <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Rect
+          x={faceX}
+          y={faceY}
+          width={faceW}
+          height={faceH}
+          rx={18}
+          stroke={accent}
+          strokeWidth={2}
+          strokeOpacity={0.78}
+          strokeDasharray="12 8"
+          fill="rgba(0,0,0,0.02)"
+        />
+        <Rect
+          x={faceX + faceW * 0.09}
+          y={faceY + faceH * 0.17}
+          width={faceW * 0.82}
+          height={faceH * 0.66}
+          rx={14}
+          stroke="#e9ffff"
+          strokeWidth={1}
+          strokeOpacity={0.34}
+          fill="none"
+        />
+        <Line x1={faceX - 18} y1={scanY} x2={faceX + faceW + 18} y2={scanY} stroke={accent} strokeWidth={3} strokeOpacity={0.7} />
+        <Line x1={faceX + faceW * 0.5} y1={faceY - 18} x2={faceX + faceW * 0.5} y2={faceY + faceH + 18} stroke={accent} strokeWidth={1} strokeOpacity={0.35} />
+        <Line x1={faceX - 12} y1={faceY + faceH * 0.5} x2={faceX + faceW + 12} y2={faceY + faceH * 0.5} stroke={accent} strokeWidth={1} strokeOpacity={0.35} />
+        {dot.map(([x, y], index) => (
+          <Circle
+            key={`face-dot-${index}`}
+            cx={faceX + faceW * x}
+            cy={faceY + faceH * y}
+            r={index === 4 ? 4 : 3}
+            fill={accent}
+            opacity={index === tick % dot.length ? 0.95 : 0.55}
+          />
+        ))}
+        <Path
+          d={`M ${faceX + faceW * 0.34} ${faceY + faceH * 0.71} C ${faceX + faceW * 0.43} ${faceY + faceH * 0.82}, ${faceX + faceW * 0.57} ${faceY + faceH * 0.82}, ${faceX + faceW * 0.66} ${faceY + faceH * 0.71}`}
+          stroke={accent}
+          strokeWidth={2}
+          strokeOpacity={0.72}
+          fill="none"
+        />
+        <SvgText x={faceX + 10} y={faceY - 12} fill={accent} fontSize="11" fontWeight="900">
+          {label}
+        </SvgText>
+        <SvgText x={faceX + faceW - 102} y={faceY + faceH + 22} fill="#e9ffff" fontSize="10" fontWeight="900">
+          {value}
+        </SvgText>
+      </Svg>
+      <HudBadge label="BIOMETRIC SCAN" value="SUBJECT ACQUIRED" accent={accent} style={{ left: width * 0.06, top: height * 0.14 }} />
+      <HudBadge label="DEPTH" value={`${String(44 + (tick % 9)).padStart(2, "0")}m`} accent={accent} style={{ right: width * 0.06, top: height * 0.56 }} />
+    </>
+  );
+}
+
+function ThermalScannerHud({
+  width,
+  height,
+  accent = "#ff6a00",
+  infrared = false,
+}: {
+  width: number;
+  height: number;
+  accent?: string;
+  infrared?: boolean;
+}) {
+  const tick = useHudTick(true, 520);
+  const phase = tick * 0.34;
+  const blobs = [
+    { x: 0.26, y: 0.34, rx: 0.17, ry: 0.1, color: "#fff263" },
+    { x: 0.63, y: 0.28, rx: 0.2, ry: 0.12, color: infrared ? "#ff2d55" : "#ff5b00" },
+    { x: 0.49, y: 0.57, rx: 0.28, ry: 0.16, color: infrared ? "#7a00ff" : "#00c8ff" },
+  ];
+
+  return (
+    <>
+      <LinearGradient
+        colors={
+          infrared
+            ? ["rgba(20,0,48,0.3)", "rgba(255,45,85,0.18)", "rgba(255,180,0,0.12)"]
+            : ["rgba(0,38,88,0.22)", "rgba(255,91,0,0.18)", "rgba(255,242,99,0.14)"]
+        }
+        style={StyleSheet.absoluteFill}
+      />
+      <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Defs>
+          <SvgLinearGradient id="thermalSweep" x1="0" y1="0" x2="1" y2="0">
+            <Stop offset="0" stopColor={accent} stopOpacity="0.0" />
+            <Stop offset="0.5" stopColor={accent} stopOpacity="0.62" />
+            <Stop offset="1" stopColor={accent} stopOpacity="0.0" />
+          </SvgLinearGradient>
+        </Defs>
+        {blobs.map((blob, index) => (
+          <Path
+            key={`thermal-blob-${index}`}
+            d={`M ${width * (blob.x - blob.rx)} ${height * blob.y}
+              C ${width * (blob.x - blob.rx * 0.7)} ${height * (blob.y - blob.ry - Math.sin(phase + index) * 0.018)},
+                ${width * (blob.x + blob.rx * 0.7)} ${height * (blob.y - blob.ry + Math.cos(phase + index) * 0.014)},
+                ${width * (blob.x + blob.rx)} ${height * blob.y}
+              C ${width * (blob.x + blob.rx * 0.7)} ${height * (blob.y + blob.ry)},
+                ${width * (blob.x - blob.rx * 0.8)} ${height * (blob.y + blob.ry * 0.8)},
+                ${width * (blob.x - blob.rx)} ${height * blob.y} Z`}
+            fill={blob.color}
+            opacity={index === 0 ? 0.25 : 0.2}
+          />
+        ))}
+        <Rect x="0" y={height * (0.22 + ((tick % 16) / 16) * 0.48)} width={width} height="18" fill="url(#thermalSweep)" opacity="0.22" />
+        <Rect x={width * 0.08} y={height * 0.18} width={width * 0.84} height={height * 0.46} rx={18} stroke={accent} strokeWidth={1.4} strokeOpacity={0.46} fill="none" />
+        <Line x1={width * 0.08} y1={height * 0.41} x2={width * 0.92} y2={height * 0.41} stroke="#e9ffff" strokeWidth={1} strokeOpacity={0.24} />
+        <Line x1={width * 0.5} y1={height * 0.18} x2={width * 0.5} y2={height * 0.64} stroke="#e9ffff" strokeWidth={1} strokeOpacity={0.24} />
+        <SvgText x={width * 0.1} y={height * 0.17} fill={accent} fontSize="10" fontWeight="900">
+          {infrared ? "IR SIGNATURE MAP" : "THERMAL FIELD"}
+        </SvgText>
+      </Svg>
+      <HudBadge label={infrared ? "IR LOCK" : "HEAT INDEX"} value={`${91 + (tick % 7)}.${tick % 10}F`} accent={accent} style={{ left: width * 0.07, top: height * 0.66 }} />
+    </>
+  );
+}
+
+function NeonCircuitHud({ width, height }: { width: number; height: number }) {
+  const tick = useHudTick(true, 360);
+  const accent = "#00f5ff";
+  const pink = "#ff39d8";
+  const nodes = [
+    [0.15, 0.26],
+    [0.32, 0.2],
+    [0.5, 0.31],
+    [0.69, 0.22],
+    [0.84, 0.34],
+    [0.7, 0.55],
+    [0.48, 0.62],
+    [0.28, 0.52],
+  ];
+  return (
+    <>
+      <LinearGradient
+        colors={["rgba(0,245,255,0.1)", "rgba(255,57,216,0.13)", "rgba(0,0,0,0.18)"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+        {nodes.map((node, index) => {
+          const next = nodes[(index + 1) % nodes.length];
+          return (
+            <Line
+              key={`neon-line-${index}`}
+              x1={width * node[0]}
+              y1={height * node[1]}
+              x2={width * next[0]}
+              y2={height * next[1]}
+              stroke={index % 2 ? pink : accent}
+              strokeWidth={2}
+              strokeOpacity={0.42}
+            />
+          );
+        })}
+        {nodes.map((node, index) => (
+          <Circle
+            key={`neon-node-${index}`}
+            cx={width * node[0]}
+            cy={height * node[1]}
+            r={index === tick % nodes.length ? 8 : 4}
+            fill={index % 2 ? pink : accent}
+            opacity={index === tick % nodes.length ? 0.8 : 0.5}
+          />
+        ))}
+        <Circle cx={width * 0.5} cy={height * 0.42} r={width * 0.18} stroke={accent} strokeWidth={2} strokeOpacity={0.45} fill="none" />
+        <Circle cx={width * 0.5} cy={height * 0.42} r={width * 0.1} stroke={pink} strokeWidth={2} strokeOpacity={0.55} fill="none" />
+        <Line x1={width * 0.36} y1={height * 0.42} x2={width * 0.64} y2={height * 0.42} stroke="#e9ffff" strokeWidth={1} strokeOpacity={0.42} />
+        <Line x1={width * 0.5} y1={height * 0.3} x2={width * 0.5} y2={height * 0.54} stroke="#e9ffff" strokeWidth={1} strokeOpacity={0.42} />
+      </Svg>
+      <HudBadge label="NEON CIRCUIT" value="ENERGY ROUTED" accent={accent} style={{ left: width * 0.07, top: height * 0.16 }} />
+    </>
+  );
+}
+
+function SynthLawHud({ width, height }: { width: number; height: number }) {
+  const tick = useHudTick(true, 480);
+  const accent = "#ff4dff";
+  return (
+    <>
+      <LinearGradient
+        colors={["rgba(255,77,255,0.14)", "rgba(0,234,255,0.12)", "rgba(20,0,48,0.24)"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Path
+          d={`M ${width * 0.08} ${height * 0.61} L ${width * 0.27} ${height * 0.39} L ${width * 0.48} ${height * 0.58} L ${width * 0.72} ${height * 0.35} L ${width * 0.92} ${height * 0.57}`}
+          stroke="#00eaff"
+          strokeWidth={2}
+          strokeOpacity={0.6}
+          fill="none"
+        />
+        {Array.from({ length: 7 }).map((_, index) => (
+          <Line
+            key={`synth-horizon-${index}`}
+            x1={width * (0.04 + index * 0.15)}
+            y1={height * 0.74}
+            x2={width * (0.22 + index * 0.09)}
+            y2={height * 0.52}
+            stroke={accent}
+            strokeWidth={1}
+            strokeOpacity={0.24}
+          />
+        ))}
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Rect
+            key={`synth-card-${index}`}
+            x={width * (0.18 + index * 0.16)}
+            y={height * (0.22 + Math.sin(tick * 0.4 + index) * 0.015)}
+            width={width * 0.12}
+            height={height * 0.08}
+            rx={8}
+            stroke={index % 2 ? "#00eaff" : accent}
+            strokeWidth={1.5}
+            strokeOpacity={0.58}
+            fill="rgba(0,0,0,0.12)"
+          />
+        ))}
+        <SvgText x={width * 0.2} y={height * 0.2} fill={accent} fontSize="12" fontWeight="900">
+          SYNTH AUTH PASS
+        </SvgText>
+      </Svg>
+      <HudBadge label="PROFILE" value="VERIFIED" accent={accent} style={{ right: width * 0.07, top: height * 0.62 }} />
+    </>
+  );
+}
+
+function XraySkeletonHud({ width, height }: { width: number; height: number }) {
+  const accent = "#cfefff";
+  return (
+    <>
+      <LinearGradient
+        colors={["rgba(0,255,255,0.12)", "rgba(255,255,255,0.08)", "rgba(0,28,60,0.22)"]}
+        style={StyleSheet.absoluteFill}
+      />
+      <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Circle cx={width * 0.5} cy={height * 0.28} r={width * 0.11} stroke={accent} strokeWidth={2} strokeOpacity={0.55} fill="rgba(255,255,255,0.04)" />
+        <Line x1={width * 0.5} y1={height * 0.39} x2={width * 0.5} y2={height * 0.62} stroke={accent} strokeWidth={2} strokeOpacity={0.45} />
+        {Array.from({ length: 6 }).map((_, index) => {
+          const y = height * (0.42 + index * 0.032);
+          return (
+            <Path
+              key={`xray-rib-${index}`}
+              d={`M ${width * 0.5} ${y} C ${width * 0.39} ${y - 10}, ${width * 0.33} ${y + 8}, ${width * 0.28} ${y + 18} M ${width * 0.5} ${y} C ${width * 0.61} ${y - 10}, ${width * 0.67} ${y + 8}, ${width * 0.72} ${y + 18}`}
+              stroke={accent}
+              strokeWidth={1.5}
+              strokeOpacity={0.38}
+              fill="none"
+            />
+          );
+        })}
+        <Rect x={width * 0.22} y={height * 0.18} width={width * 0.56} height={height * 0.5} rx={20} stroke="#00eaff" strokeWidth={1.4} strokeOpacity={0.38} fill="none" />
+      </Svg>
+      <HudBadge label="X-RAY" value="STRUCTURE MAP" accent="#cfefff" style={{ left: width * 0.07, top: height * 0.67 }} />
+    </>
+  );
+}
+
+function MatrixIdentityHud({ width, height }: { width: number; height: number }) {
+  const tick = useHudTick(true, 360);
+  const accent = "#58ff39";
+  return (
+    <>
+      <LinearGradient colors={["rgba(0,80,0,0.16)", "rgba(0,0,0,0.18)"]} style={StyleSheet.absoluteFill} />
+      <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+        {Array.from({ length: 8 }).map((_, index) => (
+          <SvgText
+            key={`matrix-code-${index}`}
+            x={width * (0.08 + index * 0.11)}
+            y={height * (0.16 + ((tick + index * 3) % 15) * 0.035)}
+            fill={accent}
+            fontSize="9"
+            fontWeight="900"
+            opacity={0.28 + (index % 3) * 0.12}
+          >
+            {index % 2 ? "01 10 11" : "ID 74 A9"}
+          </SvgText>
+        ))}
+        <Rect x={width * 0.24} y={height * 0.24} width={width * 0.52} height={height * 0.34} rx={16} stroke={accent} strokeWidth={2} strokeOpacity={0.62} fill="rgba(0,40,0,0.06)" />
+        <Line x1={width * 0.24} y1={height * 0.41} x2={width * 0.76} y2={height * 0.41} stroke={accent} strokeWidth={1} strokeOpacity={0.5} />
+        <Line x1={width * 0.5} y1={height * 0.24} x2={width * 0.5} y2={height * 0.58} stroke={accent} strokeWidth={1} strokeOpacity={0.5} />
+      </Svg>
+      <HudBadge label="MATRIX ID" value="DECODED" accent={accent} style={{ right: width * 0.07, top: height * 0.62 }} />
+    </>
+  );
+}
+
+function ScannerGateHud({ width, height }: { width: number; height: number }) {
+  const tick = useHudTick(true, 420);
+  const accent = "#00ffc8";
+  const gateY = height * (0.2 + ((tick % 14) / 14) * 0.42);
+  return (
+    <>
+      <LinearGradient colors={["rgba(0,255,200,0.12)", "rgba(0,80,140,0.18)"]} style={StyleSheet.absoluteFill} />
+      <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Rect x={width * 0.13} y={height * 0.17} width={width * 0.74} height={height * 0.5} rx={12} stroke={accent} strokeWidth={1.6} strokeOpacity={0.48} fill="none" />
+        <Rect x={width * 0.18} y={gateY} width={width * 0.64} height={24} fill={accent} opacity={0.12} />
+        <Line x1={width * 0.13} y1={gateY} x2={width * 0.87} y2={gateY} stroke={accent} strokeWidth={3} strokeOpacity={0.72} />
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Rect
+            key={`scan-target-${index}`}
+            x={width * (0.22 + index * 0.12)}
+            y={height * (0.28 + (index % 2) * 0.18)}
+            width={width * 0.08}
+            height={height * 0.07}
+            rx={6}
+            stroke="#e9ffff"
+            strokeWidth={1.2}
+            strokeOpacity={0.36}
+            fill="none"
+          />
+        ))}
+      </Svg>
+      <HudBadge label="SCANNER" value="SWEEP ACTIVE" accent={accent} style={{ left: width * 0.07, top: height * 0.69 }} />
+    </>
+  );
+}
+
+function GlitchArHud({ width, height }: { width: number; height: number }) {
+  const tick = useHudTick(true, 250);
+  const bands = [
+    { y: 0.22, h: 0.035, c: "rgba(255,0,64,0.24)", dx: -10 },
+    { y: 0.39, h: 0.022, c: "rgba(0,220,255,0.24)", dx: 8 },
+    { y: 0.57, h: 0.03, c: "rgba(255,255,255,0.18)", dx: -5 },
+  ];
+  return (
+    <>
+      {bands.map((band, index) => (
+        <View
+          key={`glitch-band-${index}`}
+          style={{
+            position: "absolute",
+            left: band.dx + Math.sin(tick + index) * 6,
+            right: -band.dx,
+            top: height * band.y,
+            height: height * band.h,
+            backgroundColor: band.c,
+          }}
+          pointerEvents="none"
+        />
+      ))}
+      <FaceRecognitionHud width={width} height={height} accent="#ff3bd4" label="SIGNAL TEAR" value="TRACK LOST" />
+    </>
+  );
+}
+
+function LidarDepthHud({ width, height }: { width: number; height: number }) {
+  const tick = useHudTick(true, 440);
+  const accent = "#dbeafe";
+  return (
+    <>
+      <LinearGradient
+        colors={["rgba(255,255,255,0.12)", "rgba(140,165,190,0.12)", "rgba(10,16,26,0.18)"]}
+        style={StyleSheet.absoluteFill}
+      />
+      <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+        {Array.from({ length: 7 }).map((_, index) => {
+          const scale = 0.12 + index * 0.075;
+          return (
+            <Rect
+              key={`lidar-box-${index}`}
+              x={width * (0.5 - scale)}
+              y={height * (0.37 - scale * 0.55)}
+              width={width * scale * 2}
+              height={height * scale}
+              rx={8}
+              stroke={index === tick % 7 ? "#00eaff" : accent}
+              strokeWidth={1.2}
+              strokeOpacity={0.18 + index * 0.055}
+              fill="none"
+            />
+          );
+        })}
+        {Array.from({ length: 18 }).map((_, index) => (
+          <Circle
+            key={`lidar-dot-${index}`}
+            cx={width * (0.12 + ((index * 37) % 76) / 100)}
+            cy={height * (0.2 + ((index * 23) % 46) / 100)}
+            r={index % 4 === tick % 4 ? 3.5 : 2}
+            fill={index % 3 ? accent : "#00eaff"}
+            opacity={0.38}
+          />
+        ))}
+      </Svg>
+      <HudBadge label="CHROME LIDAR" value="DEPTH MAPPED" accent="#dbeafe" style={{ left: width * 0.07, top: height * 0.65 }} />
+    </>
+  );
+}
+
+function RadSensorHud({ width, height }: { width: number; height: number }) {
+  const tick = useHudTick(true, 420);
+  const accent = "#b6ff00";
+  const cx = width * 0.5;
+  const cy = height * 0.4;
+  return (
+    <>
+      <LinearGradient colors={["rgba(182,255,0,0.15)", "rgba(0,40,0,0.24)"]} style={StyleSheet.absoluteFill} />
+      <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+        {[0.12, 0.2, 0.29].map((radius, index) => (
+          <Circle
+            key={`rad-ring-${index}`}
+            cx={cx}
+            cy={cy}
+            r={width * radius + (tick % 3) * 2}
+            stroke={accent}
+            strokeWidth={2}
+            strokeOpacity={0.5 - index * 0.11}
+            fill="none"
+          />
+        ))}
+        {Array.from({ length: 3 }).map((_, index) => {
+          const angle = -90 + index * 120;
+          const x = cx + Math.cos((angle * Math.PI) / 180) * width * 0.17;
+          const y = cy + Math.sin((angle * Math.PI) / 180) * width * 0.17;
+          return (
+            <Path
+              key={`rad-blade-${index}`}
+              d={`M ${cx} ${cy} L ${x - 18} ${y + 32} L ${x + 18} ${y + 32} Z`}
+              fill={accent}
+              opacity={0.18}
+            />
+          );
+        })}
+        <Line x1={width * 0.16} y1={height * 0.62} x2={width * 0.84} y2={height * 0.62} stroke={accent} strokeWidth={1.5} strokeOpacity={0.44} />
+      </Svg>
+      <HudBadge label="RAD SENSOR" value={`ION ${82 + (tick % 11)}%`} accent={accent} style={{ right: width * 0.07, top: height * 0.64 }} />
+    </>
+  );
+}
+
+function VoidPortalHud({ width, height }: { width: number; height: number }) {
+  const tick = useHudTick(true, 520);
+  const accent = "#9b87ff";
+  const cx = width * 0.5;
+  const cy = height * 0.38;
+  return (
+    <>
+      <LinearGradient colors={["rgba(0,0,0,0.46)", "rgba(76,29,149,0.18)", "rgba(0,0,0,0.52)"]} style={StyleSheet.absoluteFill} />
+      <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+        {[0.08, 0.15, 0.24, 0.34].map((radius, index) => (
+          <Circle
+            key={`void-ring-${index}`}
+            cx={cx + Math.sin(tick * 0.2 + index) * 4}
+            cy={cy + Math.cos(tick * 0.18 + index) * 4}
+            r={width * radius}
+            stroke={index % 2 ? "#00eaff" : accent}
+            strokeWidth={1.6}
+            strokeOpacity={0.42 - index * 0.05}
+            fill={index === 0 ? "rgba(0,0,0,0.22)" : "none"}
+          />
+        ))}
+        {Array.from({ length: 20 }).map((_, index) => (
+          <Circle
+            key={`void-star-${index}`}
+            cx={width * (0.08 + ((index * 29) % 84) / 100)}
+            cy={height * (0.16 + ((index * 17) % 54) / 100)}
+            r={index % 5 === tick % 5 ? 2.8 : 1.4}
+            fill={index % 2 ? accent : "#00eaff"}
+            opacity={0.25 + (index % 3) * 0.12}
+          />
+        ))}
+      </Svg>
+      <HudBadge label="VOID GATE" value="GRAVITY LOW" accent={accent} style={{ left: width * 0.07, top: height * 0.66 }} />
+    </>
+  );
+}
+
 export function FilterEffects({
   filter,
   width,
@@ -652,78 +1200,17 @@ export function FilterEffects({
     case "heatwave":
       return <HeatwaveHud width={width} height={height} animated={heatwaveAnimated} />;
     case "hologram":
-      return (
-        <>
-          <LinearGradient
-            colors={["rgba(0,255,240,0.15)", "rgba(0,100,255,0.1)"]}
-            style={[StyleSheet.absoluteFill]}
-          />
-          <ScanlineOverlay width={width} height={height} />
-        </>
-      );
+      return <FaceRecognitionHud width={width} height={height} accent="#00eaff" label="HOLO FACE ID" value="MESH STABLE" />;
     case "vaporwave":
-      return (
-        <LinearGradient
-          colors={["rgba(255,0,200,0.18)", "rgba(0,200,255,0.18)"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[StyleSheet.absoluteFill]}
-        />
-      );
+      return <SynthLawHud width={width} height={height} />;
     case "infrared":
-      return (
-        <LinearGradient
-          colors={[
-            "rgba(40,0,80,0.25)",
-            "rgba(0,0,0,0)",
-            "rgba(255,180,0,0.18)",
-          ]}
-          style={[StyleSheet.absoluteFill]}
-        />
-      );
+      return <ThermalScannerHud width={width} height={height} accent="#ff2d55" infrared />;
     case "matrix":
-      return (
-        <>
-          <LinearGradient
-            colors={["rgba(0,80,0,0.15)", "rgba(0,30,0,0.25)"]}
-            style={[StyleSheet.absoluteFill]}
-          />
-          <ScanlineOverlay width={width} height={height} />
-        </>
-      );
+      return <MatrixIdentityHud width={width} height={height} />;
     case "void":
-      return (
-        <LinearGradient
-          colors={["rgba(0,0,0,0.35)", "rgba(0,0,0,0)", "rgba(0,0,0,0.45)"]}
-          style={[StyleSheet.absoluteFill]}
-        />
-      );
+      return <VoidPortalHud width={width} height={height} />;
     case "glitch":
-      return (
-        <>
-          <View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: -3,
-              right: 3,
-              bottom: 0,
-              backgroundColor: "rgba(255,0,40,0.18)",
-            }}
-          />
-          <View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 3,
-              right: -3,
-              bottom: 0,
-              backgroundColor: "rgba(0,220,255,0.15)",
-            }}
-          />
-          <ScanlineOverlay width={width} height={height} />
-        </>
-      );
+      return <GlitchArHud width={width} height={height} />;
     case "noir":
       return (
         <LinearGradient
@@ -765,160 +1252,19 @@ export function FilterEffects({
         />
       );
     case "neon":
-      return (
-        <>
-          <LinearGradient
-            colors={["rgba(255,0,180,0.18)", "rgba(0,220,255,0.18)"]}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={[StyleSheet.absoluteFill]}
-          />
-          <View
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: height * 0.18,
-              height: 1.5,
-              backgroundColor: "rgba(255,0,180,0.45)",
-            }}
-          />
-        </>
-      );
+      return <NeonCircuitHud width={width} height={height} />;
     case "xray":
-      return (
-        <LinearGradient
-          colors={["rgba(0,255,255,0.18)", "rgba(255,255,255,0.1)"]}
-          style={[StyleSheet.absoluteFill]}
-        />
-      );
+      return <XraySkeletonHud width={width} height={height} />;
     case "thermal":
-      return (
-        <>
-          <LinearGradient
-            colors={[
-              "rgba(255,0,0,0.22)",
-              "rgba(255,150,0,0.15)",
-              "rgba(255,255,0,0.18)",
-              "rgba(0,80,255,0.18)",
-            ]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={[StyleSheet.absoluteFill]}
-          />
-          <View
-            style={{
-              position: "absolute",
-              top: 8,
-              left: 8,
-              paddingHorizontal: 6,
-              paddingVertical: 2,
-              backgroundColor: "rgba(0,0,0,0.55)",
-              borderRadius: 4,
-            }}
-            pointerEvents="none"
-          >
-            <Text
-              style={{
-                color: "#FF3B00",
-                fontSize: 9,
-                fontWeight: "800",
-                letterSpacing: 1,
-              }}
-            >
-              ●  REC  THERM
-            </Text>
-          </View>
-        </>
-      );
+      return <ThermalScannerHud width={width} height={height} accent="#ff6a00" />;
     case "predator":
-      return (
-        <>
-          <LinearGradient
-            colors={["rgba(120,0,0,0.45)", "rgba(255,80,0,0.18)", "rgba(0,0,0,0.45)"]}
-            style={[StyleSheet.absoluteFill]}
-          />
-          <ScanlineOverlay width={width} height={height} />
-          <View
-            style={{
-              position: "absolute",
-              left: width / 2 - 0.5,
-              top: 0,
-              bottom: 0,
-              width: 1,
-              backgroundColor: "rgba(255,80,0,0.35)",
-            }}
-            pointerEvents="none"
-          />
-          <View
-            style={{
-              position: "absolute",
-              top: height / 2 - 0.5,
-              left: 0,
-              right: 0,
-              height: 1,
-              backgroundColor: "rgba(255,80,0,0.35)",
-            }}
-            pointerEvents="none"
-          />
-        </>
-      );
+      return <FaceRecognitionHud width={width} height={height} accent="#ff4d26" label="SUBJECT TRACK" value="LOCKED" />;
     case "scanner":
-      return (
-        <>
-          <LinearGradient
-            colors={["rgba(0,255,200,0.15)", "rgba(0,80,140,0.18)"]}
-            style={[StyleSheet.absoluteFill]}
-          />
-          <ScanlineOverlay width={width} height={height} />
-          <View
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              top: height * 0.38,
-              height: 2,
-              backgroundColor: "rgba(0,255,200,0.55)",
-            }}
-            pointerEvents="none"
-          />
-          <View
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              top: height * 0.42,
-              height: 14,
-              backgroundColor: "rgba(0,255,200,0.08)",
-            }}
-            pointerEvents="none"
-          />
-        </>
-      );
+      return <ScannerGateHud width={width} height={height} />;
     case "chrome":
-      return (
-        <LinearGradient
-          colors={[
-            "rgba(255,255,255,0.18)",
-            "rgba(180,200,230,0.08)",
-            "rgba(80,90,110,0.18)",
-            "rgba(255,255,255,0.18)",
-          ]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={[StyleSheet.absoluteFill]}
-        />
-      );
+      return <LidarDepthHud width={width} height={height} />;
     case "radioactive":
-      return (
-        <>
-          <LinearGradient
-            colors={["rgba(120,255,0,0.22)", "rgba(0,40,0,0.32)"]}
-            style={[StyleSheet.absoluteFill]}
-          />
-          <ScanlineOverlay width={width} height={height} />
-        </>
-      );
+      return <RadSensorHud width={width} height={height} />;
     default:
       return null;
   }
@@ -1088,6 +1434,28 @@ export default function StoryFilterCanvas({
 }
 
 const styles = StyleSheet.create({
+  hudBadge: {
+    position: "absolute",
+    minWidth: 118,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  hudBadgeLabel: {
+    fontSize: 8,
+    fontWeight: "900",
+    letterSpacing: 1.1,
+    textShadowColor: "rgba(0,255,255,0.6)",
+    textShadowRadius: 6,
+  },
+  hudBadgeValue: {
+    color: "#e9ffff",
+    fontSize: 9,
+    fontWeight: "900",
+    letterSpacing: 0.9,
+    marginTop: 2,
+  },
   heatwaveScaleLabel: {
     color: "#e9ffff",
     fontSize: 9,

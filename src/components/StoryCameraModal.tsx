@@ -759,86 +759,85 @@ export default function StoryCameraModal({
           <View
             style={{
               position: "absolute",
-              bottom: 220,
-              left: 18,
-              right: 18,
+              bottom: 252,
+              left: 0,
+              right: 0,
               alignItems: "center",
             }}
           >
-            <View
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
               style={{
                 maxWidth: "100%",
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                borderRadius: 999,
-                borderWidth: 1,
-                borderColor: "rgba(6,167,161,0.45)",
-                backgroundColor: "rgba(0,0,0,0.48)",
+              }}
+              contentContainerStyle={{
+                gap: 10,
+                paddingHorizontal: 18,
+                alignItems: "center",
               }}
             >
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 8 }}
-              >
-                {LIVE_FILTER_OPTIONS.map((item) => {
-                  const active = liveFilter === item.id;
-                  return (
-                    <Pressable
-                      key={item.id}
-                      onPress={() =>
-                        setLiveFilter((current) =>
-                          current === item.id ? "none" : item.id
-                        )
-                      }
-                      style={({ pressed }) => ({
-                        flexDirection: "column",
+              {LIVE_FILTER_OPTIONS.map((item) => {
+                const active = liveFilter === item.id;
+                return (
+                  <Pressable
+                    key={item.id}
+                    onPress={() =>
+                      setLiveFilter((current) =>
+                        current === item.id ? "none" : item.id
+                      )
+                    }
+                    style={({ pressed }) => ({
+                      width: 82,
+                      height: 64,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 4,
+                      paddingHorizontal: 6,
+                      paddingVertical: 7,
+                      borderRadius: 18,
+                      borderWidth: 1,
+                      borderColor: active ? item.accent : "rgba(255,255,255,0.22)",
+                      backgroundColor: active ? `${item.accent}33` : "rgba(0,0,0,0.52)",
+                      opacity: pressed ? 0.72 : 1,
+                      shadowColor: active ? item.accent : "#000",
+                      shadowOpacity: active ? 0.28 : 0,
+                      shadowRadius: active ? 8 : 0,
+                    })}
+                  >
+                    <View
+                      style={{
+                        width: "100%",
+                        height: 22,
                         alignItems: "center",
                         justifyContent: "center",
-                        minWidth: 80,
-                        gap: 3,
-                        paddingHorizontal: 13,
-                        paddingVertical: 8,
-                        borderRadius: 999,
-                        borderWidth: 1,
-                        borderColor: active ? item.accent : "rgba(255,255,255,0.22)",
-                        backgroundColor: active ? `${item.accent}33` : "rgba(255,255,255,0.08)",
-                        opacity: pressed ? 0.72 : 1,
-                      })}
+                      }}
                     >
-                      <View
-                        style={{
-                          width: 18,
-                          height: 18,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Ionicons
-                          name={active && item.id === "heatwave" ? "flame" : item.icon}
-                          size={15}
-                          color={active ? item.accent : "#CFEFEC"}
-                        />
-                      </View>
-                      <Text
-                        numberOfLines={1}
-                        adjustsFontSizeToFit
-                        minimumFontScale={0.78}
-                        style={{
-                          color: active ? "#CFEFEC" : "#9CA3AF",
-                          fontSize: 12,
-                          fontWeight: "900",
-                          lineHeight: 14,
-                          textAlign: "center",
-                        }}
-                      >
-                        {item.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            </View>
+                      <Ionicons
+                        name={active && item.id === "heatwave" ? "flame" : item.icon}
+                        size={18}
+                        color={active ? item.accent : "#CFEFEC"}
+                      />
+                    </View>
+                    <Text
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.72}
+                      style={{
+                        width: "100%",
+                        color: active ? "#F8FFFF" : "#C9D1D9",
+                        fontSize: 11,
+                        fontWeight: "900",
+                        lineHeight: 13,
+                        textAlign: "center",
+                      }}
+                    >
+                      {item.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
           </View>
         )}
 
