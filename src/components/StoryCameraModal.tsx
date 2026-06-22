@@ -9,6 +9,7 @@ import {
   StatusBar,
   StyleSheet,
 } from "react-native";
+import type { ViewStyle } from "react-native";
 import {
   CameraView,
   CameraType,
@@ -86,6 +87,39 @@ const LIVE_FILTER_OPTIONS: {
   { id: "void", label: "Gravity", icon: "moon", accent: "#9b87ff" },
 ];
 
+function getLiveCameraPreviewFilter(filter: LiveFilter): ViewStyle["filter"] {
+  switch (filter) {
+    case "hologram":
+      return "saturate(1.35) contrast(1.08) brightness(1.05) hue-rotate(170deg)";
+    case "glitch":
+      return "contrast(1.16) saturate(1.55) brightness(1.02)";
+    case "matrix":
+      return "saturate(1.85) hue-rotate(80deg) contrast(1.22) brightness(0.95)";
+    case "scanner":
+      return "saturate(1.7) hue-rotate(145deg) contrast(1.18) brightness(1.05)";
+    case "xray":
+      return "invert(1) grayscale(0.38) contrast(1.18) brightness(1.06) saturate(0.7)";
+    case "infrared":
+      return "saturate(1.65) hue-rotate(305deg) contrast(1.18) brightness(0.96)";
+    case "neon":
+      return "saturate(1.8) contrast(1.18) brightness(1.05) hue-rotate(25deg)";
+    case "vaporwave":
+      return "saturate(1.45) hue-rotate(285deg) contrast(1.12) brightness(1.06)";
+    case "thermal":
+      return "saturate(1.7) hue-rotate(330deg) contrast(1.2) brightness(1.02)";
+    case "predator":
+      return "saturate(1.75) hue-rotate(115deg) contrast(1.2) brightness(0.95)";
+    case "chrome":
+      return "grayscale(1) contrast(1.24) brightness(1.08) saturate(0.25)";
+    case "radioactive":
+      return "saturate(1.9) hue-rotate(80deg) contrast(1.15) brightness(0.98)";
+    case "void":
+      return "grayscale(0.65) contrast(1.35) brightness(0.72) saturate(0.85)";
+    default:
+      return undefined;
+  }
+}
+
 export default function StoryCameraModal({
   visible,
   onClose,
@@ -109,6 +143,7 @@ export default function StoryCameraModal({
   const stopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recordStartRef = useRef<number>(0);
   const cameraModeRef = useRef<CameraMode>("picture");
+  const cameraPreviewFilter = getLiveCameraPreviewFilter(liveFilter);
 
   const setNativeCameraMode = (nextMode: CameraMode) => {
     cameraModeRef.current = nextMode;
@@ -427,7 +462,10 @@ export default function StoryCameraModal({
         {permission?.granted ? (
           <CameraView
             ref={cameraRef}
-            style={{ flex: 1 }}
+            style={[
+              { flex: 1 },
+              cameraPreviewFilter ? { filter: cameraPreviewFilter } : null,
+            ]}
             facing={facing}
             mode={cameraMode}
             videoQuality="720p"
@@ -477,6 +515,7 @@ export default function StoryCameraModal({
               height={SCREEN_H}
               topInset={96}
               bottomInset={250}
+              showColorLayer={false}
             />
           </View>
         )}
