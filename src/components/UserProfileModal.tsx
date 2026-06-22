@@ -252,12 +252,18 @@ export default function UserProfileModal({
                   onPress={() => setCompletedOpen(true)}
                   style={({ pressed }) => ({
                     marginTop: 16,
-                    borderRadius: 16,
+                    minHeight: 56,
+                    borderRadius: 18,
                     paddingVertical: 12,
                     paddingHorizontal: 14,
-                    backgroundColor: "rgba(255,255,255,0.20)",
-                    borderWidth: 1,
-                    borderColor: "rgba(255,255,255,0.35)",
+                    backgroundColor: "#06A7A1",
+                    borderWidth: 2,
+                    borderColor: "#B7FFFA",
+                    shadowColor: "#001B1F",
+                    shadowOpacity: 0.22,
+                    shadowRadius: 12,
+                    shadowOffset: { width: 0, height: 7 },
+                    elevation: 4,
                     opacity: pressed ? 0.78 : 1,
                     flexDirection: "row",
                     alignItems: "center",
@@ -270,9 +276,16 @@ export default function UserProfileModal({
                       Completed Missions
                     </Text>
                   </View>
-                  <Text style={{ color: "rgba(255,255,255,0.88)", fontSize: 12, fontWeight: "800" }}>
-                    View 1
-                  </Text>
+                  <View
+                    style={{
+                      borderRadius: 999,
+                      backgroundColor: "#FFFFFF",
+                      paddingHorizontal: 10,
+                      paddingVertical: 6,
+                    }}
+                  >
+                    <Text style={{ color: "#057D78", fontSize: 12, fontWeight: "900" }}>Open</Text>
+                  </View>
                 </Pressable>
               </LinearGradient>
 
@@ -354,39 +367,51 @@ export default function UserProfileModal({
                   borderRadius: 24,
                   padding: 18,
                   backgroundColor: surface,
-                  borderWidth: 1,
-                  borderColor: border,
+                  borderWidth: 2,
+                  borderColor: isDarkMode ? "rgba(6,167,161,0.50)" : "#057D78",
                 }}
               >
-                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-                    <View
-                      style={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: 18,
-                        backgroundColor: "#06A7A1",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginRight: 12,
-                      }}
-                    >
-                      <Ionicons name="shield-check" size={24} color="#FFFFFF" />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ color: text, fontWeight: "900", fontSize: 17 }}>
-                        Park Supply Drop
-                      </Text>
-                      <Text style={{ color: sub, fontSize: 12, marginTop: 2 }}>
-                        Completed May 12, 2026 · West Garden Block
-                      </Text>
-                    </View>
+                <View style={{ alignItems: "center" }}>
+                  <View
+                    style={{
+                      width: 58,
+                      height: 58,
+                      borderRadius: 20,
+                      backgroundColor: "#06A7A1",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 12,
+                    }}
+                  >
+                    <Ionicons name="shield-check" size={27} color="#FFFFFF" />
                   </View>
-                  <Text style={{ color: "#06A7A1", fontWeight: "900" }}>+80 ₡</Text>
+                  <Text style={{ color: text, fontWeight: "900", fontSize: 17, textAlign: "center" }}>
+                    No Completed Missions Yet
+                  </Text>
+                  <Text style={{ color: sub, lineHeight: 20, marginTop: 8, textAlign: "center" }}>
+                    Verified service tasks will appear here after a real mission check-in is recorded.
+                  </Text>
+                  <Pressable
+                    onPress={() => setCompletedOpen(false)}
+                    style={({ pressed }) => ({
+                      marginTop: 16,
+                      borderRadius: 16,
+                      paddingVertical: 12,
+                      paddingHorizontal: 18,
+                      backgroundColor: "#06A7A1",
+                      borderWidth: 2,
+                      borderColor: isDarkMode ? "#39D8D0" : "#057D78",
+                      opacity: pressed ? 0.78 : 1,
+                      flexDirection: "row",
+                      alignItems: "center",
+                    })}
+                  >
+                    <Ionicons name="arrow-back-outline" size={17} color="#FFFFFF" />
+                    <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>
+                      Back to Profile
+                    </Text>
+                  </Pressable>
                 </View>
-                <Text style={{ color: sub, lineHeight: 20, marginTop: 14 }}>
-                  Delivered cleanup supplies and logged a verified Cuevas community-service checkpoint.
-                </Text>
               </View>
             </ScrollView>
           </View>

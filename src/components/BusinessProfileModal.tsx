@@ -805,20 +805,25 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
         disabled={isSubmitting}
         style={({ pressed }) => ({
           borderRadius: 18,
+          minHeight: 56,
           paddingVertical: 14,
+          paddingHorizontal: 16,
           alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "row",
           backgroundColor: "#06A7A1",
-          borderWidth: 1,
-          borderColor: "#39D8D0",
+          borderWidth: 2,
+          borderColor: "#B7FFFA",
           shadowColor: "#06A7A1",
-          shadowOpacity: 0.22,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: 6 },
-          elevation: 3,
+          shadowOpacity: 0.3,
+          shadowRadius: 14,
+          shadowOffset: { width: 0, height: 8 },
+          elevation: 5,
           opacity: pressed || isSubmitting ? 0.72 : 1,
         })}
       >
-        <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>
+        <Ionicons name={isSubmitting ? "hourglass-outline" : "send"} size={18} color="#FFFFFF" />
+        <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>
           {isSubmitting ? "Publishing..." : "Publish Mission"}
         </Text>
       </Pressable>

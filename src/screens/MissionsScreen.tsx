@@ -274,9 +274,14 @@ function MissionCard({
             paddingVertical: 12,
             paddingHorizontal: 12,
             alignItems: "center",
-            backgroundColor: isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(8,25,32,0.05)",
-            borderWidth: 1,
-            borderColor: "rgba(6,167,161,0.35)",
+            backgroundColor: isDarkMode ? "rgba(255,255,255,0.08)" : "#FFFFFF",
+            borderWidth: 2,
+            borderColor: isDarkMode ? "rgba(6,167,161,0.50)" : "#057D78",
+            shadowColor: "#000",
+            shadowOpacity: isDarkMode ? 0 : 0.08,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 5 },
+            elevation: 2,
             opacity: pressed ? 0.78 : 1,
           })}
         >
@@ -298,9 +303,14 @@ function MissionCard({
               paddingVertical: 12,
               paddingHorizontal: 12,
               alignItems: "center",
-              backgroundColor: isQueued ? (isDarkMode ? "rgba(6,167,161,0.12)" : "#E8FFFC") : "#06A7A1",
-              borderWidth: 1,
-              borderColor: "#06A7A1",
+              backgroundColor: isQueued ? (isDarkMode ? "#063C41" : "#10252B") : "#06A7A1",
+              borderWidth: 2,
+              borderColor: isQueued ? (isDarkMode ? "#39D8D0" : "#10252B") : "#057D78",
+              shadowColor: "#06A7A1",
+              shadowOpacity: isDarkMode ? 0.18 : 0.22,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 6 },
+              elevation: 3,
               opacity: pressed ? 0.78 : 1,
             })}
           >
@@ -308,11 +318,11 @@ function MissionCard({
               <Ionicons
                 name={isQueued ? "checkmark-circle" : "add"}
                 size={18}
-                color={isQueued ? "#06A7A1" : "#FFFFFF"}
+                color="#FFFFFF"
               />
               <Text
                 style={{
-                  color: isQueued ? "#06A7A1" : "#FFFFFF",
+                  color: "#FFFFFF",
                   fontWeight: "900",
                   marginLeft: 8,
                 }}
@@ -331,9 +341,14 @@ function MissionCard({
               paddingVertical: 12,
               paddingHorizontal: 12,
               alignItems: "center",
-              backgroundColor: isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(8,25,32,0.05)",
-              borderWidth: 1,
-              borderColor: "rgba(6,167,161,0.35)",
+              backgroundColor: isDarkMode ? "rgba(255,255,255,0.08)" : "#FFFFFF",
+              borderWidth: 2,
+              borderColor: isDarkMode ? "rgba(6,167,161,0.50)" : "#057D78",
+              shadowColor: "#000",
+              shadowOpacity: isDarkMode ? 0 : 0.08,
+              shadowRadius: 10,
+              shadowOffset: { width: 0, height: 5 },
+              elevation: 2,
               opacity: pressed ? 0.78 : 1,
             })}
           >
@@ -355,9 +370,14 @@ function MissionCard({
                 paddingVertical: 12,
                 paddingHorizontal: 12,
                 alignItems: "center",
-                backgroundColor: isDarkMode ? "rgba(6,167,161,0.10)" : "#E8FFFC",
-                borderWidth: 1,
-                borderColor: "rgba(6,167,161,0.45)",
+                backgroundColor: isDarkMode ? "rgba(6,167,161,0.14)" : "#E8FFFC",
+                borderWidth: 2,
+                borderColor: isDarkMode ? "rgba(6,167,161,0.50)" : "#057D78",
+                shadowColor: "#000",
+                shadowOpacity: isDarkMode ? 0 : 0.06,
+                shadowRadius: 8,
+                shadowOffset: { width: 0, height: 4 },
+                elevation: 1,
                 opacity: pressed ? 0.78 : 1,
               })}
             >
@@ -981,11 +1001,11 @@ export default function MissionsScreen({ navigation }: Props) {
                   alignItems: "center",
                   marginTop: 12,
                   borderRadius: 999,
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                  backgroundColor: "rgba(6,167,161,0.18)",
-                  borderWidth: 1,
-                  borderColor: "rgba(6,167,161,0.35)",
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  backgroundColor: isDarkMode ? "rgba(6,167,161,0.18)" : "#FFFFFF",
+                  borderWidth: 2,
+                  borderColor: isDarkMode ? "rgba(6,167,161,0.48)" : "#057D78",
                 }}
               >
                 <Ionicons name="qr-code-outline" size={15} color="#06A7A1" />
@@ -1079,9 +1099,35 @@ export default function MissionsScreen({ navigation }: Props) {
           isDarkMode={isDarkMode}
         />
         {completedMissions.length === 0 ? (
-          <Text style={{ color: isDarkMode ? "#9CA3AF" : "#5F6B73", fontWeight: "800", marginBottom: 14 }}>
-            Completed missions will appear after you check in or finish an event.
-          </Text>
+          <Pressable
+            onPress={refreshMissions}
+            style={({ pressed }) => ({
+              borderRadius: 18,
+              paddingVertical: 13,
+              paddingHorizontal: 14,
+              marginBottom: 14,
+              backgroundColor: isDarkMode ? "rgba(255,255,255,0.08)" : "#FFFFFF",
+              borderWidth: 2,
+              borderColor: isDarkMode ? "rgba(6,167,161,0.50)" : "#057D78",
+              opacity: pressed ? 0.78 : 1,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              shadowColor: "#000",
+              shadowOpacity: isDarkMode ? 0 : 0.08,
+              shadowRadius: 10,
+              shadowOffset: { width: 0, height: 5 },
+              elevation: 2,
+            })}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+              <Ionicons name="shield-check" size={18} color="#06A7A1" />
+              <Text style={{ color: isDarkMode ? "#CFEFEC" : "#10252B", fontWeight: "900", marginLeft: 8, flex: 1 }}>
+                Completed Missions
+              </Text>
+            </View>
+            <Text style={{ color: "#06A7A1", fontSize: 12, fontWeight: "900" }}>Refresh</Text>
+          </Pressable>
         ) : null}
         {completedMissions.map((mission) => (
           <MissionCard

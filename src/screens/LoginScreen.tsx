@@ -254,6 +254,8 @@ function GoogleAuthButton({
               : "bg-black border-black"
           }`}
           style={({ pressed }) => ({
+            minHeight: 54,
+            borderRadius: 18,
             opacity: pressed ? 0.7 : 1,
           })}
         >
@@ -281,6 +283,13 @@ function GoogleAuthButton({
             : "bg-white border-pixel-black"
         }`}
         style={({ pressed }) => ({
+          minHeight: 54,
+          borderRadius: 18,
+          shadowColor: "#000",
+          shadowOpacity: isDarkMode ? 0 : 0.08,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 5 },
+          elevation: 2,
           opacity: pressed ? 0.7 : 1,
         })}
       >
@@ -458,7 +467,18 @@ export default function LoginScreen({ navigation }: Props) {
                 shadowRadius: 18,
               }}
             >
-              <View style={{ flexDirection: "row", padding: 4, backgroundColor: isDarkMode ? "#061116" : "#E8FFFC", borderRadius: 999, marginBottom: 18 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  padding: 5,
+                  backgroundColor: isDarkMode ? "#061116" : "#FFFFFF",
+                  borderRadius: 18,
+                  marginBottom: 18,
+                  borderWidth: 1,
+                  borderColor: isDarkMode ? "rgba(6,167,161,0.34)" : "rgba(6,167,161,0.48)",
+                  gap: 6,
+                }}
+              >
                 {(["login", "signup"] as const).map((item) => {
                   const active = mode === item;
                   return (
@@ -470,13 +490,17 @@ export default function LoginScreen({ navigation }: Props) {
                       }}
                       style={{
                         flex: 1,
+                        minHeight: 44,
                         paddingVertical: 11,
-                        borderRadius: 999,
+                        borderRadius: 14,
                         alignItems: "center",
-                        backgroundColor: active ? "#06A7A1" : "transparent",
+                        justifyContent: "center",
+                        backgroundColor: active ? "#06A7A1" : isDarkMode ? "rgba(255,255,255,0.06)" : "#E8FFFC",
+                        borderWidth: 1,
+                        borderColor: active ? "#057D78" : isDarkMode ? "rgba(6,167,161,0.24)" : "rgba(6,167,161,0.30)",
                       }}
                     >
-                      <Text style={{ color: active ? "#FFFFFF" : mutedColor, fontFamily: "Courier New", fontWeight: "900" }}>
+                      <Text style={{ color: active ? "#FFFFFF" : isDarkMode ? "#CFEFEC" : "#057D78", fontFamily: "Courier New", fontWeight: "900" }}>
                         {item === "login" ? "SIGN IN" : "SIGN UP"}
                       </Text>
                     </Pressable>
@@ -607,8 +631,11 @@ export default function LoginScreen({ navigation }: Props) {
                 disabled={isLoading}
                 style={({ pressed }) => ({
                   borderRadius: 18,
+                  minHeight: 56,
                   paddingVertical: 15,
+                  paddingHorizontal: 16,
                   alignItems: "center",
+                  justifyContent: "center",
                   backgroundColor: isLoading ? "rgba(6,167,161,0.34)" : "#06A7A1",
                   borderWidth: 2,
                   borderColor: isDarkMode ? "#39D8D0" : "#057D78",
@@ -618,11 +645,14 @@ export default function LoginScreen({ navigation }: Props) {
                   shadowOffset: { width: 0, height: 6 },
                   elevation: 4,
                   opacity: pressed || isLoading ? 0.72 : 1,
-                })}
+              })}
               >
-                <Text style={{ color: "#FFFFFF", fontFamily: "Courier New", fontSize: 16, fontWeight: "900", letterSpacing: 1 }}>
-                  {isLoading ? (isSignup ? "CREATING..." : "SIGNING IN...") : isSignup ? "CREATE ACCOUNT" : "SIGN IN"}
-                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Ionicons name={isSignup ? "person-add-outline" : "log-in-outline"} size={18} color="#FFFFFF" />
+                  <Text style={{ color: "#FFFFFF", fontFamily: "Courier New", fontSize: 16, fontWeight: "900", letterSpacing: 1, marginLeft: 8 }}>
+                    {isLoading ? (isSignup ? "CREATING..." : "SIGNING IN...") : isSignup ? "CREATE ACCOUNT" : "SIGN IN"}
+                  </Text>
+                </View>
               </Pressable>
 
               <GoogleAuthButton

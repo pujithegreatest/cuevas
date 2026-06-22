@@ -735,9 +735,28 @@ export default function ProfileScreen({ navigation }: Props) {
                     </View>
                   </View>
                   <View className="flex-row items-center">
-                    <Text className={`text-lg font-bold ${textColor}`}>1</Text>
+                    <Text className={`text-lg font-bold ${textColor}`}>0</Text>
                     <Ionicons name="chevron-forward" size={18} color="#06A7A1" />
                   </View>
+                </View>
+                <View
+                  style={{
+                    marginTop: 14,
+                    borderRadius: 16,
+                    paddingVertical: 11,
+                    paddingHorizontal: 14,
+                    backgroundColor: "#06A7A1",
+                    borderWidth: 2,
+                    borderColor: isDarkMode ? "#39D8D0" : "#057D78",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ionicons name="shield-check" size={17} color="#FFFFFF" />
+                  <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>
+                    View Completed Missions
+                  </Text>
                 </View>
               </Pressable>
             </View>
@@ -1238,13 +1257,26 @@ export default function ProfileScreen({ navigation }: Props) {
               style={({ pressed }) => ({
                 marginTop: 14,
                 borderRadius: 18,
+                minHeight: 52,
                 paddingVertical: 13,
+                paddingHorizontal: 14,
                 alignItems: "center",
+                justifyContent: "center",
                 backgroundColor: "#06A7A1",
+                borderWidth: 2,
+                borderColor: isDarkMode ? "#39D8D0" : "#057D78",
+                shadowColor: "#06A7A1",
+                shadowOpacity: isDarkMode ? 0.16 : 0.22,
+                shadowRadius: 12,
+                shadowOffset: { width: 0, height: 6 },
+                elevation: 3,
                 opacity: pressed ? 0.75 : 1,
               })}
             >
-              <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>Unlock Business Profile</Text>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Ionicons name="business-outline" size={18} color="#FFFFFF" />
+                <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>Unlock Business Profile</Text>
+              </View>
             </Pressable>
           </View>
         </View>
@@ -1276,61 +1308,50 @@ export default function ProfileScreen({ navigation }: Props) {
               style={{
                 borderRadius: 24,
                 padding: 18,
-                borderWidth: 1,
-                borderColor: "rgba(6,167,161,0.35)",
+                borderWidth: 2,
+                borderColor: isDarkMode ? "rgba(6,167,161,0.50)" : "#057D78",
               }}
             >
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center flex-1">
-                  <View
-                    style={{
-                      width: 54,
-                      height: 54,
-                      borderRadius: 18,
-                      backgroundColor: "#06A7A1",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginRight: 12,
-                    }}
-                  >
-                    <Ionicons name="shield-check" size={26} color="#FFFFFF" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className={`text-lg font-black ${textColor}`}>
-                      Park Supply Drop
-                    </Text>
-                    <Text className={`text-xs mt-1 ${subText}`}>
-                      Completed May 12, 2026 · West Garden Block
-                    </Text>
-                  </View>
+              <View style={{ alignItems: "center" }}>
+                <View
+                  style={{
+                    width: 58,
+                    height: 58,
+                    borderRadius: 20,
+                    backgroundColor: "#06A7A1",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: 12,
+                  }}
+                >
+                  <Ionicons name="shield-check" size={27} color="#FFFFFF" />
                 </View>
-                <Text className="text-dark-accent font-black text-base">
-                  +80 ₡
+                <Text className={`text-lg font-black text-center ${textColor}`}>
+                  No Completed Missions Yet
                 </Text>
-              </View>
-
-              <Text className={`text-sm leading-5 mt-4 ${subText}`}>
-                Delivered cleanup supplies and logged the first Cuevas service checkpoint for the demo profile.
-              </Text>
-
-              <View className="flex-row flex-wrap mt-4">
-                {["One time", "Verified", "Community"].map((label) => (
-                  <View
-                    key={label}
-                    style={{
-                      paddingHorizontal: 10,
-                      paddingVertical: 7,
-                      borderRadius: 999,
-                      backgroundColor: isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(8,25,32,0.05)",
-                      marginRight: 8,
-                      marginBottom: 8,
-                    }}
-                  >
-                    <Text style={{ color: "#06A7A1", fontSize: 11, fontWeight: "800" }}>
-                      {label}
-                    </Text>
-                  </View>
-                ))}
+                <Text className={`text-sm leading-5 mt-2 text-center ${subText}`}>
+                  Completed service tasks will appear here after a real mission check-in is recorded.
+                </Text>
+                <Pressable
+                  onPress={() => setCompletedMissionsOpen(false)}
+                  style={({ pressed }) => ({
+                    marginTop: 16,
+                    borderRadius: 16,
+                    paddingVertical: 12,
+                    paddingHorizontal: 18,
+                    backgroundColor: "#06A7A1",
+                    borderWidth: 2,
+                    borderColor: isDarkMode ? "#39D8D0" : "#057D78",
+                    opacity: pressed ? 0.78 : 1,
+                    flexDirection: "row",
+                    alignItems: "center",
+                  })}
+                >
+                  <Ionicons name="arrow-back-outline" size={17} color="#FFFFFF" />
+                  <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>
+                    Back to Profile
+                  </Text>
+                </Pressable>
               </View>
             </LinearGradient>
           </ScrollView>
