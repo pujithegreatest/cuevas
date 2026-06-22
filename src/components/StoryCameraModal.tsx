@@ -57,6 +57,7 @@ export default function StoryCameraModal({
   const cameraRef = useRef<CameraView | null>(null);
   const [facing, setFacing] = useState<CameraType>("back");
   const [mode, setMode] = useState<CameraMode>("picture");
+  const [cameraMode, setCameraMode] = useState<CameraMode>("picture");
   const [isRecording, setIsRecording] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [liveFilter, setLiveFilter] = useState<LiveFilter>("none");
@@ -69,6 +70,18 @@ export default function StoryCameraModal({
   const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recordStartRef = useRef<number>(0);
+  const cameraModeRef = useRef<CameraMode>("picture");
+
+  const setNativeCameraMode = (nextMode: CameraMode) => {
+    cameraModeRef.current = nextMode;
+    setCameraMode(nextMode);
+  };
+
+  const prepareNativeCameraMode = async (nextMode: CameraMode) => {
+    if (cameraModeRef.current === nextMode) return;
+    setNativeCameraMode(nextMode);
+    await new Promise((resolve) => setTimeout(resolve, 180));
+  };
 
   useEffect(() => {
     if (visible && !permission?.granted) {
@@ -106,6 +119,7 @@ export default function StoryCameraModal({
       setIsRecording(false);
       setElapsedMs(0);
       setMode("picture");
+      setNativeCameraMode("picture");
       setLiveFilter("none");
       setErrorMsg(null);
       progress.value = 0;
@@ -164,6 +178,7 @@ export default function StoryCameraModal({
     setErrorMsg(null);
     if (!cameraRef.current) return;
     try {
+      await prepareNativeCameraMode("picture");
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.85,
         skipProcessing: true,
@@ -197,6 +212,7 @@ export default function StoryCameraModal({
     }
 
     try {
+      await prepareNativeCameraMode("video");
       await Audio.setAudioModeAsync({
         playsInSilentModeIOS: true,
         allowsRecordingIOS: true,
@@ -236,6 +252,7 @@ export default function StoryCameraModal({
       cleanupRecording();
       setIsRecording(false);
       setElapsedMs(0);
+      setNativeCameraMode("picture");
       progress.value = 0;
     };
 
@@ -287,6 +304,7 @@ export default function StoryCameraModal({
       }
     } catch {
       resetTimers();
+      setNativeCameraMode("picture");
       setErrorMsg("Recording failed.");
     }
   };
@@ -373,7 +391,7 @@ export default function StoryCameraModal({
             ref={cameraRef}
             style={{ flex: 1 }}
             facing={facing}
-            mode={mode}
+            mode={cameraMode}
             videoQuality="720p"
           />
         ) : (
