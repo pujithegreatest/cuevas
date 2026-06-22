@@ -1595,8 +1595,8 @@ export default function StoryFilterCanvas({
   effectMode = "static",
 }: StoryFilterCanvasProps) {
   const skImage = useImage(mediaType === "image" ? uri : null);
-  const matrix = MATRICES[filter];
-  const videoTint = VIDEO_TINTS[filter];
+  const matrix = effectMode === "live" ? null : MATRICES[filter];
+  const videoTint = effectMode === "live" ? null : VIDEO_TINTS[filter];
   const videoRef = useRef<Video | null>(null);
   const didSeekRef = useRef(false);
   const completedRef = useRef(false);
@@ -1665,7 +1665,6 @@ export default function StoryFilterCanvas({
               width={width}
               height={height}
               animated={heatwaveAnimated}
-              showColorLayer={false}
             />
           ) : (
             <FilterEffects filter={filter} width={width} height={height} heatwaveAnimated={heatwaveAnimated} />
@@ -1715,7 +1714,6 @@ export default function StoryFilterCanvas({
           width={width}
           height={height}
           animated={heatwaveAnimated}
-          showColorLayer={false}
         />
       ) : (
         <FilterEffects filter={filter} width={width} height={height} heatwaveAnimated={heatwaveAnimated} />

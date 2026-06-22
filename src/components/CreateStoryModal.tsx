@@ -77,6 +77,23 @@ const FILTERS: { id: StoryFilter; label: string }[] = [
   { id: "radioactive", label: "Toxic" },
 ];
 
+const LIVE_FILTER_LABELS: Partial<Record<StoryFilter, string>> = {
+  heatwave: "Heatwave",
+  hologram: "Holo ID",
+  glitch: "Signal",
+  matrix: "Code ID",
+  scanner: "Sweep",
+  xray: "Bone",
+  infrared: "IR Lock",
+  neon: "Circuit",
+  vaporwave: "Synth",
+  thermal: "Heatmap",
+  predator: "Tracker",
+  chrome: "LiDAR",
+  radioactive: "Rad",
+  void: "Gravity",
+};
+
 const TEXT_STYLES: StoryTextOverlay["style"][] = [
   "neon",
   "mono",
@@ -186,9 +203,9 @@ export default function CreateStoryModal({
 
   const applyStaticFilter = (nextFilter: StoryFilter) => {
     if (hasLockedLiveFilter) {
-      const label =
-        FILTERS.find((item) => item.id === lockedLiveFilter)?.label ||
-        "live filter";
+      const label = lockedLiveFilter
+        ? LIVE_FILTER_LABELS[lockedLiveFilter] || "live filter"
+        : "live filter";
       setStatusMsg(
         `${label} was captured live and stays locked on this story. Remove the media to choose static filters.`
       );
@@ -1717,9 +1734,10 @@ export default function CreateStoryModal({
                           height: 56,
                           borderRadius: 28,
                           overflow: "hidden",
-                          borderWidth: filter === f.id ? 2 : 1,
+                          borderWidth:
+                            !hasLockedLiveFilter && filter === f.id ? 2 : 1,
                           borderColor:
-                            filter === f.id
+                            !hasLockedLiveFilter && filter === f.id
                               ? "#06A7A1"
                               : isDarkMode
                               ? "#333"
@@ -1736,7 +1754,7 @@ export default function CreateStoryModal({
                       </View>
                       <Text
                         className={`text-xs mt-1 ${
-                          filter === f.id
+                          !hasLockedLiveFilter && filter === f.id
                             ? isDarkMode
                               ? "text-dark-accent"
                               : "text-pixel-teal"
@@ -1776,9 +1794,10 @@ export default function CreateStoryModal({
                           height: 56,
                           borderRadius: 28,
                           overflow: "hidden",
-                          borderWidth: filter === f.id ? 2 : 1,
+                          borderWidth:
+                            !hasLockedLiveFilter && filter === f.id ? 2 : 1,
                           borderColor:
-                            filter === f.id
+                            !hasLockedLiveFilter && filter === f.id
                               ? "#06A7A1"
                               : isDarkMode
                               ? "#333"
@@ -1841,7 +1860,7 @@ export default function CreateStoryModal({
                       </View>
                       <Text
                         className={`text-xs mt-1 ${
-                          filter === f.id
+                          !hasLockedLiveFilter && filter === f.id
                             ? isDarkMode
                               ? "text-dark-accent"
                               : "text-pixel-teal"
