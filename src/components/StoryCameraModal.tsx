@@ -47,7 +47,19 @@ const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const MAX_RECORD_MS = 15000;
 const RECORD_BTN_SIZE = 84;
 const RING_SIZE = 104;
-type LiveFilter = "none" | "heatwave" | "hologram" | "glitch" | "matrix" | "scanner" | "xray";
+type LiveFilter =
+  | "none"
+  | "heatwave"
+  | "hologram"
+  | "glitch"
+  | "matrix"
+  | "scanner"
+  | "xray"
+  | "thermal"
+  | "predator"
+  | "chrome"
+  | "radioactive"
+  | "void";
 
 const LIVE_FILTER_OPTIONS: {
   id: Exclude<LiveFilter, "none">;
@@ -61,6 +73,11 @@ const LIVE_FILTER_OPTIONS: {
   { id: "matrix", label: "Matrix", icon: "pulse-outline", accent: "#58ff39" },
   { id: "scanner", label: "Scanner", icon: "qr-code-outline", accent: "#00ffc8" },
   { id: "xray", label: "X-Ray", icon: "eye-outline", accent: "#cfefff" },
+  { id: "thermal", label: "Thermal", icon: "sunny", accent: "#ff6a00" },
+  { id: "predator", label: "Predator", icon: "radio-button-on-outline", accent: "#ff4d26" },
+  { id: "chrome", label: "Chrome", icon: "globe-outline", accent: "#dbeafe" },
+  { id: "radioactive", label: "Rad", icon: "flash-outline", accent: "#b6ff00" },
+  { id: "void", label: "Void", icon: "moon", accent: "#9b87ff" },
 ];
 
 export default function StoryCameraModal({
