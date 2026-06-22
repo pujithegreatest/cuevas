@@ -43,6 +43,7 @@ function StoryThumb({
         mediaType={thumbType}
         videoShouldPlay={false}
         videoMuted
+        effectMode={story.liveFilter ? "live" : "static"}
       />
       {isVideo && (
         <View

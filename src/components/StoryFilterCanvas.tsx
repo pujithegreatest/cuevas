@@ -36,6 +36,7 @@ interface StoryFilterCanvasProps {
   onVideoLoad?: (durationMs: number) => void;
   onVideoTrimComplete?: () => void;
   heatwaveAnimated?: boolean;
+  effectMode?: "static" | "live";
 }
 
 const HEATWAVE_ASSETS = {
@@ -432,12 +433,14 @@ export function HeatwaveHud({
   animated = true,
   topInset = 0,
   bottomInset = 0,
+  showColorLayer = true,
 }: {
   width: number;
   height: number;
   animated?: boolean;
   topInset?: number;
   bottomInset?: number;
+  showColorLayer?: boolean;
 }) {
   const [tick, setTick] = useState(0);
 
@@ -1200,6 +1203,253 @@ export function FilterEffects({
     case "heatwave":
       return <HeatwaveHud width={width} height={height} animated={heatwaveAnimated} />;
     case "hologram":
+      return (
+        <>
+          <LinearGradient
+            colors={["rgba(0,255,240,0.15)", "rgba(0,100,255,0.1)"]}
+            style={[StyleSheet.absoluteFill]}
+          />
+          <ScanlineOverlay width={width} height={height} />
+        </>
+      );
+    case "vaporwave":
+      return (
+        <LinearGradient
+          colors={["rgba(255,0,200,0.18)", "rgba(0,200,255,0.18)"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[StyleSheet.absoluteFill]}
+        />
+      );
+    case "infrared":
+      return (
+        <LinearGradient
+          colors={[
+            "rgba(40,0,80,0.25)",
+            "rgba(0,0,0,0)",
+            "rgba(255,180,0,0.18)",
+          ]}
+          style={[StyleSheet.absoluteFill]}
+        />
+      );
+    case "matrix":
+      return (
+        <>
+          <LinearGradient
+            colors={["rgba(0,80,0,0.15)", "rgba(0,30,0,0.25)"]}
+            style={[StyleSheet.absoluteFill]}
+          />
+          <ScanlineOverlay width={width} height={height} />
+        </>
+      );
+    case "void":
+      return (
+        <LinearGradient
+          colors={["rgba(0,0,0,0.35)", "rgba(0,0,0,0)", "rgba(0,0,0,0.45)"]}
+          style={[StyleSheet.absoluteFill]}
+        />
+      );
+    case "glitch":
+      return (
+        <>
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: -3,
+              right: 3,
+              bottom: 0,
+              backgroundColor: "rgba(255,0,40,0.18)",
+            }}
+          />
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 3,
+              right: -3,
+              bottom: 0,
+              backgroundColor: "rgba(0,220,255,0.15)",
+            }}
+          />
+          <ScanlineOverlay width={width} height={height} />
+        </>
+      );
+    case "neon":
+      return (
+        <>
+          <LinearGradient
+            colors={["rgba(255,0,180,0.18)", "rgba(0,220,255,0.18)"]}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+            style={[StyleSheet.absoluteFill]}
+          />
+          <View
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: height * 0.18,
+              height: 1.5,
+              backgroundColor: "rgba(255,0,180,0.45)",
+            }}
+          />
+        </>
+      );
+    case "xray":
+      return (
+        <LinearGradient
+          colors={["rgba(0,255,255,0.18)", "rgba(255,255,255,0.1)"]}
+          style={[StyleSheet.absoluteFill]}
+        />
+      );
+    case "thermal":
+      return (
+        <>
+          <LinearGradient
+            colors={[
+              "rgba(255,0,0,0.22)",
+              "rgba(255,150,0,0.15)",
+              "rgba(255,255,0,0.18)",
+              "rgba(0,80,255,0.18)",
+            ]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={[StyleSheet.absoluteFill]}
+          />
+          <View
+            style={{
+              position: "absolute",
+              top: 8,
+              left: 8,
+              paddingHorizontal: 6,
+              paddingVertical: 2,
+              backgroundColor: "rgba(0,0,0,0.55)",
+              borderRadius: 4,
+            }}
+            pointerEvents="none"
+          >
+            <Text
+              style={{
+                color: "#FF3B00",
+                fontSize: 9,
+                fontWeight: "800",
+                letterSpacing: 1,
+              }}
+            >
+              ●  REC  THERM
+            </Text>
+          </View>
+        </>
+      );
+    case "predator":
+      return (
+        <>
+          <LinearGradient
+            colors={["rgba(120,0,0,0.45)", "rgba(255,80,0,0.18)", "rgba(0,0,0,0.45)"]}
+            style={[StyleSheet.absoluteFill]}
+          />
+          <ScanlineOverlay width={width} height={height} />
+          <View
+            style={{
+              position: "absolute",
+              left: width / 2 - 0.5,
+              top: 0,
+              bottom: 0,
+              width: 1,
+              backgroundColor: "rgba(255,80,0,0.35)",
+            }}
+            pointerEvents="none"
+          />
+          <View
+            style={{
+              position: "absolute",
+              top: height / 2 - 0.5,
+              left: 0,
+              right: 0,
+              height: 1,
+              backgroundColor: "rgba(255,80,0,0.35)",
+            }}
+            pointerEvents="none"
+          />
+        </>
+      );
+    case "scanner":
+      return (
+        <>
+          <LinearGradient
+            colors={["rgba(0,255,200,0.15)", "rgba(0,80,140,0.18)"]}
+            style={[StyleSheet.absoluteFill]}
+          />
+          <ScanlineOverlay width={width} height={height} />
+          <View
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: height * 0.38,
+              height: 2,
+              backgroundColor: "rgba(0,255,200,0.55)",
+            }}
+            pointerEvents="none"
+          />
+          <View
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: height * 0.42,
+              height: 14,
+              backgroundColor: "rgba(0,255,200,0.08)",
+            }}
+            pointerEvents="none"
+          />
+        </>
+      );
+    case "chrome":
+      return (
+        <LinearGradient
+          colors={[
+            "rgba(255,255,255,0.18)",
+            "rgba(180,200,230,0.08)",
+            "rgba(80,90,110,0.18)",
+            "rgba(255,255,255,0.18)",
+          ]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[StyleSheet.absoluteFill]}
+        />
+      );
+    case "radioactive":
+      return (
+        <>
+          <LinearGradient
+            colors={["rgba(120,255,0,0.22)", "rgba(0,40,0,0.32)"]}
+            style={[StyleSheet.absoluteFill]}
+          />
+          <ScanlineOverlay width={width} height={height} />
+        </>
+      );
+    default:
+      return null;
+  }
+}
+
+function LiveFilterEffects({
+  filter,
+  width,
+  height,
+  heatwaveAnimated = true,
+}: {
+  filter: StoryFilter;
+  width: number;
+  height: number;
+  heatwaveAnimated?: boolean;
+}) {
+  switch (filter) {
+    case "heatwave":
+      return <HeatwaveHud width={width} height={height} animated={heatwaveAnimated} />;
+    case "hologram":
       return <FaceRecognitionHud width={width} height={height} accent="#00eaff" label="HOLO FACE ID" value="MESH STABLE" />;
     case "vaporwave":
       return <SynthLawHud width={width} height={height} />;
@@ -1277,6 +1527,7 @@ export function LiveFilterHud({
   animated = true,
   topInset = 0,
   bottomInset = 0,
+  showColorLayer = true,
 }: {
   filter: StoryFilter;
   width: number;
@@ -1284,6 +1535,7 @@ export function LiveFilterHud({
   animated?: boolean;
   topInset?: number;
   bottomInset?: number;
+  showColorLayer?: boolean;
 }) {
   if (filter === "none") return null;
   if (filter === "heatwave") {
@@ -1297,13 +1549,31 @@ export function LiveFilterHud({
       />
     );
   }
+  const liveTint = showColorLayer ? VIDEO_TINTS[filter] : null;
   return (
-    <FilterEffects
-      filter={filter}
-      width={width}
-      height={height}
-      heatwaveAnimated={animated}
-    />
+    <>
+      {liveTint && (
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: liveTint },
+          ]}
+          pointerEvents="none"
+        />
+      )}
+      <FilterEffects
+        filter={filter}
+        width={width}
+        height={height}
+        heatwaveAnimated={animated}
+      />
+      <LiveFilterEffects
+        filter={filter}
+        width={width}
+        height={height}
+        heatwaveAnimated={animated}
+      />
+    </>
   );
 }
 
@@ -1322,6 +1592,7 @@ export default function StoryFilterCanvas({
   onVideoLoad,
   onVideoTrimComplete,
   heatwaveAnimated = mediaType === "video" && videoShouldPlay,
+  effectMode = "static",
 }: StoryFilterCanvasProps) {
   const skImage = useImage(mediaType === "image" ? uri : null);
   const matrix = MATRICES[filter];
@@ -1388,7 +1659,17 @@ export default function StoryFilterCanvas({
           />
         )}
         <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          <FilterEffects filter={filter} width={width} height={height} heatwaveAnimated={heatwaveAnimated} />
+          {effectMode === "live" ? (
+            <LiveFilterHud
+              filter={filter}
+              width={width}
+              height={height}
+              animated={heatwaveAnimated}
+              showColorLayer={false}
+            />
+          ) : (
+            <FilterEffects filter={filter} width={width} height={height} heatwaveAnimated={heatwaveAnimated} />
+          )}
         </View>
       </View>
     );
@@ -1428,7 +1709,17 @@ export default function StoryFilterCanvas({
         />
       )}
 
-      <FilterEffects filter={filter} width={width} height={height} heatwaveAnimated={heatwaveAnimated} />
+      {effectMode === "live" ? (
+        <LiveFilterHud
+          filter={filter}
+          width={width}
+          height={height}
+          animated={heatwaveAnimated}
+          showColorLayer={false}
+        />
+      ) : (
+        <FilterEffects filter={filter} width={width} height={height} heatwaveAnimated={heatwaveAnimated} />
+      )}
     </View>
   );
 }

@@ -492,6 +492,7 @@ export default function StoryViewerModal({
             videoMuted={!!storyMusic || !!storyVoiceover}
             videoStartMs={safeStory.videoTrimStartMs}
             videoEndMs={safeStory.videoTrimEndMs}
+            effectMode={safeStory.liveFilter ? "live" : "static"}
           />
 
           {(safeStory.textOverlays || []).map((o) => (

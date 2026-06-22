@@ -97,6 +97,7 @@ export interface Story {
   videoTrimEndMs?: number;
   thumbnailUri?: string;
   filter?: StoryFilter;
+  liveFilter?: StoryFilter;
   textOverlays?: StoryTextOverlay[];
   music?: StoryMusic;
   voiceover?: StoryVoiceover;

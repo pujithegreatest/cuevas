@@ -130,6 +130,9 @@ export default function CreateStoryModal({
     number | undefined
   >(undefined);
   const [filter, setFilter] = useState<StoryFilter>("none");
+  const [lockedLiveFilter, setLockedLiveFilter] = useState<StoryFilter | null>(
+    null
+  );
   const [overlays, setOverlays] = useState<StoryTextOverlay[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -179,12 +182,15 @@ export default function CreateStoryModal({
 
   const canvasW = SCREEN_W - 32;
   const canvasH = Math.min(SCREEN_H * 0.6, canvasW * (16 / 9));
-  const hasLockedLiveFilter = filter === "heatwave";
+  const hasLockedLiveFilter = lockedLiveFilter !== null;
 
   const applyStaticFilter = (nextFilter: StoryFilter) => {
     if (hasLockedLiveFilter) {
+      const label =
+        FILTERS.find((item) => item.id === lockedLiveFilter)?.label ||
+        "live filter";
       setStatusMsg(
-        "Heatwave was captured live and stays locked on this story. Remove the media to choose static filters."
+        `${label} was captured live and stays locked on this story. Remove the media to choose static filters.`
       );
       return;
     }
@@ -199,6 +205,7 @@ export default function CreateStoryModal({
       setVideoTrimStartMs(undefined);
       setVideoTrimEndMs(undefined);
       setFilter("none");
+      setLockedLiveFilter(null);
       setOverlays([]);
       setSelectedId(null);
       setEditingId(null);
@@ -527,6 +534,7 @@ export default function CreateStoryModal({
     setVideoTrimStartMs(undefined);
     setVideoTrimEndMs(undefined);
     setFilter("none");
+    setLockedLiveFilter(null);
     setOverlays([]);
     setSelectedId(null);
   };
@@ -543,6 +551,8 @@ export default function CreateStoryModal({
   }) => {
     const isVideo =
       asset.type === "video" || /\.(mp4|mov|m4v|webm|avi)$/i.test(asset.uri);
+    trimSourceFilterRef.current = "none";
+    setLockedLiveFilter(null);
     if (isVideo) {
       startVideoTrim(asset.uri, asset.duration || undefined);
     } else {
@@ -603,12 +613,14 @@ export default function CreateStoryModal({
     liveFilter?: StoryFilter;
   }) => {
     setCameraVisible(false);
-    trimSourceFilterRef.current = asset.liveFilter || "none";
+    const capturedLiveFilter = asset.liveFilter || null;
+    trimSourceFilterRef.current = capturedLiveFilter || "none";
     if (asset.type === "video") {
       startVideoTrim(asset.uri, asset.durationMs);
     } else {
       await ingestImage(asset.uri);
-      setFilter(asset.liveFilter || "none");
+      setLockedLiveFilter(capturedLiveFilter);
+      setFilter(capturedLiveFilter || "none");
     }
   };
 
@@ -623,7 +635,11 @@ export default function CreateStoryModal({
     setVideoDurationMs(result.durationMs);
     setVideoTrimStartMs(result.startMs);
     setVideoTrimEndMs(result.endMs);
-    setFilter(trimSourceFilterRef.current || "none");
+    const capturedLiveFilter = trimSourceFilterRef.current || "none";
+    setFilter(capturedLiveFilter);
+    setLockedLiveFilter(
+      capturedLiveFilter === "none" ? null : capturedLiveFilter
+    );
     trimSourceFilterRef.current = "none";
     setOverlays([]);
     setSelectedId(null);
@@ -634,6 +650,7 @@ export default function CreateStoryModal({
   const handleTrimCancel = () => {
     setTrimSourceUri(null);
     setTrimSourceDurationMs(undefined);
+    trimSourceFilterRef.current = "none";
   };
 
   const addTextOverlay = () => {
@@ -896,6 +913,7 @@ export default function CreateStoryModal({
         videoTrimEndMs,
         thumbnailUri,
         filter,
+        liveFilter: lockedLiveFilter || undefined,
         textOverlays: cleanOverlays.length > 0 ? cleanOverlays : undefined,
         music: music ?? undefined,
         voiceover: voiceover ?? undefined,
@@ -1086,6 +1104,7 @@ export default function CreateStoryModal({
                     videoMuted
                     videoStartMs={videoTrimStartMs}
                     videoEndMs={videoTrimEndMs}
+                    effectMode={lockedLiveFilter ? "live" : "static"}
                     onVideoLoad={(d) => {
                       if (!videoDurationMs) setVideoDurationMs(d);
                     }}
