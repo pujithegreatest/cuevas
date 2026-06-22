@@ -111,10 +111,12 @@ export default function StoryCameraModal({
   const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previewFrameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cameraReadyFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPreviewCaptureInFlightRef = useRef(false);
   const isFinalCaptureInFlightRef = useRef(false);
   const recordStartRef = useRef<number>(0);
   const cameraModeRef = useRef<CameraMode>("picture");
+  const shouldMirrorFrontCamera = facing === "front";
   const shouldUseSnapshotPreview =
     visible &&
     permission?.granted &&
@@ -189,6 +191,10 @@ export default function StoryCameraModal({
         clearTimeout(previewFrameTimerRef.current);
         previewFrameTimerRef.current = null;
       }
+      if (cameraReadyFallbackTimerRef.current) {
+        clearTimeout(cameraReadyFallbackTimerRef.current);
+        cameraReadyFallbackTimerRef.current = null;
+      }
       isPreviewCaptureInFlightRef.current = false;
       setPreviewFrameUri(null);
       return;
@@ -247,6 +253,24 @@ export default function StoryCameraModal({
       }
     };
   }, [shouldUseSnapshotPreview, liveFilter, facing]);
+
+  useEffect(() => {
+    if (!visible || !permission?.granted) return;
+    setCameraReady(false);
+    setPreviewFrameUri(null);
+    if (cameraReadyFallbackTimerRef.current) {
+      clearTimeout(cameraReadyFallbackTimerRef.current);
+    }
+    cameraReadyFallbackTimerRef.current = setTimeout(() => {
+      setCameraReady(true);
+    }, 700);
+    return () => {
+      if (cameraReadyFallbackTimerRef.current) {
+        clearTimeout(cameraReadyFallbackTimerRef.current);
+        cameraReadyFallbackTimerRef.current = null;
+      }
+    };
+  }, [visible, permission?.granted, facing]);
 
   useEffect(() => {
     if (isRecording) {
@@ -521,9 +545,11 @@ export default function StoryCameraModal({
       <View style={{ flex: 1, backgroundColor: "#000" }}>
         {permission?.granted ? (
           <CameraView
+            key={`story-camera-${facing}`}
             ref={cameraRef}
             style={{ flex: 1 }}
             facing={facing}
+            mirror={shouldMirrorFrontCamera}
             mode={cameraMode}
             videoQuality="720p"
             onCameraReady={() => setCameraReady(true)}
