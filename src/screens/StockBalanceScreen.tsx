@@ -5,6 +5,7 @@ import {
   Pressable,
   ActivityIndicator,
   ScrollView,
+  RefreshControl,
   Dimensions,
   Image,
 } from "react-native";
@@ -42,6 +43,7 @@ export default function StockBalanceScreen({ navigation }: Props) {
   const chartViewShotRef = useRef<ViewShot>(null);
   const [tokenData, setTokenData] = useState<TokenData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [chartImage, setChartImage] = useState<string | null>(null);
 
   const isDarkMode = useAppStore((s) => s.isDarkMode);
@@ -154,12 +156,19 @@ export default function StockBalanceScreen({ navigation }: Props) {
         })),
       });
       setIsLoading(false);
+      setIsRefreshing(false);
     } catch (err) {
       // API failed, use mock data
       console.log("Using mock data for chart:", err);
       setTokenData(generateMockData());
       setIsLoading(false);
+      setIsRefreshing(false);
     }
+  };
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchTokenData();
   };
 
   const captureChart = async (): Promise<string | null> => {
@@ -369,7 +378,17 @@ export default function StockBalanceScreen({ navigation }: Props) {
 
       {/* Stock Data */}
       {!isLoading && tokenData && (
-        <ScrollView className="flex-1">
+        <ScrollView
+          className="flex-1"
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={isDarkMode ? "#06A7A1" : "#2584BC"}
+              colors={["#06A7A1"]}
+            />
+          }
+        >
           <View className="px-6">
             {/* Price Card */}
             <View

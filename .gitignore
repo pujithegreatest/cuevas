@@ -41,3 +41,13 @@ android/
 
 # Expo log
 expo.log
+
+# Firebase backend secrets
+firebase/keys/
+firebase/**/.runtimeconfig.json
+firebase/**/*.local
+firebase/**/*.p12
+firebase/**/*.pem
+firebase/**/*.key
+firebase/**/*service-account*.json
+firebase/**/*wallet-signer*.json

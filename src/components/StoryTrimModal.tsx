@@ -353,6 +353,7 @@ export default function StoryTrimModal({
               shouldPlay
               isLooping
               isMuted={false}
+              volume={1}
               onLoad={onVideoLoad}
               onPlaybackStatusUpdate={onPlaybackStatusUpdate}
             />

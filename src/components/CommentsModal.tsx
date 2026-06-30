@@ -223,11 +223,7 @@ export default function CommentsModal({
               )}
             </View>
           </Pressable>
-        ) : (
-          <Text style={{ color: colors.text, fontSize: 14 }} numberOfLines={4}>
-            {post.content}
-          </Text>
-        )}
+        ) : null}
 
         {!!post.content && !enrichedPreview && (
           <Text style={{ color: colors.text, fontSize: 14, marginTop: 10 }} numberOfLines={4}>

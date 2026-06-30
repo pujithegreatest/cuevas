@@ -1,6 +1,10 @@
 import { Alert, Linking, Platform } from "react-native";
 import * as FileSystem from 'expo-file-system/legacy';
+import * as MediaLibrary from "expo-media-library";
 import Constants from "expo-constants";
+import RNShare, { Social } from "react-native-share";
+
+const BACKEND_URL = "https://us-central1-ecothot-social-media.cloudfunctions.net";
 
 type ShareToInstagramStoryOpts = {
   /** Facebook App ID (required on iOS since Jan 2023). */
@@ -10,6 +14,8 @@ type ShareToInstagramStoryOpts = {
   /** Optional gradient colors (hex). */
   backgroundTopColor?: string;
   backgroundBottomColor?: string;
+  /** Optional video to use as the Instagram Story background. */
+  backgroundVideoUri?: string;
   /** Optional debug tag for logs */
   debugTag?: string;
 };
@@ -24,6 +30,71 @@ function getInstagramFbAppId(explicit?: string): string | undefined {
   const extra = (Constants.expoConfig?.extra || (Constants as any).manifest?.extra || {}) as Record<string, any>;
   const fromExtra = extra.instagramFbAppId || extra.facebookAppId || extra.fbAppId;
   return fromExtra ? String(fromExtra) : undefined;
+}
+
+async function prepareBackgroundVideoUri(videoUri: string, tag: string): Promise<string | undefined> {
+  if (Platform.OS !== "ios" || /[?&]id=/.test(videoUri)) {
+    return videoUri;
+  }
+
+  const permission = await MediaLibrary.requestPermissionsAsync();
+  if (!permission.granted) {
+    console.log(tag, "media library permission denied for story video");
+    return undefined;
+  }
+
+  try {
+    let readableUri = videoUri;
+    if (/^https?:\/\//i.test(videoUri)) {
+      const target =
+        FileSystem.cacheDirectory +
+        `cuevas-ig-story-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`;
+      console.log(tag, "downloading remote story video", { from: videoUri, to: target });
+      const downloaded = await FileSystem.downloadAsync(videoUri, target);
+      readableUri = downloaded.uri;
+    }
+
+    const asset = await MediaLibrary.createAssetAsync(readableUri);
+    console.log(tag, "created media library asset for story video", {
+      hasId: !!asset.id,
+      uri: asset.uri,
+    });
+    return `${asset.uri}?id=${encodeURIComponent(asset.id)}`;
+  } catch (e) {
+    console.log(tag, "createAssetAsync failed for story video", String(e));
+    return undefined;
+  }
+}
+
+async function composeInstagramStoryVideo(
+  videoUrl: string,
+  overlayPngBase64: string,
+  tag: string
+): Promise<string | undefined> {
+  try {
+    console.log(tag, "requesting Firebase video composition");
+    const response = await fetch(`${BACKEND_URL}/instagramStoryVideo`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ videoUrl, overlayPngBase64 }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data?.success || !data?.url) {
+      console.log(tag, "Firebase composition failed", {
+        status: response.status,
+        error: data?.error,
+      });
+      return undefined;
+    }
+    console.log(tag, "Firebase composition ready", {
+      hasUrl: !!data.url,
+      storagePath: data.storagePath,
+    });
+    return String(data.url);
+  } catch (e) {
+    console.log(tag, "Firebase composition request failed", String(e));
+    return undefined;
+  }
 }
 
 export async function sharePngUriToInstagramStory(
@@ -76,10 +147,7 @@ export async function sharePngUriToInstagramStory(
     });
     const dataUrl = `data:image/png;base64,${base64}`;
 
-    const mod: any = await import("react-native-share");
-    const RNShare: any = mod?.default || mod;
-    const Social: any = mod?.Social || RNShare?.Social;
-    const socialKey = Social?.INSTAGRAM_STORIES;
+    const socialKey = Social.InstagramStories;
     if (!RNShare?.shareSingle || !socialKey) {
       console.log(tag, "react-native-share missing shareSingle/Social.INSTAGRAM_STORIES");
       Alert.alert("Share not available", "Instagram Stories sharing is not available in this build.");
@@ -88,18 +156,32 @@ export async function sharePngUriToInstagramStory(
 
     const shareOptions: any = {
       social: socialKey,
-      backgroundImage: dataUrl,
       backgroundTopColor: opts.backgroundTopColor || "#06A7A1",
       backgroundBottomColor: opts.backgroundBottomColor || "#0891B2",
       attributionURL: opts.attributionURL || "https://www.ecothot.com/",
     };
+    if (opts.backgroundVideoUri) {
+      const composedVideoUrl = await composeInstagramStoryVideo(opts.backgroundVideoUri, base64, tag);
+      const preparedVideo = composedVideoUrl
+        ? await prepareBackgroundVideoUri(composedVideoUrl, tag)
+        : undefined;
+      if (preparedVideo) {
+        shareOptions.backgroundVideo = preparedVideo;
+      } else {
+        shareOptions.backgroundImage = dataUrl;
+      }
+    } else {
+      shareOptions.backgroundImage = dataUrl;
+    }
     if (Platform.OS === "ios") {
       shareOptions.appId = appId;
     }
 
     console.log(tag, "calling shareSingle", {
       social: "INSTAGRAM_STORIES",
-      hasBackgroundImage: true,
+      hasBackgroundImage: !!shareOptions.backgroundImage,
+      hasBackgroundVideo: !!shareOptions.backgroundVideo,
+      hasStickerImage: !!shareOptions.stickerImage,
       hasAppId: !!shareOptions.appId,
       attributionURL: shareOptions.attributionURL,
     });
@@ -114,5 +196,3 @@ export async function sharePngUriToInstagramStory(
     return false;
   }
 }
-
-

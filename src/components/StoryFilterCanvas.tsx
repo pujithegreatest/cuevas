@@ -1751,6 +1751,7 @@ export default function StoryFilterCanvas({
           shouldPlay={videoShouldPlay}
           isLooping={videoLooping && !videoEndMs}
           isMuted={videoMuted}
+          volume={videoMuted ? 0 : 1}
           onLoad={(status: any) => {
             if (status?.durationMillis && onVideoLoad) {
               onVideoLoad(status.durationMillis);

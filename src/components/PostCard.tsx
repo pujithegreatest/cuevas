@@ -41,6 +41,7 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const mediaList = (post.images || []).filter(Boolean);
+  const getRenderableMediaUri = (uri: string) => uri.split("#", 1)[0];
   const isVideoUri = (uri?: string) =>
     !!uri &&
     (/\.(mp4|mov|m4v|avi|webm)$/i.test(uri) ||
@@ -103,6 +104,7 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
 
   const [isCapturing, setIsCapturing] = useState(false);
   const [exportMounted, setExportMounted] = useState(false);
+  const [exportVariant, setExportVariant] = useState<"default" | "instagramVideoOverlay">("default");
   const [viewerUri, setViewerUri] = useState<string | null>(null);
   const [exportImgAspect, setExportImgAspect] = useState<number | null>(null);
   const [feedImgAspect, setFeedImgAspect] = useState<number | null>(null);
@@ -140,6 +142,7 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const handleShare = async () => {
     try {
       setIsCapturing(true);
+      setExportVariant("default");
       setExportMounted(true);
       await waitForRef();
       await new Promise((resolve) => setTimeout(resolve, 400));
@@ -171,7 +174,9 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
 
   const handleShareToInstagramStory = async () => {
     try {
+      const hasSingleVideo = mediaList.length === 1 && isVideoUri(mediaList[0]);
       setIsCapturing(true);
+      setExportVariant(hasSingleVideo ? "instagramVideoOverlay" : "default");
       setExportMounted(true);
       await waitForRef();
       await new Promise((resolve) => setTimeout(resolve, 400));
@@ -179,10 +184,12 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
         const uri = await viewShotRef.current.capture();
         setIsCapturing(false);
         setExportMounted(false);
+        setExportVariant("default");
 
         const ok = await sharePngUriToInstagramStory(uri, {
           debugTag: "POST",
           attributionURL: "https://www.ecothot.com/",
+          backgroundVideoUri: hasSingleVideo ? getRenderableMediaUri(mediaList[0]) : undefined,
         });
 
         if (!ok && (await Sharing.isAvailableAsync())) {
@@ -191,10 +198,12 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
       } else {
         setIsCapturing(false);
         setExportMounted(false);
+        setExportVariant("default");
       }
     } catch (e) {
       setIsCapturing(false);
       setExportMounted(false);
+      setExportVariant("default");
     }
   };
 
@@ -211,7 +220,7 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   return (
     <>
       {/* Shareable View for Export (hidden, only mounted while capturing to keep feed scrolling smooth) */}
-      {exportMounted && <PostShareableCard ref={viewShotRef} post={post} />}
+      {exportMounted && <PostShareableCard ref={viewShotRef} post={post} variant={exportVariant} />}
 
       {/* Image Viewer Modal */}
       <ImageViewerModal
@@ -467,16 +476,16 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
             {mediaList.length === 1 ? (
               isVideoUri(mediaList[0]) ? (
                 <Video
-                  source={{ uri: mediaList[0] }}
+                  source={{ uri: getRenderableMediaUri(mediaList[0]) }}
                   style={{ width: "100%", aspectRatio: 1, borderRadius: 12 }}
                   resizeMode={ResizeMode.COVER}
                   useNativeControls
                   isMuted={false}
                 />
               ) : (
-                <Pressable onPress={() => setViewerUri(mediaList[0])}>
+                <Pressable onPress={() => setViewerUri(getRenderableMediaUri(mediaList[0]))}>
                   <Image
-                    source={{ uri: mediaList[0] }}
+                    source={{ uri: getRenderableMediaUri(mediaList[0]) }}
                     className="w-full rounded-xl"
                     style={{ aspectRatio: Math.max(feedImgAspect || 1, 1) }}
                     contentFit="cover"
@@ -490,11 +499,12 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
               )
             ) : (
               <View className="flex-row flex-wrap gap-1">
-                {mediaList.slice(0, 4).map((uri, index) =>
-                  isVideoUri(uri) ? (
+                {mediaList.slice(0, 4).map((uri, index) => {
+                  const renderUri = getRenderableMediaUri(uri);
+                  return isVideoUri(uri) ? (
                     <Video
                       key={index}
-                      source={{ uri }}
+                      source={{ uri: renderUri }}
                       style={{ width: "49%", aspectRatio: 1, borderRadius: 8 }}
                       resizeMode={ResizeMode.COVER}
                       useNativeControls
@@ -503,18 +513,18 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
                   ) : (
                     <Pressable
                       key={index}
-                      onPress={() => setViewerUri(uri)}
+                      onPress={() => setViewerUri(renderUri)}
                       style={{ width: "49%" }}
                     >
                       <Image
-                        source={{ uri }}
+                        source={{ uri: renderUri }}
                         className="rounded-lg"
                         style={{ width: "100%", aspectRatio: 1 }}
                         contentFit="cover"
                       />
                     </Pressable>
-                  )
-                )}
+                  );
+                })}
               </View>
             )}
           </View>

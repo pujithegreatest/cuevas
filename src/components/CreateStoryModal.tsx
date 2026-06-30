@@ -256,6 +256,17 @@ export default function CreateStoryModal({
   }, [visible, defaultPostPrivacy]);
 
   useEffect(() => {
+    if (!visible || mediaType !== "video") return;
+    Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      staysActiveInBackground: false,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: true,
+      playThroughEarpieceAndroid: false,
+    }).catch(() => {});
+  }, [visible, mediaType]);
+
+  useEffect(() => {
     const shouldPlay =
       visible &&
       !!music &&
@@ -1118,7 +1129,7 @@ export default function CreateStoryModal({
                     mediaType={mediaType}
                     videoShouldPlay={mediaType === "video"}
                     videoLooping={mediaType === "video"}
-                    videoMuted
+                    videoMuted={!!music || !!voiceover}
                     videoStartMs={videoTrimStartMs}
                     videoEndMs={videoTrimEndMs}
                     effectMode={lockedLiveFilter ? "live" : "static"}

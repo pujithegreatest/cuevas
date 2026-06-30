@@ -137,6 +137,17 @@ export default function StoryViewerModal({
   }, [visible, initialGroupIndex]);
 
   useEffect(() => {
+    if (!visible || !isVideo) return;
+    Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      staysActiveInBackground: false,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: true,
+      playThroughEarpieceAndroid: false,
+    }).catch(() => {});
+  }, [visible, isVideo, safeStory?.id]);
+
+  useEffect(() => {
     if (!visible) {
       cancelAnimation(progress);
       progress.value = 0;

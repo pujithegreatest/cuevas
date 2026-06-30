@@ -155,16 +155,9 @@ export default function CreatePostModal({
       let uri = asset.uri || "";
       const byExt = /\.(mp4|mov|m4v|avi|webm)$/i.test(uri);
       const isVideo = asset.type?.startsWith("video") || byExt;
-      const duration = asset.duration; // may be ms or seconds depending on platform
-
-      // Only reject if we have a duration and it's over the post video limit.
-      if (isVideo && typeof duration === "number") {
-        const durationSeconds = duration > 1000 ? duration / 1000 : duration;
-        if (durationSeconds > POST_VIDEO_MAX_SECONDS + 1) {
-          tooLong = true;
-          continue;
-        }
-      }
+      // iOS can preserve the original duration metadata after the picker trim UI.
+      // If ImagePicker returns an asset, accept that returned file instead of
+      // rejecting it from stale duration data.
 
       if (!uri) continue;
 
