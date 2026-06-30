@@ -665,7 +665,9 @@ export default function LoginScreen({ navigation }: Props) {
               <Text style={{ color: mutedColor, fontFamily: "Courier New", fontSize: 11, textAlign: "center", lineHeight: 16, marginTop: 4 }}>
                 {isSignup
                   ? "Create a Cuevas account for rewards, missions, posts, and wallet sync."
-                  : "Use Cuevas credentials, Apple, or Google to access rewards."}
+                  : Platform.OS === "ios"
+                  ? "Use Cuevas credentials, Apple, or Google to access rewards."
+                  : "Use Cuevas credentials or Google to access rewards."}
               </Text>
             </View>
           </ScrollView>

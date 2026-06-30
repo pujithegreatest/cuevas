@@ -33,16 +33,6 @@ function getInstagramFbAppId(explicit?: string): string | undefined {
 }
 
 async function prepareBackgroundVideoUri(videoUri: string, tag: string): Promise<string | undefined> {
-  if (Platform.OS !== "ios" || /[?&]id=/.test(videoUri)) {
-    return videoUri;
-  }
-
-  const permission = await MediaLibrary.requestPermissionsAsync();
-  if (!permission.granted) {
-    console.log(tag, "media library permission denied for story video");
-    return undefined;
-  }
-
   try {
     let readableUri = videoUri;
     if (/^https?:\/\//i.test(videoUri)) {
@@ -52,6 +42,16 @@ async function prepareBackgroundVideoUri(videoUri: string, tag: string): Promise
       console.log(tag, "downloading remote story video", { from: videoUri, to: target });
       const downloaded = await FileSystem.downloadAsync(videoUri, target);
       readableUri = downloaded.uri;
+    }
+
+    if (Platform.OS !== "ios" || /[?&]id=/.test(readableUri)) {
+      return readableUri;
+    }
+
+    const permission = await MediaLibrary.requestPermissionsAsync();
+    if (!permission.granted) {
+      console.log(tag, "media library permission denied for story video");
+      return undefined;
     }
 
     const asset = await MediaLibrary.createAssetAsync(readableUri);
@@ -114,21 +114,21 @@ export async function sharePngUriToInstagramStory(
       return false;
     }
 
-    // iOS requires LSApplicationQueriesSchemes for canOpenURL to work.
-    // If it isn't present in the built app, canOpenURL can THROW with:
-    // "Unable to open URL: ... Add instagram-stories to LSApplicationQueriesSchemes in your Info.plist."
-    // We treat that as a build-config issue and still try shareSingle (which will fail gracefully if IG isn't installed).
+    // Android package visibility can make canOpenURL return a false negative
+    // until the native manifest includes <queries>. Let react-native-share try.
     let canOpen: boolean | null = null;
-    try {
-      canOpen = await Linking.canOpenURL("instagram-stories://share");
-      console.log(tag, "canOpenURL(instagram-stories://share)=", canOpen);
-      if (canOpen === false) {
-        Alert.alert("Instagram not installed", "Install Instagram to share to Stories.");
-        return false;
+    if (Platform.OS === "ios") {
+      try {
+        canOpen = await Linking.canOpenURL("instagram-stories://share");
+        console.log(tag, "canOpenURL(instagram-stories://share)=", canOpen);
+        if (canOpen === false) {
+          Alert.alert("Instagram not installed", "Install Instagram to share to Stories.");
+          return false;
+        }
+      } catch (e: any) {
+        console.log(tag, "canOpenURL threw (likely missing LSApplicationQueriesSchemes)", String(e?.message || e));
+        canOpen = null; // unknown, continue
       }
-    } catch (e: any) {
-      console.log(tag, "canOpenURL threw (likely missing LSApplicationQueriesSchemes)", String(e?.message || e));
-      canOpen = null; // unknown, continue
     }
 
     const appId = getInstagramFbAppId(opts.appId);
@@ -173,7 +173,7 @@ export async function sharePngUriToInstagramStory(
     } else {
       shareOptions.backgroundImage = dataUrl;
     }
-    if (Platform.OS === "ios") {
+    if (appId) {
       shareOptions.appId = appId;
     }
 

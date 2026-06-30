@@ -67,25 +67,27 @@ async function composeInstagramStoryVideo({ videoUrl, overlayPngBase64 }) {
     if (bytes > 120 * 1024 * 1024) throw new Error("Source video is too large for story composition");
     await fs.writeFile(overlayPath, overlay);
 
-    const canvasW = 1080;
-    const canvasH = 1920;
+    const sourceCanvasW = 1080;
+    const outputW = 720;
+    const outputH = 1280;
+    const scale = outputW / sourceCanvasW;
     const cardX = 160;
     const cardY = 500;
     const cardW = 760;
     const headerH = 160;
     const borderW = 8;
-    const mediaX = cardX + borderW;
-    const mediaY = cardY + headerH;
-    const mediaW = cardW - borderW * 2;
-    const mediaH = 860 - borderW;
+    const mediaX = Math.round((cardX + borderW) * scale);
+    const mediaY = Math.round((cardY + headerH) * scale);
+    const mediaW = Math.round((cardW - borderW * 2) * scale);
+    const mediaH = Math.round((860 - borderW) * scale);
 
     const filter =
-      `color=c=0x0891B2:s=${canvasW}x${canvasH}:d=15[base];` +
+      `color=c=0x0891B2:s=${outputW}x${outputH}:d=15[base];` +
       `[0:v]scale=${mediaW}:${mediaH}:force_original_aspect_ratio=increase,` +
       `crop=${mediaW}:${mediaH},setsar=1[vid];` +
       `[base][vid]overlay=${mediaX}:${mediaY}[framed];` +
-      `[1:v]scale=${canvasW}:${canvasH}[overlay];` +
-      `[framed][overlay]overlay=0:0:format=auto,fps=30,format=yuv420p[outv]`;
+      `[1:v]scale=${outputW}:${outputH}[overlay];` +
+      `[framed][overlay]overlay=0:0:format=auto,fps=24,format=yuv420p[outv]`;
 
     await runFfmpeg([
       "-y",
@@ -107,11 +109,21 @@ async function composeInstagramStoryVideo({ videoUrl, overlayPngBase64 }) {
       "-preset",
       "veryfast",
       "-crf",
-      "23",
+      "28",
+      "-maxrate",
+      "1800k",
+      "-bufsize",
+      "3600k",
+      "-pix_fmt",
+      "yuv420p",
       "-c:a",
       "aac",
       "-b:a",
-      "128k",
+      "96k",
+      "-ac",
+      "2",
+      "-ar",
+      "44100",
       "-movflags",
       "+faststart",
       outputPath,

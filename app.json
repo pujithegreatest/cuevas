@@ -20,7 +20,8 @@
             "kotlinVersion": "2.1.0"
           }
         }
-      ]
+      ],
+      "./plugins/withAndroidPackageQueries"
     ],
     "ios": {
       "supportsTablet": true,
