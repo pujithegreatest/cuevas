@@ -610,9 +610,9 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
             className="flex-row items-center mr-6"
           >
             <Ionicons
-              name={post.isLiked ? "heart" : "heart-outline"}
+              name={post.isLiked ? "flash" : "flash-outline"}
               size={20}
-              color={post.isLiked ? "#FF0000" : isDarkMode ? "#888" : "#666"}
+              color={post.isLiked ? "#06A7A1" : isDarkMode ? "#888" : "#666"}
             />
             <Text
               className={`ml-1 text-sm ${

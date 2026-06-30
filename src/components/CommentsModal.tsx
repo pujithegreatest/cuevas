@@ -180,7 +180,7 @@ export default function CommentsModal({
           isVideoUri(mediaUri) ? (
             <Video
               source={{ uri: mediaUri }}
-              style={{ width: "100%", height: 160, borderRadius: 14, backgroundColor: "#000" }}
+              style={{ width: "100%", aspectRatio: 1, borderRadius: 14, backgroundColor: "#000" }}
               resizeMode={ResizeMode.COVER}
               useNativeControls
             />

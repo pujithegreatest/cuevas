@@ -372,10 +372,10 @@ export default function ProfileScreen({ navigation }: Props) {
       {
         id: "first-like",
         label: "Resonant",
-        icon: "heart",
-        color: "#FF3E7F",
+        icon: "flash",
+        color: "#06A7A1",
         unlocked: likesReceived >= 1,
-        hint: "Get a like",
+        hint: "Get a zap",
       },
       {
         id: "ten-likes",
@@ -383,7 +383,7 @@ export default function ProfileScreen({ navigation }: Props) {
         icon: "flame",
         color: "#FF8A00",
         unlocked: likesReceived >= 10,
-        hint: "10 likes",
+        hint: "10 zaps",
       },
       {
         id: "story-master",
@@ -436,7 +436,7 @@ export default function ProfileScreen({ navigation }: Props) {
     `DNA ${vibeScore}`,
     `${rewardsBalance.toLocaleString()} ₡`,
     `${myPosts.length} POSTS`,
-    `${likesReceived} LIKES`,
+    `${likesReceived} ZAPS`,
     `STREAK ${streakCount}`,
     `${unlockedCount}/${badges.length} BADGES`,
   ];
@@ -675,7 +675,7 @@ export default function ProfileScreen({ navigation }: Props) {
             <View className="flex-row flex-wrap px-4 -mx-1">
               {[
                 { label: "Posts", value: myPosts.length, icon: "chatbubbles-outline" },
-                { label: "Likes", value: likesReceived, icon: "heart" },
+                { label: "Zaps", value: likesReceived, icon: "flash" },
                 { label: "Comments", value: commentsReceived, icon: "chatbubble-outline" },
                 { label: "Stories", value: myStories.length, icon: "sparkles" },
               ].map((s) => (
@@ -828,7 +828,7 @@ export default function ProfileScreen({ navigation }: Props) {
                   </Text>
                   <View className="flex-row mt-2 gap-3">
                     <View className="flex-row items-center">
-                      <Ionicons name="heart" size={12} color="#FF3E7F" />
+                      <Ionicons name="flash" size={12} color="#06A7A1" />
                       <Text className={`text-xs ml-1 ${subText}`}>
                         {topPost.likes}
                       </Text>

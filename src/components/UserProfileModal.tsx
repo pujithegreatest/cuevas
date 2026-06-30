@@ -221,7 +221,7 @@ export default function UserProfileModal({
                 >
                   {[
                     { label: "Posts", value: userPosts.length },
-                    { label: "Likes", value: totalLikes },
+                    { label: "Zaps", value: totalLikes },
                     { label: "Comments", value: totalComments },
                     { label: "Stories", value: userStories.length },
                   ].map((s) => (
