@@ -10,6 +10,11 @@ interface Props {
   variant?: "default" | "instagramVideoOverlay";
 }
 
+const STORY_BG = "#081920";
+const STORY_SCANLINE = "rgba(207,239,236,0.08)";
+const STORY_SCANLINE_STEP = 10;
+const STORY_SCANLINE_HEIGHT = 2;
+
 const PostShareableCard = forwardRef<ViewShot, Props>(function PostShareableCard(
   { post, variant = "default" },
   ref,
@@ -24,6 +29,30 @@ const PostShareableCard = forwardRef<ViewShot, Props>(function PostShareableCard
       uri.includes("kind=video") ||
       uri.includes("mime=video%2F") ||
       uri.includes("mime=video/"));
+
+  const renderScanlines = (left: number, top: number, width: number, height: number) => {
+    const count = Math.ceil(height / STORY_SCANLINE_STEP);
+    return Array.from({ length: count }).map((_, index) => (
+      <View
+        key={`scanline-${left}-${top}-${index}`}
+        style={{
+          position: "absolute",
+          left,
+          top: top + index * STORY_SCANLINE_STEP,
+          width,
+          height: STORY_SCANLINE_HEIGHT,
+          backgroundColor: STORY_SCANLINE,
+        }}
+      />
+    ));
+  };
+
+  const renderStoryBackgroundBlock = (left: number, top: number, width: number, height: number) => (
+    <React.Fragment key={`story-bg-${left}-${top}-${width}-${height}`}>
+      <View style={{ position: "absolute", left, top, width, height, backgroundColor: STORY_BG }} />
+      {renderScanlines(left, top, width, height)}
+    </React.Fragment>
+  );
 
   const renderAuthorHeader = () => (
     <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
@@ -75,10 +104,10 @@ const PostShareableCard = forwardRef<ViewShot, Props>(function PostShareableCard
               backgroundColor: "transparent",
             }}
           >
-            <View style={{ position: "absolute", left: 0, top: 0, width: 1080, height: cardY, backgroundColor: "#0891B2" }} />
-            <View style={{ position: "absolute", left: 0, top: cardY, width: cardX, height: cardBottom - cardY, backgroundColor: "#0891B2" }} />
-            <View style={{ position: "absolute", left: cardX + cardW, top: cardY, width: 1080 - cardX - cardW, height: cardBottom - cardY, backgroundColor: "#0891B2" }} />
-            <View style={{ position: "absolute", left: 0, top: cardBottom, width: 1080, height: 1920 - cardBottom, backgroundColor: "#0891B2" }} />
+            {renderStoryBackgroundBlock(0, 0, 1080, cardY)}
+            {renderStoryBackgroundBlock(0, cardY, cardX, cardBottom - cardY)}
+            {renderStoryBackgroundBlock(cardX + cardW, cardY, 1080 - cardX - cardW, cardBottom - cardY)}
+            {renderStoryBackgroundBlock(0, cardBottom, 1080, 1920 - cardBottom)}
 
             <View
               style={{
@@ -138,12 +167,14 @@ const PostShareableCard = forwardRef<ViewShot, Props>(function PostShareableCard
           style={{
             width: 1080,
             height: 1920,
-            backgroundColor: "#0891B2",
+            backgroundColor: STORY_BG,
             padding: 50,
             paddingBottom: 120,
             justifyContent: "center",
           }}
         >
+          {renderScanlines(0, 0, 1080, 1920)}
+
           <View
             style={{
               backgroundColor: "#E8F1F2",

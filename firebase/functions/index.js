@@ -82,7 +82,8 @@ async function composeInstagramStoryVideo({ videoUrl, overlayPngBase64 }) {
     const mediaH = Math.round((860 - borderW) * scale);
 
     const filter =
-      `color=c=0x0891B2:s=${outputW}x${outputH}:d=15[base];` +
+      `color=c=0x081920:s=${outputW}x${outputH}:d=15,` +
+      `drawgrid=w=iw:h=7:t=1:c=0xCFEFEC@0.08[base];` +
       `[0:v]scale=${mediaW}:${mediaH}:force_original_aspect_ratio=increase,` +
       `crop=${mediaW}:${mediaH},setsar=1[vid];` +
       `[base][vid]overlay=${mediaX}:${mediaY}[framed];` +
