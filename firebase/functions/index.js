@@ -119,17 +119,21 @@ async function composeInstagramStoryVideo({ videoUrl, overlayPngBase64 }) {
 
     const bucket = admin.storage().bucket();
     const objectPath = `instagram-shares/cuevas-${Date.now()}-${crypto.randomBytes(6).toString("hex")}.mp4`;
+    const downloadToken = crypto.randomUUID();
     await bucket.upload(outputPath, {
       destination: objectPath,
       metadata: {
         contentType: "video/mp4",
         cacheControl: "public, max-age=3600",
+        metadata: {
+          firebaseStorageDownloadTokens: downloadToken,
+        },
       },
     });
-    const file = bucket.file(objectPath);
     const expires = Date.now() + 60 * 60 * 1000;
-    const [signedUrl] = await file.getSignedUrl({ action: "read", expires });
-    return { url: signedUrl, storagePath: objectPath, expires };
+    const encodedPath = encodeURIComponent(objectPath);
+    const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${downloadToken}`;
+    return { url, storagePath: objectPath, expires };
   } finally {
     await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
   }
@@ -968,7 +972,7 @@ exports.instagramStoryVideo = onRequest(
   {
     cors: true,
     timeoutSeconds: 540,
-    memory: "1GiB",
+    memory: "2GiB",
     maxInstances: 2,
   },
   async (req, res) => {
