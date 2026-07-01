@@ -28,7 +28,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "./Ionicons";
-import StoryFilterCanvas, { LiveFilterHud } from "./StoryFilterCanvas";
+import { LiveFilterHud } from "./StoryFilterCanvas";
 import { StoryFilter } from "../types/story";
 
 interface StoryCameraModalProps {
@@ -45,7 +45,6 @@ interface StoryCameraModalProps {
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const MAX_RECORD_MS = 15000;
-const LIVE_SNAPSHOT_PREVIEW_MS = 520;
 const RECORD_BTN_SIZE = 84;
 const RING_SIZE = 104;
 type LiveFilter =
@@ -101,7 +100,6 @@ export default function StoryCameraModal({
   const [elapsedMs, setElapsedMs] = useState(0);
   const [liveFilter, setLiveFilter] = useState<LiveFilter>("none");
   const [cameraReady, setCameraReady] = useState(false);
-  const [previewFrameUri, setPreviewFrameUri] = useState<string | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [micPermission, requestMicPermission] = useMicrophonePermissions();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -110,23 +108,11 @@ export default function StoryCameraModal({
   const redDot = useSharedValue(0);
   const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const previewFrameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cameraReadyFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isPreviewCaptureInFlightRef = useRef(false);
   const isFinalCaptureInFlightRef = useRef(false);
   const recordStartRef = useRef<number>(0);
   const cameraModeRef = useRef<CameraMode>("picture");
   const shouldMirrorFrontCamera = facing === "front";
-  const shouldUseSnapshotPreview =
-    visible &&
-    permission?.granted &&
-    cameraReady &&
-    mode === "picture" &&
-    cameraMode === "picture" &&
-    !isRecording &&
-    liveFilter !== "none";
-  const isShowingSnapshotPreview =
-    shouldUseSnapshotPreview && previewFrameUri !== null;
 
   const setNativeCameraMode = (nextMode: CameraMode) => {
     cameraModeRef.current = nextMode;
@@ -178,7 +164,6 @@ export default function StoryCameraModal({
       setNativeCameraMode("picture");
       setLiveFilter("none");
       setCameraReady(false);
-      setPreviewFrameUri(null);
       setErrorMsg(null);
       progress.value = 0;
       redDot.value = 0;
@@ -186,78 +171,8 @@ export default function StoryCameraModal({
   }, [visible]);
 
   useEffect(() => {
-    if (!shouldUseSnapshotPreview) {
-      if (previewFrameTimerRef.current) {
-        clearTimeout(previewFrameTimerRef.current);
-        previewFrameTimerRef.current = null;
-      }
-      if (cameraReadyFallbackTimerRef.current) {
-        clearTimeout(cameraReadyFallbackTimerRef.current);
-        cameraReadyFallbackTimerRef.current = null;
-      }
-      isPreviewCaptureInFlightRef.current = false;
-      setPreviewFrameUri(null);
-      return;
-    }
-
-    let cancelled = false;
-
-    const scheduleNextPreviewFrame = () => {
-      if (!cancelled) {
-        previewFrameTimerRef.current = setTimeout(
-          capturePreviewFrame,
-          LIVE_SNAPSHOT_PREVIEW_MS
-        );
-      }
-    };
-
-    const capturePreviewFrame = async () => {
-      if (
-        cancelled ||
-        !cameraRef.current ||
-        isPreviewCaptureInFlightRef.current ||
-        isFinalCaptureInFlightRef.current ||
-        cameraModeRef.current !== "picture"
-      ) {
-        scheduleNextPreviewFrame();
-        return;
-      }
-
-      isPreviewCaptureInFlightRef.current = true;
-      try {
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.35,
-          skipProcessing: true,
-          shutterSound: false,
-        });
-        if (!cancelled && photo?.uri) {
-          setPreviewFrameUri(photo.uri);
-        }
-      } catch {
-        if (!cancelled) {
-          setPreviewFrameUri(null);
-        }
-      } finally {
-        isPreviewCaptureInFlightRef.current = false;
-        scheduleNextPreviewFrame();
-      }
-    };
-
-    previewFrameTimerRef.current = setTimeout(capturePreviewFrame, 120);
-
-    return () => {
-      cancelled = true;
-      if (previewFrameTimerRef.current) {
-        clearTimeout(previewFrameTimerRef.current);
-        previewFrameTimerRef.current = null;
-      }
-    };
-  }, [shouldUseSnapshotPreview, liveFilter, facing]);
-
-  useEffect(() => {
     if (!visible || !permission?.granted) return;
     setCameraReady(false);
-    setPreviewFrameUri(null);
     if (cameraReadyFallbackTimerRef.current) {
       clearTimeout(cameraReadyFallbackTimerRef.current);
     }
@@ -317,7 +232,6 @@ export default function StoryCameraModal({
   const flipCamera = () => {
     if (isRecording) return;
     setCameraReady(false);
-    setPreviewFrameUri(null);
     setFacing((f) => (f === "back" ? "front" : "back"));
   };
 
@@ -326,13 +240,6 @@ export default function StoryCameraModal({
     if (!cameraRef.current) return;
     try {
       isFinalCaptureInFlightRef.current = true;
-      if (previewFrameTimerRef.current) {
-        clearTimeout(previewFrameTimerRef.current);
-        previewFrameTimerRef.current = null;
-      }
-      for (let i = 0; i < 10 && isPreviewCaptureInFlightRef.current; i += 1) {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
       await prepareNativeCameraMode("picture");
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.85,
@@ -591,21 +498,7 @@ export default function StoryCameraModal({
           </View>
         )}
 
-        {isShowingSnapshotPreview && previewFrameUri ? (
-          <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            <StoryFilterCanvas
-              uri={previewFrameUri}
-              filter={liveFilter}
-              width={SCREEN_W}
-              height={SCREEN_H}
-              mediaType="image"
-              effectMode="live"
-              heatwaveAnimated
-            />
-          </View>
-        ) : null}
-
-        {liveFilter !== "none" && !isShowingSnapshotPreview && (
+        {liveFilter !== "none" && (
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
             <LiveFilterHud
               filter={liveFilter}
@@ -613,7 +506,7 @@ export default function StoryCameraModal({
               height={SCREEN_H}
               topInset={96}
               bottomInset={250}
-              showColorLayer={false}
+              showColorLayer
             />
           </View>
         )}
