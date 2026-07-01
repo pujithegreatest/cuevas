@@ -33,6 +33,7 @@ import BusinessProfileModal from "../components/BusinessProfileModal";
 import { LinearGradient } from "expo-linear-gradient";
 import { formatRelativeTime } from "../utils/linkPreview";
 import { POST_PRIVACY_OPTIONS, getPrivacyOption } from "../utils/privacy";
+import { deriveHandle, displayUsername, emailLocalPart, normalizeHandle } from "../utils/handles";
 
 type Props = BottomTabScreenProps<MainTabParamList, "Profile">;
 
@@ -204,6 +205,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const isDarkMode = useAppStore((s) => s.isDarkMode);
   const userEmail = useAppStore((s) => s.userEmail);
   const displayName = useAppStore((s) => s.displayName);
+  const userHandle = useAppStore((s) => s.userHandle);
   const handleAliases = useAppStore((s) => s.handleAliases);
   const rewardsBalance = useAppStore((s) => s.rewardsBalance);
   const userAvatar = useAppStore((s) => s.userAvatar);
@@ -257,18 +259,28 @@ export default function ProfileScreen({ navigation }: Props) {
     setTimeout(() => setBusinessProfileOpen(true), 250);
   };
 
-  const handle = useMemo(
-    () => displayName || (userEmail ? userEmail.split("@")[0] : "guest"),
+  const username = useMemo(
+    () => displayUsername(displayName, userEmail),
     [displayName, userEmail]
+  );
+
+  const handle = useMemo(
+    () => deriveHandle(userHandle, displayName, userEmail),
+    [userHandle, displayName, userEmail]
   );
 
   const ownedHandles = useMemo(() => {
     const set = new Set<string>();
+    set.add(username);
+    set.add(handle);
     if (displayName) set.add(displayName);
-    if (userEmail) set.add(userEmail.split("@")[0]);
+    if (userEmail) {
+      set.add(emailLocalPart(userEmail));
+      set.add(normalizeHandle(emailLocalPart(userEmail)));
+    }
     (handleAliases || []).forEach((a) => a && set.add(a));
     return set;
-  }, [displayName, userEmail, handleAliases]);
+  }, [username, handle, displayName, userEmail, handleAliases]);
 
   const myPosts = useMemo(
     () => posts.filter((p) => ownedHandles.has(p.author)),
@@ -431,7 +443,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const unlockedCount = badges.filter((b) => b.unlocked).length;
 
   const tickerItems = [
-    `@${handle}`,
+    username,
     `${vibeLevel.name}`,
     `DNA ${vibeScore}`,
     `${rewardsBalance.toLocaleString()} ₡`,
@@ -504,7 +516,7 @@ export default function ProfileScreen({ navigation }: Props) {
               <View className="flex-row items-center">
                 <Pressable onPress={() => setEditUsernameOpen(true)}>
                   <PulsingAvatar
-                    letter={handle[0]?.toUpperCase() || "?"}
+                    letter={username[0]?.toUpperCase() || "?"}
                     tier={vibeLevel.tier}
                     avatarUri={userAvatar}
                   />
@@ -515,7 +527,7 @@ export default function ProfileScreen({ navigation }: Props) {
                     className="flex-row items-center"
                   >
                     <Text className="text-white text-2xl font-bold">
-                      @{handle}
+                      {username}
                     </Text>
                     <View
                       style={{
@@ -551,7 +563,7 @@ export default function ProfileScreen({ navigation }: Props) {
                     <Ionicons name="settings-outline" size={17} color="#fff" />
                   </Pressable>
                   <Text className="text-white/80 text-sm mt-1">
-                    {userEmail || "—"}
+                    @{handle}
                   </Text>
                   <View className="flex-row items-center mt-2 flex-wrap">
                     <View className="bg-white/25 px-2.5 py-1 rounded-full flex-row items-center mr-2">
@@ -939,6 +951,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
       <EditUsernameModal
         visible={editUsernameOpen}
+        currentUsername={username}
         currentHandle={handle}
         onClose={() => setEditUsernameOpen(false)}
       />

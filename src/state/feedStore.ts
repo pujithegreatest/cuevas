@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Post, Comment, LinkPreview, CommentPrivacyLevel, PrivacyLevel, PostAudio } from "../types/feed";
 import { completeLinkPreview, detectLinkPreview, extractUrlsFromText } from "../utils/linkPreview";
 import * as FileSystem from 'expo-file-system/legacy';
+import { normalizeHandle as normalizePublicHandle } from "../utils/handles";
 
 const POSTS_API = "https://www.ecothot.com/_functions/posts";
 const UPLOAD_API = "https://www.ecothot.com/_functions/uploadMedia";
@@ -33,7 +34,7 @@ interface FeedState {
 const PRIVACY_VALUES: PrivacyLevel[] = ["public", "friends", "private", "group"];
 
 function normalizeHandle(value?: string | null) {
-  return (value || "").trim().toLowerCase();
+  return normalizePublicHandle(value, "");
 }
 
 function normalizePrivacyValue(value: any): PrivacyLevel {
@@ -44,8 +45,16 @@ function buildPostsUrl(viewer?: FeedViewer) {
   if (!viewer) return POSTS_API;
   const handles = new Set<string>();
   if (viewer.displayName) handles.add(viewer.displayName);
-  if (viewer.userEmail) handles.add(viewer.userEmail.split("@")[0]);
-  (viewer.handleAliases || []).forEach((alias) => alias && handles.add(alias));
+  if (viewer.displayName) handles.add(normalizeHandle(viewer.displayName));
+  if (viewer.userEmail) {
+    handles.add(viewer.userEmail.split("@")[0]);
+    handles.add(normalizeHandle(viewer.userEmail.split("@")[0]));
+  }
+  (viewer.handleAliases || []).forEach((alias) => {
+    if (!alias) return;
+    handles.add(alias);
+    handles.add(normalizeHandle(alias));
+  });
   const friendHandles = (viewer.friends || []).map((friend) => friend.handle).filter(Boolean);
   const query = new URLSearchParams();
   if (handles.size > 0) query.set("viewer", Array.from(handles).join(","));

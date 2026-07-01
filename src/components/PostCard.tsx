@@ -31,6 +31,8 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const rewardsBalance = useAppStore((s) => s.rewardsBalance);
   const updatePostPrivacy = useFeedStore((s) => s.updatePostPrivacy);
   const viewShotRef = useRef<ViewShot>(null);
+  const singleVideoRef = useRef<any>(null);
+  const gridVideoRefs = useRef<Record<string, any>>({});
   const [showComments, setShowComments] = useState(false);
   const [privacyFlash, setPrivacyFlash] = useState<string | null>(null);
 
@@ -50,6 +52,14 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
       uri.includes("mime=video%2F") ||
       uri.includes("mime=video/") ||
       (uri.startsWith("file://") && (uri.includes(".mp4") || uri.includes(".mov") || uri.includes(".m4v"))));
+
+  const openVideoFullscreen = async (videoRef?: any) => {
+    try {
+      await videoRef?.presentFullscreenPlayer?.();
+    } catch (error) {
+      console.log("[POST] fullscreen video failed", String((error as any)?.message || error));
+    }
+  };
 
   const urlsInContent = extractUrlsFromText(post.content || "");
   const displayLinkPreview = completeLinkPreview(post.linkPreview, post.content);
@@ -475,15 +485,30 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
           <View className="mb-3">
             {mediaList.length === 1 ? (
               isVideoUri(mediaList[0]) ? (
-                <Video
-                  source={{ uri: getRenderableMediaUri(mediaList[0]) }}
-                  style={{ width: "100%", aspectRatio: 1, borderRadius: 12 }}
-                  resizeMode={ResizeMode.COVER}
-                  useNativeControls
-                  isMuted={false}
-                />
+                <Pressable
+                  onPressIn={(e) => e.stopPropagation?.()}
+                  onPress={(e) => {
+                    e.stopPropagation?.();
+                    openVideoFullscreen(singleVideoRef.current);
+                  }}
+                  style={{ width: "100%" }}
+                >
+                  <Video
+                    ref={singleVideoRef}
+                    source={{ uri: getRenderableMediaUri(mediaList[0]) }}
+                    style={{ width: "100%", aspectRatio: 1, borderRadius: 12 }}
+                    resizeMode={ResizeMode.COVER}
+                    useNativeControls
+                    isMuted={false}
+                  />
+                </Pressable>
               ) : (
-                <Pressable onPress={() => setViewerUri(getRenderableMediaUri(mediaList[0]))}>
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation?.();
+                    setViewerUri(getRenderableMediaUri(mediaList[0]));
+                  }}
+                >
                   <Image
                     source={{ uri: getRenderableMediaUri(mediaList[0]) }}
                     className="w-full rounded-xl"
@@ -502,18 +527,33 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
                 {mediaList.slice(0, 4).map((uri, index) => {
                   const renderUri = getRenderableMediaUri(uri);
                   return isVideoUri(uri) ? (
-                    <Video
+                    <Pressable
                       key={index}
-                      source={{ uri: renderUri }}
-                      style={{ width: "49%", aspectRatio: 1, borderRadius: 8 }}
-                      resizeMode={ResizeMode.COVER}
-                      useNativeControls
-                      isMuted={false}
-                    />
+                      onPressIn={(e) => e.stopPropagation?.()}
+                      onPress={(e) => {
+                        e.stopPropagation?.();
+                        openVideoFullscreen(gridVideoRefs.current[renderUri]);
+                      }}
+                      style={{ width: "49%" }}
+                    >
+                      <Video
+                        ref={(ref) => {
+                          gridVideoRefs.current[renderUri] = ref;
+                        }}
+                        source={{ uri: renderUri }}
+                        style={{ width: "100%", aspectRatio: 1, borderRadius: 8 }}
+                        resizeMode={ResizeMode.COVER}
+                        useNativeControls
+                        isMuted={false}
+                      />
+                    </Pressable>
                   ) : (
                     <Pressable
                       key={index}
-                      onPress={() => setViewerUri(renderUri)}
+                      onPress={(e) => {
+                        e.stopPropagation?.();
+                        setViewerUri(renderUri);
+                      }}
                       style={{ width: "49%" }}
                     >
                       <Image

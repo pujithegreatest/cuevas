@@ -427,7 +427,7 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
                   </View>
                   <View className="flex-1">
                     <Text className={`text-lg font-black ${isDarkMode ? "text-dark-text" : "text-pixel-text"}`}>
-                      @{entry.name}
+                      {entry.name.replace(/^@+/, "")}
                     </Text>
                     <Text className={`text-xs mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
                       {entry.badge}

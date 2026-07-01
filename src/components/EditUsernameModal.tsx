@@ -17,29 +17,34 @@ import { Ionicons } from "./Ionicons";
 import { useAppStore } from "../state/appStore";
 import { useFeedStore } from "../state/feedStore";
 import { updateUsernameOnWix } from "../api/update-username";
+import { normalizeHandle } from "../utils/handles";
 
 interface EditUsernameModalProps {
   visible: boolean;
   onClose: () => void;
+  currentUsername: string;
   currentHandle: string;
 }
 
 export default function EditUsernameModal({
   visible,
   onClose,
+  currentUsername,
   currentHandle,
 }: EditUsernameModalProps) {
   const isDarkMode = useAppStore((s) => s.isDarkMode);
   const userEmail = useAppStore((s) => s.userEmail);
   const handleAliases = useAppStore((s) => s.handleAliases);
   const setDisplayName = useAppStore((s) => s.setDisplayName);
+  const setUserHandle = useAppStore((s) => s.setUserHandle);
   const userAvatar = useAppStore((s) => s.userAvatar);
   const setUserAvatar = useAppStore((s) => s.setUserAvatar);
   const userBio = useAppStore((s) => s.userBio);
   const setUserBio = useAppStore((s) => s.setUserBio);
   const updateAuthorHandle = useFeedStore((s) => s.updateAuthorHandle);
 
-  const [value, setValue] = useState(currentHandle);
+  const [username, setUsername] = useState(currentUsername);
+  const [handleValue, setHandleValue] = useState(currentHandle);
   const [bio, setBio] = useState(userBio || "");
   const [avatar, setAvatar] = useState<string | null>(userAvatar);
   const [error, setError] = useState<string | null>(null);
@@ -48,14 +53,15 @@ export default function EditUsernameModal({
 
   useEffect(() => {
     if (visible) {
-      setValue(currentHandle);
+      setUsername(currentUsername);
+      setHandleValue(currentHandle);
       setBio(userBio || "");
       setAvatar(userAvatar);
       setError(null);
       setSuccess(false);
       setSaving(false);
     }
-  }, [visible, currentHandle, userBio, userAvatar]);
+  }, [visible, currentUsername, currentHandle, userBio, userAvatar]);
 
   const pickAvatar = async () => {
     try {
@@ -89,28 +95,50 @@ export default function EditUsernameModal({
     setSaving(true);
     setUserAvatar(avatar);
     setUserBio(bio);
-    const trimmedHandle = value.trim();
-    if (trimmedHandle && trimmedHandle !== currentHandle) {
+    const trimmedUsername = username.trim();
+    const trimmedHandle = normalizeHandle(handleValue, "");
+    if (!trimmedUsername) {
+      setSaving(false);
+      setError("Username cannot be empty.");
+      return;
+    }
+    if (!trimmedHandle) {
+      setSaving(false);
+      setError("Handle cannot be empty.");
+      return;
+    }
+    const handleChanged = trimmedHandle !== currentHandle;
+    const usernameChanged = trimmedUsername !== currentUsername;
+    const previousHandles = Array.from(
+      new Set(
+        [currentHandle, currentUsername, ...(handleAliases || []), userEmail?.split("@")[0]].filter(
+          (value): value is string => !!value
+        )
+      )
+    );
+    let savedHandle = trimmedHandle;
+    if (handleChanged) {
       if (!userEmail) {
-        setError("You must be signed in to change your username.");
+        setError("You must be signed in to change your handle.");
         setSaving(false);
         return;
       }
-      const previousHandles = Array.from(
-        new Set([currentHandle, ...(handleAliases || []), userEmail.split("@")[0]].filter(Boolean))
-      );
       const result = await updateUsernameOnWix(userEmail, trimmedHandle, {
         previousUsername: currentHandle,
         aliases: previousHandles,
       });
       if (result.success && result.username) {
-        updateAuthorHandle(previousHandles, result.username, userEmail);
-        setDisplayName(result.username);
+        savedHandle = result.username;
       } else {
         setSaving(false);
-        setError(result.error || "Could not update username.");
+        setError(result.error || "Could not update handle.");
         return;
       }
+    }
+    setDisplayName(trimmedUsername);
+    setUserHandle(savedHandle);
+    if (handleChanged || usernameChanged) {
+      updateAuthorHandle(previousHandles, trimmedUsername, userEmail);
     }
     setSaving(false);
     setSuccess(true);
@@ -190,7 +218,7 @@ export default function EditUsernameModal({
                           fontWeight: "800",
                         }}
                       >
-                        {currentHandle[0]?.toUpperCase() || "?"}
+                        {currentUsername[0]?.toUpperCase() || currentHandle[0]?.toUpperCase() || "?"}
                       </Text>
                     )}
                   </View>
@@ -230,7 +258,7 @@ export default function EditUsernameModal({
                     textAlign: "center",
                   }}
                 >
-                  Tap photo to change. Handle is synced to ecothot.com.
+                  Tap photo to change. Your handle has no spaces.
                 </Text>
               </View>
 
@@ -257,16 +285,67 @@ export default function EditUsernameModal({
                   paddingVertical: 4,
                 }}
               >
+                <TextInput
+                  value={username}
+                  onChangeText={(t) => {
+                    setUsername(t);
+                    if (error) setError(null);
+                  }}
+                  placeholder="Kevin Lasenberry"
+                  placeholderTextColor={sub}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  maxLength={36}
+                  returnKeyType="done"
+                  style={{
+                    flex: 1,
+                    color: text,
+                    paddingVertical: 12,
+                    fontSize: 16,
+                    fontWeight: "600",
+                  }}
+                />
+                {username.length > 0 && (
+                  <Pressable onPress={() => setUsername("")} hitSlop={10}>
+                    <Ionicons name="close-circle" size={18} color={sub} />
+                  </Pressable>
+                )}
+              </View>
+
+              <Text
+                style={{
+                  color: sub,
+                  fontSize: 11,
+                  fontWeight: "700",
+                  letterSpacing: 1,
+                  marginTop: 14,
+                  marginBottom: 6,
+                }}
+              >
+                @ HANDLE
+              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  backgroundColor: surface,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: error ? "#FF3B30" : border,
+                  paddingHorizontal: 12,
+                  paddingVertical: 4,
+                }}
+              >
                 <Text style={{ color: sub, fontWeight: "700", marginRight: 4 }}>
                   @
                 </Text>
                 <TextInput
-                  value={value}
+                  value={handleValue}
                   onChangeText={(t) => {
-                    setValue(t);
+                    setHandleValue(normalizeHandle(t, ""));
                     if (error) setError(null);
                   }}
-                  placeholder="new_handle"
+                  placeholder="kevinlasenberry"
                   placeholderTextColor={sub}
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -280,8 +359,8 @@ export default function EditUsernameModal({
                     fontWeight: "600",
                   }}
                 />
-                {value.length > 0 && (
-                  <Pressable onPress={() => setValue("")} hitSlop={10}>
+                {handleValue.length > 0 && (
+                  <Pressable onPress={() => setHandleValue("")} hitSlop={10}>
                     <Ionicons name="close-circle" size={18} color={sub} />
                   </Pressable>
                 )}

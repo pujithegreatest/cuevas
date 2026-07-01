@@ -82,6 +82,7 @@ type IconProps = {
 const map: Record<string, LucideIcon> = {
   add: Plus,
   "arrow-back": ArrowLeft,
+  "arrow-back-outline": ArrowLeft,
   camera: Camera,
   "camera-outline": Camera,
   "chatbubble-outline": MessageCircle,

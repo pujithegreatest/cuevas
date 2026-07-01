@@ -1,5 +1,6 @@
 import { Comment, CommentPrivacyLevel, Post, PrivacyLevel } from "../types/feed";
 import type { FriendNode } from "../state/appStore";
+import { normalizeHandle } from "./handles";
 
 export const POST_PRIVACY_OPTIONS: {
   value: PrivacyLevel;
@@ -68,9 +69,20 @@ export function getUserHandles(
   aliases?: string[]
 ) {
   const handles = new Set<string>();
-  if (displayName) handles.add(displayName);
-  if (userEmail) handles.add(userEmail.split("@")[0]);
-  (aliases || []).forEach((alias) => alias && handles.add(alias));
+  if (displayName) {
+    handles.add(displayName);
+    handles.add(normalizeHandle(displayName));
+  }
+  if (userEmail) {
+    const local = userEmail.split("@")[0];
+    handles.add(local);
+    handles.add(normalizeHandle(local));
+  }
+  (aliases || []).forEach((alias) => {
+    if (!alias) return;
+    handles.add(alias);
+    handles.add(normalizeHandle(alias));
+  });
   return handles;
 }
 

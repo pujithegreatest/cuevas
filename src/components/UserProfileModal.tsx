@@ -17,6 +17,7 @@ import { useStoryStore } from "../state/storyStore";
 import PostCard from "./PostCard";
 import { formatRelativeTime } from "../utils/linkPreview";
 import { canViewPost, getUserHandles } from "../utils/privacy";
+import { displayUsername, normalizeHandle } from "../utils/handles";
 
 interface Props {
   visible: boolean;
@@ -105,6 +106,8 @@ export default function UserProfileModal({
   const sub = isDarkMode ? "#9CA3AF" : "#6B7280";
   const surface = isDarkMode ? "#1F2937" : "#fff";
   const border = isDarkMode ? "#374151" : "#e5e7eb";
+  const username = displayUsername(handle, null, "User");
+  const cleanHandle = normalizeHandle(handle || username);
 
   return (
     <Modal
@@ -130,7 +133,7 @@ export default function UserProfileModal({
             <Ionicons name="close" size={26} color={text} />
           </Pressable>
           <Text style={{ color: text, fontWeight: "800", fontSize: 16 }}>
-            @{handle || "user"}
+            {username}
           </Text>
           <View style={{ width: 26 }} />
         </View>
@@ -195,9 +198,18 @@ export default function UserProfileModal({
                         fontWeight: "800",
                         fontSize: 22,
                       }}
-                    >
-                      @{handle}
-                    </Text>
+                      >
+                        {username}
+                      </Text>
+                      <Text
+                        style={{
+                          color: "rgba(255,255,255,0.85)",
+                          fontSize: 12,
+                          marginTop: 2,
+                        }}
+                      >
+                        @{cleanHandle}
+                      </Text>
                     {latestActivity && (
                       <Text
                         style={{
@@ -326,7 +338,7 @@ export default function UserProfileModal({
                 color={isDarkMode ? "#444" : "#888"}
               />
               <Text style={{ color: sub, marginTop: 12 }}>
-                No posts from @{handle} yet.
+                No posts from {username} yet.
               </Text>
             </View>
           }
@@ -356,7 +368,7 @@ export default function UserProfileModal({
                 <Ionicons name="close" size={26} color={text} />
               </Pressable>
               <Text style={{ color: text, fontWeight: "900", fontSize: 16 }}>
-                @{handle || "user"} Missions
+                {username} Missions
               </Text>
               <View style={{ width: 26 }} />
             </View>
