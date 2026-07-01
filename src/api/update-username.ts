@@ -8,6 +8,8 @@ export interface UpdateUsernameResponse {
   handle?: string;
   error?: string;
   pendingRemote?: boolean;
+  code?: string;
+  handleChangeLockedUntil?: string | null;
 }
 
 export async function updateUsernameOnWix(
@@ -80,6 +82,7 @@ export async function updateUsernameOnWix(
         username: data.username || handle,
         handle,
         displayName: data.displayName || displayName,
+        handleChangeLockedUntil: data.handleChangeLockedUntil || null,
       };
     }
 
@@ -90,12 +93,15 @@ export async function updateUsernameOnWix(
         username: data.username || handle,
         handle,
         displayName: data.displayName || displayName,
+        handleChangeLockedUntil: data.handleChangeLockedUntil || null,
       };
     }
 
     return {
       success: false,
       error: data?.error || `Server returned ${res.status}.`,
+      code: data?.code,
+      handleChangeLockedUntil: data?.handleChangeLockedUntil || null,
     };
   } catch (e) {
     return {

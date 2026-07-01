@@ -154,6 +154,7 @@ export default function EditUsernameModal({
   const surface = isDarkMode ? "#111827" : "#F3F4F6";
   const border = isDarkMode ? "#374151" : "#E5E7EB";
   const accent = "#06A7A1";
+  const handleChanged = normalizeHandle(handleValue, "") !== currentHandle;
 
   return (
     <Modal
@@ -366,6 +367,19 @@ export default function EditUsernameModal({
                   </Pressable>
                 )}
               </View>
+
+              <Text
+                style={{
+                  color: handleChanged ? "#F59E0B" : sub,
+                  fontSize: 11,
+                  lineHeight: 15,
+                  marginTop: 6,
+                  marginBottom: 2,
+                  fontWeight: handleChanged ? "700" : "600",
+                }}
+              >
+                Handles can only be changed once every 90 days. Your username and bio can still be edited anytime.
+              </Text>
 
               <Text
                 style={{
