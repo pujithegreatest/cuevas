@@ -187,7 +187,7 @@ export default function CommentsModal({
           ) : (
             <Image
               source={{ uri: mediaUri }}
-              style={{ width: "100%", height: 160, borderRadius: 14, backgroundColor: colors.surface }}
+              style={{ width: "100%", aspectRatio: 1, borderRadius: 14, backgroundColor: colors.surface }}
               contentFit="cover"
             />
           )
