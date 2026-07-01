@@ -299,7 +299,11 @@ export default function CommentsModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
+        style={{ flex: 1, backgroundColor: colors.bg }}
+      >
         {privacyFlash && (
           <View
             pointerEvents="none"
@@ -380,65 +384,60 @@ export default function CommentsModal({
           }
         />
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={0}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            margin: 14,
+            padding: 10,
+            borderRadius: 24,
+            borderWidth: 1,
+            borderColor: "rgba(6,167,161,0.35)",
+            backgroundColor: colors.surface,
+            shadowColor: "#000",
+            shadowOpacity: 0.2,
+            shadowRadius: 14,
+            shadowOffset: { width: 0, height: 4 },
+          }}
         >
-          <View
+          <Pressable
+            onPress={cycleComposerPrivacy}
             style={{
-              flexDirection: "row",
+              width: 38,
+              height: 38,
+              borderRadius: 19,
+              backgroundColor: "rgba(6,167,161,0.16)",
               alignItems: "center",
-              margin: 14,
-              padding: 10,
-              borderRadius: 24,
-              borderWidth: 1,
-              borderColor: "rgba(6,167,161,0.35)",
-              backgroundColor: colors.surface,
-              shadowColor: "#000",
-              shadowOpacity: 0.2,
-              shadowRadius: 14,
-              shadowOffset: { width: 0, height: 4 },
+              justifyContent: "center",
+              marginRight: 8,
             }}
           >
-            <Pressable
-              onPress={cycleComposerPrivacy}
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 19,
-                backgroundColor: "rgba(6,167,161,0.16)",
-                alignItems: "center",
-                justifyContent: "center",
-                marginRight: 8,
-              }}
-            >
-              <Ionicons name={currentPrivacy.icon} size={18} color={colors.accent} />
-            </Pressable>
-            <TextInput
-              value={commentText}
-              onChangeText={setCommentText}
-              placeholder={currentPrivacy.value === "poster" ? "Private note to poster..." : "Add a comment..."}
-              placeholderTextColor={isDarkMode ? "#6B7280" : "#94A3B8"}
-              style={{
-                flex: 1,
-                color: colors.text,
-                backgroundColor: isDarkMode ? "#0b1115" : "#ffffff",
-                borderRadius: 18,
-                paddingHorizontal: 14,
-                paddingVertical: 9,
-                fontWeight: "700",
-              }}
-            />
-            <Pressable
-              onPress={handleAddComment}
-              disabled={!commentText.trim()}
-              style={{ marginLeft: 10, opacity: commentText.trim() ? 1 : 0.35 }}
-            >
-              <Ionicons name="send" size={24} color={colors.accent} />
-            </Pressable>
-          </View>
-        </KeyboardAvoidingView>
-      </View>
+            <Ionicons name={currentPrivacy.icon} size={18} color={colors.accent} />
+          </Pressable>
+          <TextInput
+            value={commentText}
+            onChangeText={setCommentText}
+            placeholder={currentPrivacy.value === "poster" ? "Private note to poster..." : "Add a comment..."}
+            placeholderTextColor={isDarkMode ? "#6B7280" : "#94A3B8"}
+            style={{
+              flex: 1,
+              color: colors.text,
+              backgroundColor: isDarkMode ? "#0b1115" : "#ffffff",
+              borderRadius: 18,
+              paddingHorizontal: 14,
+              paddingVertical: 9,
+              fontWeight: "700",
+            }}
+          />
+          <Pressable
+            onPress={handleAddComment}
+            disabled={!commentText.trim()}
+            style={{ marginLeft: 10, opacity: commentText.trim() ? 1 : 0.35 }}
+          >
+            <Ionicons name="send" size={24} color={colors.accent} />
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
