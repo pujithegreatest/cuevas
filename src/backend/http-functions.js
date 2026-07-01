@@ -582,19 +582,32 @@ function normalizeDisplayName(value, email) {
   return trimmed || normalizeEmail(email).split("@")[0] || "Cuevas Member";
 }
 
+function sanitizeHandle(value, fallback) {
+  const normalize = (raw) => String(raw || "")
+    .trim()
+    .replace(/^@+/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9_.-]+/g, "");
+  let normalized = normalize(value || fallback);
+  const fallbackNormalized = normalize(fallback);
+  if (normalized.length < 3 && fallbackNormalized && fallbackNormalized !== normalized) {
+    normalized = fallbackNormalized;
+  }
+  if (!normalized) {
+    const err = new Error("Handle cannot be empty.");
+    err.statusCode = 400;
+    throw err;
+  }
+  if (normalized.length < 3 || normalized.length > 24) {
+    const err = new Error("Handle must be 3-24 characters and use letters, numbers, dots, dashes or underscores only.");
+    err.statusCode = 400;
+    throw err;
+  }
+  return normalized;
+}
+
 function sanitizeUsername(value) {
-  const trimmed = String(value || "").trim();
-  if (!trimmed) {
-    const err = new Error("Username cannot be empty.");
-    err.statusCode = 400;
-    throw err;
-  }
-  if (trimmed.length < 3 || trimmed.length > 24 || !/^[A-Za-z0-9_.-]+$/.test(trimmed)) {
-    const err = new Error("Username must be 3-24 characters and use letters, numbers, dots, dashes or underscores only.");
-    err.statusCode = 400;
-    throw err;
-  }
-  return trimmed;
+  return sanitizeHandle(value);
 }
 
 function usernameAliasList(body, email) {
@@ -1354,12 +1367,20 @@ async function handleLoginLogic(email, auth = {}) {
       });
     }
 
+    const responseDisplayName = user.displayName || normalizeDisplayName("", user.email || email);
+    const responseHandle = sanitizeHandle(
+      user.handle || user.userHandle || user.username,
+      user.email || email || responseDisplayName
+    );
+
     return ok({
       headers,
       body: {
         success: true,
         email: user.email,
-        displayName: user.displayName || normalizeDisplayName("", user.email || email),
+        displayName: responseDisplayName,
+        handle: responseHandle,
+        username: responseHandle,
         wixMemberId: user.wixMemberId,
         cuevas: points ?? 0,
         loyaltypoints: points ?? 0,
@@ -1415,6 +1436,7 @@ export async function post_signup(request) {
     const email = normalizeEmail(body.email);
     const password = String(body.password || "");
     const displayName = normalizeDisplayName(body.displayName, email);
+    const handle = sanitizeHandle(body.handle || body.username, email || displayName);
 
     if (!email || !email.includes("@")) {
       return badRequest({ headers, body: { success: false, error: "Valid email is required" } });
@@ -1456,6 +1478,8 @@ export async function post_signup(request) {
       memberId,
       email,
       displayName,
+      handle,
+      userHandle: handle,
       passwordHash,
       loyaltyPoints: 0,
     });
@@ -1466,6 +1490,8 @@ export async function post_signup(request) {
         success: true,
         email,
         displayName,
+        handle,
+        username: handle,
         wixMemberId: memberId,
         cuevas: 0,
         loyaltypoints: 0,
@@ -1495,26 +1521,28 @@ export async function post_updateUsername(request) {
     if (!email) {
       return badRequest({ headers, body: { success: false, error: "Missing email" } });
     }
-    const username = sanitizeUsername(body.username || body.displayName || body.handle);
+    const displayName = normalizeDisplayName(body.displayName || body.username, email);
+    const handle = sanitizeHandle(body.handle || body.username, displayName || email);
     const aliases = usernameAliasList(body, email);
 
     let firebaseUpdated = false;
     try {
-      await updateCuevasAppUserDisplayName(email, username);
+      await updateCuevasAppUserDisplayName(email, displayName, { handle, userHandle: handle });
       firebaseUpdated = true;
     } catch (firebaseErr) {
       console.log("[USERNAME] Firebase displayName update warning:", firebaseErr?.message || String(firebaseErr));
     }
 
-    const postsUpdated = await updateCyberneticPostsForUsername(email, username, aliases);
+    const postsUpdated = await updateCyberneticPostsForUsername(email, displayName, aliases);
 
     return ok({
       headers,
       body: {
         success: true,
         build: BUILD_TAG,
-        username,
-        displayName: username,
+        username: handle,
+        handle,
+        displayName,
         postsUpdated,
         firebaseUpdated,
       },

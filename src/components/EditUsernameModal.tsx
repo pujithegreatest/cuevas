@@ -117,18 +117,19 @@ export default function EditUsernameModal({
       )
     );
     let savedHandle = trimmedHandle;
-    if (handleChanged) {
+    if (handleChanged || usernameChanged) {
       if (!userEmail) {
-        setError("You must be signed in to change your handle.");
+        setError("You must be signed in to change your profile.");
         setSaving(false);
         return;
       }
       const result = await updateUsernameOnWix(userEmail, trimmedHandle, {
+        displayName: trimmedUsername,
         previousUsername: currentHandle,
         aliases: previousHandles,
       });
-      if (result.success && result.username) {
-        savedHandle = result.username;
+      if (result.success && (result.handle || result.username)) {
+        savedHandle = result.handle || result.username || trimmedHandle;
       } else {
         setSaving(false);
         setError(result.error || "Could not update handle.");

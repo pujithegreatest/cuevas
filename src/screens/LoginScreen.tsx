@@ -54,7 +54,7 @@ function GoogleAuthButton({
 }: {
   isDarkMode: boolean;
   isLoading: boolean;
-  onLoginSuccess: (email: string, cuevas: number, displayName?: string) => void;
+  onLoginSuccess: (email: string, cuevas: number, displayName?: string, handle?: string) => void;
   onError: (error: string) => void;
 }) {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -150,7 +150,8 @@ function GoogleAuthButton({
         onLoginSuccess(
           echothotResponse.email || userInfo.email,
           echothotResponse.cuevas,
-          echothotResponse.displayName || userInfo.name
+          echothotResponse.displayName || userInfo.name,
+          echothotResponse.handle
         );
       } else {
         onError(echothotResponse.error || "Google login failed. Please try again.");
@@ -203,7 +204,8 @@ function GoogleAuthButton({
         onLoginSuccess(
           cuevasResponse.email || credential.email || `apple:${credential.user}`,
           cuevasResponse.cuevas,
-          cuevasResponse.displayName || displayName
+          cuevasResponse.displayName || displayName,
+          cuevasResponse.handle
         );
       } else {
         onError(cuevasResponse.error || "Apple sign-in failed. Please try again.");
@@ -329,15 +331,24 @@ export default function LoginScreen({ navigation }: Props) {
 
   const login = useAppStore((s) => s.login);
   const setDisplayName = useAppStore((s) => s.setDisplayName);
+  const setUserHandle = useAppStore((s) => s.setUserHandle);
   const setRewardsBalance = useAppStore((s) => s.setRewardsBalance);
   const isDarkMode = useAppStore((s) => s.isDarkMode);
 
-  const handleGoogleLoginSuccess = (userEmail: string, cuevas: number, authDisplayName?: string) => {
+  const handleGoogleLoginSuccess = (
+    userEmail: string,
+    cuevas: number,
+    authDisplayName?: string,
+    authHandle?: string
+  ) => {
+    login(userEmail);
     setRewardsBalance(cuevas);
     if (authDisplayName?.trim()) {
       setDisplayName(authDisplayName.trim());
     }
-    login(userEmail);
+    if (authHandle?.trim()) {
+      setUserHandle(authHandle.trim());
+    }
   };
 
   const handleSubmit = async () => {
@@ -377,11 +388,14 @@ export default function LoginScreen({ navigation }: Props) {
           : await loginToEcothot(normalizedEmail, password);
 
       if (response.success && response.cuevas !== undefined) {
+        login(normalizedEmail);
         setRewardsBalance(response.cuevas);
         if (response.displayName || displayName.trim()) {
           setDisplayName(response.displayName || displayName.trim());
         }
-        login(normalizedEmail);
+        if (response.handle?.trim()) {
+          setUserHandle(response.handle.trim());
+        }
       } else {
         setError(response.error || `${mode === "signup" ? "Sign up" : "Login"} failed. Please try again.`);
       }

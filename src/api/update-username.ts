@@ -4,6 +4,8 @@ const UPDATE_USERNAME_API = "https://www.ecothot.com/_functions/updateUsername";
 export interface UpdateUsernameResponse {
   success: boolean;
   username?: string;
+  displayName?: string;
+  handle?: string;
   error?: string;
   pendingRemote?: boolean;
 }
@@ -12,19 +14,21 @@ export async function updateUsernameOnWix(
   email: string,
   newUsername: string,
   options?: {
+    displayName?: string;
     previousUsername?: string;
     aliases?: string[];
   }
 ): Promise<UpdateUsernameResponse> {
   const trimmed = newUsername.trim();
+  const displayName = options?.displayName?.trim() || trimmed;
   if (!trimmed) {
-    return { success: false, error: "Username cannot be empty." };
+    return { success: false, error: "Handle cannot be empty." };
   }
   if (trimmed.length < 3) {
-    return { success: false, error: "Username must be at least 3 characters." };
+    return { success: false, error: "Handle must be at least 3 characters." };
   }
   if (trimmed.length > 24) {
-    return { success: false, error: "Username must be 24 characters or less." };
+    return { success: false, error: "Handle must be 24 characters or less." };
   }
   if (!/^[A-Za-z0-9_.-]+$/.test(trimmed)) {
     return {
@@ -44,13 +48,15 @@ export async function updateUsernameOnWix(
         clientKey: CUEVAS_CLIENT_KEY,
         email,
         username: trimmed,
+        handle: trimmed,
+        displayName,
         previousUsername: options?.previousUsername,
         aliases: options?.aliases || [],
       }),
     });
 
     if (res.status === 404 || res.status === 405) {
-      return { success: true, username: trimmed, pendingRemote: true };
+      return { success: true, username: trimmed, handle: trimmed, displayName, pendingRemote: true };
     }
 
     const text = await res.text();
@@ -59,7 +65,7 @@ export async function updateUsernameOnWix(
       data = text ? JSON.parse(text) : null;
     } catch {
       if (res.ok) {
-        return { success: true, username: trimmed };
+        return { success: true, username: trimmed, handle: trimmed, displayName };
       }
       return {
         success: false,
@@ -68,11 +74,23 @@ export async function updateUsernameOnWix(
     }
 
     if (res.ok && data?.success) {
-      return { success: true, username: data.username || trimmed };
+      const handle = data.handle || data.username || trimmed;
+      return {
+        success: true,
+        username: data.username || handle,
+        handle,
+        displayName: data.displayName || displayName,
+      };
     }
 
     if (res.ok && data && !data.error) {
-      return { success: true, username: data.username || trimmed };
+      const handle = data.handle || data.username || trimmed;
+      return {
+        success: true,
+        username: data.username || handle,
+        handle,
+        displayName: data.displayName || displayName,
+      };
     }
 
     return {
@@ -83,6 +101,8 @@ export async function updateUsernameOnWix(
     return {
       success: true,
       username: trimmed,
+      handle: trimmed,
+      displayName,
       pendingRemote: true,
       error:
         e instanceof Error && e.message.includes("Network request failed")

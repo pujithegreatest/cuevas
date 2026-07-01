@@ -1,4 +1,6 @@
 // Use the client key directly - it's hardcoded since it's needed for API auth
+import { normalizeHandle } from "../utils/handles";
+
 const CUEVAS_CLIENT_KEY = "ecothot-super-secret-9384fjksd";
 
 interface LoginRequest {
@@ -9,6 +11,7 @@ interface LoginRequest {
 
 interface SignupRequest extends LoginRequest {
   displayName: string;
+  handle?: string;
 }
 
 interface GoogleLoginRequest {
@@ -16,6 +19,7 @@ interface GoogleLoginRequest {
   email: string;
   googleToken: string;
   displayName?: string;
+  handle?: string;
 }
 
 interface AppleLoginRequest {
@@ -24,6 +28,7 @@ interface AppleLoginRequest {
   appleUserId: string;
   appleIdentityToken?: string | null;
   displayName?: string;
+  handle?: string;
 }
 
 interface LoginResponse {
@@ -31,6 +36,7 @@ interface LoginResponse {
   email?: string;
   cuevas?: number;
   displayName?: string;
+  handle?: string;
   error?: string;
 }
 
@@ -125,6 +131,7 @@ export async function loginToEcothot(
         email: data.email || email,
         cuevas: data.cuevas,
         displayName: data.displayName,
+        handle: data.handle || data.username,
       };
     } else {
       return {
@@ -169,6 +176,7 @@ export async function signupToCuevas(
       email,
       password,
       displayName,
+      handle: normalizeHandle(displayName || email),
     };
 
     const response = await fetch("https://www.ecothot.com/_functions/signup", {
@@ -205,6 +213,7 @@ export async function signupToCuevas(
       email: data.email || email,
       cuevas: data.cuevas,
       displayName: data.displayName,
+      handle: data.handle || data.username,
     };
   } catch (error) {
     if (error instanceof Error && error.message.includes("Network request failed")) {
@@ -245,6 +254,7 @@ export async function loginWithGoogle(
       email: email,
       googleToken: googleToken,
       displayName,
+      handle: displayName ? normalizeHandle(displayName) : undefined,
     };
 
     // Use the existing login endpoint since it supports the same logic
@@ -307,6 +317,7 @@ export async function loginWithGoogle(
         email: data.email || email,
         cuevas: data.cuevas,
         displayName: data.displayName,
+        handle: data.handle || data.username,
       };
     } else {
       return {
@@ -351,6 +362,7 @@ export async function loginWithApple(input: {
       appleUserId: input.appleUserId,
       appleIdentityToken: input.appleIdentityToken || null,
       displayName: input.displayName?.trim() || undefined,
+      handle: input.displayName ? normalizeHandle(input.displayName) : undefined,
     };
 
     const response = await fetch("https://www.ecothot.com/_functions/login", {
@@ -387,6 +399,7 @@ export async function loginWithApple(input: {
       email: data.email || input.email || `apple:${input.appleUserId}`,
       cuevas: data.cuevas,
       displayName: data.displayName,
+      handle: data.handle || data.username,
     };
   } catch (error) {
     if (error instanceof Error && error.message.includes("Network request failed")) {
