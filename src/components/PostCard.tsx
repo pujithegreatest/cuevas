@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, Pressable, Image as RNImage, Linking, Modal, Share } from "react-native";
+import { View, Text, Pressable, Image as RNImage, Linking, Modal, Share, Alert } from "react-native";
 import { Ionicons } from "./Ionicons";
 import { Post } from "../types/feed";
 import { completeLinkPreview, enrichLinkPreview, extractUrlsFromText, formatRelativeTime } from "../utils/linkPreview";
 import { useAppStore } from "../state/appStore";
 import { useFeedStore } from "../state/feedStore";
-import { getPrivacyOption, nextPrivacy } from "../utils/privacy";
+import { getPrivacyOption, getUserHandles, nextPrivacy } from "../utils/privacy";
+import { normalizeHandle } from "../utils/handles";
 import ViewShot from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import { Image } from "expo-image";
@@ -29,6 +30,7 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const displayName = useAppStore((s) => s.displayName);
   const handleAliases = useAppStore((s) => s.handleAliases);
   const rewardsBalance = useAppStore((s) => s.rewardsBalance);
+  const reportContent = useAppStore((s) => s.reportContent);
   const updatePostPrivacy = useFeedStore((s) => s.updatePostPrivacy);
   const viewShotRef = useRef<ViewShot>(null);
   const singleVideoRef = useRef<any>(null);
@@ -36,10 +38,11 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const [showComments, setShowComments] = useState(false);
   const [privacyFlash, setPrivacyFlash] = useState<string | null>(null);
 
+  const userHandles = getUserHandles(userEmail, displayName, handleAliases);
+  const normalizedAuthor = normalizeHandle(post.author, "");
   const isOwnPost =
-    (!!displayName && displayName === post.author) ||
-    (!!userEmail && userEmail.split("@")[0] === post.author) ||
-    (handleAliases || []).includes(post.author);
+    userHandles.has(post.author) ||
+    (!!normalizedAuthor && userHandles.has(normalizedAuthor));
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const mediaList = (post.images || []).filter(Boolean);
@@ -122,11 +125,34 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const privacy = getPrivacyOption(post.privacy);
 
   const cyclePostPrivacy = () => {
+    if (!isOwnPost) return;
     const next = nextPrivacy(post.privacy);
     const option = getPrivacyOption(next);
     updatePostPrivacy(post.id, next);
     setPrivacyFlash(option.shortLabel);
     setTimeout(() => setPrivacyFlash(null), 650);
+  };
+
+  const handleReportPost = () => {
+    const target = normalizedAuthor || post.author;
+    Alert.alert(
+      "Report post?",
+      `Report @${target} for review?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Report",
+          style: "destructive",
+          onPress: () =>
+            reportContent({
+              targetHandle: target,
+              contentType: "post",
+              contentId: post.id,
+              reason: "Reported from feed post",
+            }),
+        },
+      ]
+    );
   };
 
   useEffect(() => {
@@ -452,29 +478,31 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
               {formatRelativeTime(post.timestamp)}
             </Text>
           </View>
-          <Pressable
-            onPress={(e) => {
-              e.stopPropagation?.();
-              cyclePostPrivacy();
-            }}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              borderWidth: 1,
-              borderColor: "rgba(6,167,161,0.45)",
-              backgroundColor: isDarkMode ? "rgba(6,167,161,0.14)" : "rgba(6,167,161,0.10)",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            hitSlop={8}
-          >
-            <Ionicons
-              name={privacy.icon}
-              size={18}
-              color={isDarkMode ? "#06A7A1" : "#80171F"}
-            />
-          </Pressable>
+          {isOwnPost && (
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation?.();
+                cyclePostPrivacy();
+              }}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                borderWidth: 1,
+                borderColor: "rgba(6,167,161,0.45)",
+                backgroundColor: isDarkMode ? "rgba(6,167,161,0.14)" : "rgba(6,167,161,0.10)",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              hitSlop={8}
+            >
+              <Ionicons
+                name={privacy.icon}
+                size={18}
+                color={isDarkMode ? "#06A7A1" : "#80171F"}
+              />
+            </Pressable>
+          )}
         </View>
 
         {/* Content */}
@@ -702,6 +730,22 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
               color={isDarkMode ? "#888" : "#666"}
             />
           </Pressable>
+
+          {!isOwnPost && (
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation?.();
+                handleReportPost();
+              }}
+              className="flex-row items-center mr-6"
+            >
+              <Ionicons
+                name="warning-outline"
+                size={20}
+                color={isDarkMode ? "#FACC15" : "#A16207"}
+              />
+            </Pressable>
+          )}
 
           {/* Delete Button (only for own posts) */}
           {isOwnPost && (

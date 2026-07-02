@@ -46,6 +46,12 @@ type Badge = {
   hint: string;
 };
 
+type ResearchSuggestion = {
+  handle: string;
+  name: string;
+  avatar?: string | null;
+};
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function TickerHeadline({ items, isDark }: { items: string[]; isDark: boolean }) {
@@ -215,6 +221,8 @@ export default function ProfileScreen({ navigation }: Props) {
   const friends = useAppStore((s) => s.friends);
   const addFriend = useAppStore((s) => s.addFriend);
   const removeFriend = useAppStore((s) => s.removeFriend);
+  const updateFriendTitle = useAppStore((s) => s.updateFriendTitle);
+  const blockedHandles = useAppStore((s) => s.blockedHandles);
   const businessProfileUnlocked = useAppStore((s) => s.businessProfileUnlocked);
   const unlockBusinessProfile = useAppStore((s) => s.unlockBusinessProfile);
 
@@ -234,6 +242,9 @@ export default function ProfileScreen({ navigation }: Props) {
   const [businessPasswordError, setBusinessPasswordError] = useState<string | null>(null);
   const [networkHandleDraft, setNetworkHandleDraft] = useState("");
   const [networkTagDraft, setNetworkTagDraft] = useState("");
+  const [networkError, setNetworkError] = useState<string | null>(null);
+  const [editingFriendId, setEditingFriendId] = useState<string | null>(null);
+  const [editingFriendTag, setEditingFriendTag] = useState("");
   const [profileRefreshing, setProfileRefreshing] = useState(false);
 
   const openBusinessProfile = () => {
@@ -281,6 +292,54 @@ export default function ProfileScreen({ navigation }: Props) {
     (handleAliases || []).forEach((a) => a && set.add(a));
     return set;
   }, [username, handle, displayName, userEmail, handleAliases]);
+
+  const knownResearchUsers = useMemo<ResearchSuggestion[]>(() => {
+    const map = new Map<string, ResearchSuggestion>();
+    const blocked = new Set((blockedHandles || []).map((item) => normalizeHandle(item, "")));
+    const addKnown = (rawHandle?: string | null, avatar?: string | null) => {
+      const raw = String(rawHandle || "").trim();
+      const normalized = normalizeHandle(raw, "");
+      if (!normalized || blocked.has(normalized)) return;
+      if (ownedHandles.has(raw) || ownedHandles.has(normalized)) return;
+      if (!map.has(normalized)) {
+        map.set(normalized, {
+          handle: normalized,
+          name: displayUsername(raw, null, normalized),
+          avatar,
+        });
+      }
+    };
+
+    posts.forEach((post) => addKnown(post.author, post.authorAvatar || null));
+    stories.forEach((story) => addKnown(story.author, null));
+    (friends || []).forEach((friend) => addKnown(friend.handle, null));
+
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [posts, stories, friends, ownedHandles, blockedHandles]);
+
+  const normalizedNetworkDraft = normalizeHandle(networkHandleDraft, "");
+  const networkSuggestions = useMemo(() => {
+    const query = normalizedNetworkDraft;
+    if (!query) return [];
+    return knownResearchUsers
+      .filter((user) => {
+        return (
+          user.handle.includes(query) ||
+          user.name.toLowerCase().includes(query)
+        );
+      })
+      .slice(0, 6);
+  }, [knownResearchUsers, normalizedNetworkDraft]);
+
+  const selectedNetworkUser = useMemo(
+    () => knownResearchUsers.find((user) => user.handle === normalizedNetworkDraft) || null,
+    [knownResearchUsers, normalizedNetworkDraft]
+  );
+
+  const friendHandleSet = useMemo(
+    () => new Set((friends || []).map((friend) => normalizeHandle(friend.handle, ""))),
+    [friends]
+  );
 
   const myPosts = useMemo(
     () => posts.filter((p) => ownedHandles.has(p.author)),
@@ -1078,14 +1137,18 @@ export default function ProfileScreen({ navigation }: Props) {
           <FlatList
             data={friends || []}
             keyExtractor={(item) => item.id}
+            extraData={{ editingFriendId, editingFriendTag }}
             contentContainerStyle={{ padding: 16 }}
             ListHeaderComponent={(
               <View className={`rounded-2xl border p-4 mb-4 ${statBg} ${statBorder}`}>
                 <Text className={`font-black text-base mb-3 ${textColor}`}>Add Research Contact</Text>
                 <TextInput
                   value={networkHandleDraft}
-                  onChangeText={setNetworkHandleDraft}
-                  placeholder="Search or enter @handle"
+                  onChangeText={(value) => {
+                    setNetworkHandleDraft(value);
+                    setNetworkError(null);
+                  }}
+                  placeholder="Search existing users"
                   placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
                   autoCapitalize="none"
                   style={{
@@ -1099,6 +1162,73 @@ export default function ProfileScreen({ navigation }: Props) {
                     marginBottom: 10,
                   }}
                 />
+                {networkSuggestions.length > 0 ? (
+                  <View style={{ marginBottom: 10 }}>
+                    {networkSuggestions.map((user) => {
+                      const alreadyAdded = friendHandleSet.has(user.handle);
+                      return (
+                        <Pressable
+                          key={user.handle}
+                          onPress={() => {
+                            setNetworkHandleDraft(`@${user.handle}`);
+                            setNetworkError(null);
+                          }}
+                          style={({ pressed }) => ({
+                            flexDirection: "row",
+                            alignItems: "center",
+                            paddingVertical: 8,
+                            paddingHorizontal: 10,
+                            borderRadius: 14,
+                            backgroundColor: pressed
+                              ? "rgba(6,167,161,0.20)"
+                              : "rgba(6,167,161,0.10)",
+                            marginBottom: 6,
+                          })}
+                        >
+                          <View
+                            style={{
+                              width: 30,
+                              height: 30,
+                              borderRadius: 15,
+                              backgroundColor: "#06A7A1",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {user.avatar ? (
+                              <RNImage source={{ uri: user.avatar }} style={{ width: 30, height: 30 }} />
+                            ) : (
+                              <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>
+                                {(user.name[0] || user.handle[0] || "U").toUpperCase()}
+                              </Text>
+                            )}
+                          </View>
+                          <View style={{ marginLeft: 10, flex: 1 }}>
+                            <Text className={`font-bold ${textColor}`}>{user.name}</Text>
+                            <Text className={`text-xs ${subText}`}>@{user.handle}</Text>
+                          </View>
+                          {alreadyAdded && (
+                            <Text style={{ color: "#06A7A1", fontSize: 11, fontWeight: "900" }}>
+                              ADDED
+                            </Text>
+                          )}
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ) : (
+                  normalizedNetworkDraft.length > 0 && (
+                    <Text style={{ color: "#FF6B6B", fontSize: 12, fontWeight: "800", marginBottom: 10 }}>
+                      No existing Cuevas user found. Pick a user that appears in the app.
+                    </Text>
+                  )
+                )}
+                {networkError && (
+                  <Text style={{ color: "#FF6B6B", fontSize: 12, fontWeight: "800", marginBottom: 10 }}>
+                    {networkError}
+                  </Text>
+                )}
                 <TextInput
                   value={networkTagDraft}
                   onChangeText={setNetworkTagDraft}
@@ -1117,15 +1247,18 @@ export default function ProfileScreen({ navigation }: Props) {
                 />
                 <Pressable
                   onPress={() => {
-                    const handle = networkHandleDraft.trim().replace(/^@+/, "");
-                    if (!handle) return;
+                    if (!selectedNetworkUser) {
+                      setNetworkError("Select an existing Cuevas user from the suggestions.");
+                      return;
+                    }
                     addFriend({
-                      id: `lab-${handle.toLowerCase()}`,
-                      handle,
-                      title: networkTagDraft.trim() || "Research Contact",
+                      id: `lab-${selectedNetworkUser.handle}`,
+                      handle: selectedNetworkUser.handle,
+                      title: networkTagDraft.trim() || selectedNetworkUser.name || "Research Contact",
                     });
                     setNetworkHandleDraft("");
                     setNetworkTagDraft("");
+                    setNetworkError(null);
                   }}
                   style={{
                     borderRadius: 18,
@@ -1147,35 +1280,95 @@ export default function ProfileScreen({ navigation }: Props) {
                 Your private research network is empty. Add a handle and custom call tag to start.
               </Text>
             )}
-            renderItem={({ item }) => (
-              <View className={`rounded-2xl border p-4 mb-3 ${statBg} ${statBorder}`}>
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center flex-1">
-                    <View
-                      style={{
-                        width: 42,
-                        height: 42,
-                        borderRadius: 21,
-                        backgroundColor: "#06A7A1",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <Text style={{ color: "#fff", fontWeight: "900" }}>
-                        {item.handle[0]?.toUpperCase() || "N"}
-                      </Text>
+            renderItem={({ item }) => {
+              const isEditing = editingFriendId === item.id;
+              const cleanFriendHandle = normalizeHandle(item.handle, "");
+              return (
+                <View className={`rounded-2xl border p-4 mb-3 ${statBg} ${statBorder}`}>
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-row items-center flex-1">
+                      <View
+                        style={{
+                          width: 42,
+                          height: 42,
+                          borderRadius: 21,
+                          backgroundColor: "#06A7A1",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Text style={{ color: "#fff", fontWeight: "900" }}>
+                          {(cleanFriendHandle[0] || "N").toUpperCase()}
+                        </Text>
+                      </View>
+                      <View className="ml-3 flex-1">
+                        <Text className={`font-bold ${textColor}`}>@{cleanFriendHandle}</Text>
+                        {isEditing ? (
+                          <TextInput
+                            value={editingFriendTag}
+                            onChangeText={setEditingFriendTag}
+                            placeholder="Custom call tag"
+                            placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                            style={{
+                              marginTop: 8,
+                              borderRadius: 12,
+                              borderWidth: 1,
+                              borderColor: "rgba(6,167,161,0.35)",
+                              paddingHorizontal: 10,
+                              paddingVertical: 8,
+                              color: isDarkMode ? "#CFEFEC" : "#1F2937",
+                              fontWeight: "800",
+                            }}
+                          />
+                        ) : (
+                          <Text className={`text-xs mt-1 ${subText}`}>{item.title}</Text>
+                        )}
+                      </View>
                     </View>
-                    <View className="ml-3">
-                      <Text className={`font-bold ${textColor}`}>@{item.handle}</Text>
-                      <Text className={`text-xs mt-1 ${subText}`}>{item.title}</Text>
-                    </View>
+                    {isEditing ? (
+                      <View className="flex-row items-center ml-3">
+                        <Pressable
+                          onPress={() => {
+                            updateFriendTitle(item.id, editingFriendTag);
+                            setEditingFriendId(null);
+                            setEditingFriendTag("");
+                          }}
+                          hitSlop={10}
+                          style={{ marginRight: 12 }}
+                        >
+                          <Ionicons name="checkmark-circle-outline" size={20} color="#06A7A1" />
+                        </Pressable>
+                        <Pressable
+                          onPress={() => {
+                            setEditingFriendId(null);
+                            setEditingFriendTag("");
+                          }}
+                          hitSlop={10}
+                        >
+                          <Ionicons name="close-circle-outline" size={20} color={isDarkMode ? "#9CA3AF" : "#6B7280"} />
+                        </Pressable>
+                      </View>
+                    ) : (
+                      <View className="flex-row items-center ml-3">
+                        <Pressable
+                          onPress={() => {
+                            setEditingFriendId(item.id);
+                            setEditingFriendTag(item.title || "");
+                          }}
+                          hitSlop={10}
+                          style={{ marginRight: 14 }}
+                        >
+                          <Ionicons name="pencil" size={18} color="#06A7A1" />
+                        </Pressable>
+                        <Pressable onPress={() => removeFriend(item.id)} hitSlop={10}>
+                          <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+                        </Pressable>
+                      </View>
+                    )}
                   </View>
-                  <Pressable onPress={() => removeFriend(item.id)} hitSlop={10}>
-                    <Ionicons name="trash-outline" size={18} color="#FF3B30" />
-                  </Pressable>
                 </View>
-              </View>
-            )}
+              );
+            }}
           />
         </View>
       </Modal>

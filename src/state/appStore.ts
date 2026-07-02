@@ -10,6 +10,17 @@ export interface FriendNode {
   title: string;
 }
 
+export type ModerationContentType = "post" | "story" | "profile";
+
+export interface ModerationReport {
+  id: string;
+  targetHandle: string;
+  contentType: ModerationContentType;
+  contentId?: string;
+  reason: string;
+  createdAt: number;
+}
+
 interface AppState {
   isAuthenticated: boolean;
   userEmail: string | null;
@@ -25,6 +36,8 @@ interface AppState {
   rewardsBalance: number;
   defaultPostPrivacy: PrivacyLevel;
   friends: FriendNode[];
+  blockedHandles: string[];
+  reportedItems: ModerationReport[];
 
   isDarkMode: boolean;
   hasThemeOverride: boolean;
@@ -37,6 +50,10 @@ interface AppState {
   setDefaultPostPrivacy: (privacy: PrivacyLevel) => void;
   addFriend: (friend: FriendNode) => void;
   removeFriend: (id: string) => void;
+  updateFriendTitle: (id: string, title: string) => void;
+  blockHandle: (handle: string) => void;
+  unblockHandle: (handle: string) => void;
+  reportContent: (report: Omit<ModerationReport, "id" | "createdAt">) => void;
   setDisplayName: (name: string) => void;
   setUserHandle: (handle: string | null) => void;
   setUserAvatar: (uri: string | null) => void;
@@ -62,6 +79,8 @@ export const useAppStore = create<AppState>()(
       rewardsBalance: 0,
       defaultPostPrivacy: "public",
       friends: [],
+      blockedHandles: [],
+      reportedItems: [],
       isDarkMode: false,
       hasThemeOverride: false,
 
@@ -105,17 +124,77 @@ export const useAppStore = create<AppState>()(
         set({ defaultPostPrivacy: privacy }),
 
       addFriend: (friend: FriendNode) =>
-        set((state) => ({
-          friends: [
-            ...(state.friends || []),
-            friend,
-          ].filter((value, index, list) => list.findIndex((item) => item.id === value.id) === index),
-        })),
+        set((state) => {
+          const normalized = normalizeHandle(friend.handle, "");
+          if (!normalized) return state;
+          const nextFriend: FriendNode = {
+            id: friend.id || `lab-${normalized}`,
+            handle: normalized,
+            title: friend.title?.trim() || "Research Contact",
+          };
+          const withoutExisting = (state.friends || []).filter(
+            (item) =>
+              item.id !== nextFriend.id &&
+              normalizeHandle(item.handle, "") !== normalized
+          );
+          return {
+            friends: [nextFriend, ...withoutExisting],
+          };
+        }),
 
       removeFriend: (id: string) =>
         set((state) => ({
           friends: (state.friends || []).filter((friend) => friend.id !== id),
         })),
+
+      updateFriendTitle: (id: string, title: string) =>
+        set((state) => ({
+          friends: (state.friends || []).map((friend) =>
+            friend.id === id
+              ? { ...friend, title: title.trim() || "Research Contact" }
+              : friend
+          ),
+        })),
+
+      blockHandle: (handle: string) =>
+        set((state) => {
+          const normalized = normalizeHandle(handle, "");
+          if (!normalized) return state;
+          return {
+            blockedHandles: Array.from(
+              new Set([...(state.blockedHandles || []), normalized])
+            ),
+            friends: (state.friends || []).filter(
+              (friend) => normalizeHandle(friend.handle, "") !== normalized
+            ),
+          };
+        }),
+
+      unblockHandle: (handle: string) =>
+        set((state) => {
+          const normalized = normalizeHandle(handle, "");
+          return {
+            blockedHandles: (state.blockedHandles || []).filter(
+              (item) => item !== normalized
+            ),
+          };
+        }),
+
+      reportContent: (report) =>
+        set((state) => {
+          const targetHandle = normalizeHandle(report.targetHandle, "");
+          if (!targetHandle) return state;
+          const nextReport: ModerationReport = {
+            ...report,
+            targetHandle,
+            reason: report.reason?.trim() || "reported",
+            id: `report-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            createdAt: Date.now(),
+          };
+          return {
+            reportedItems: [nextReport, ...(state.reportedItems || [])].slice(0, 100),
+          };
+        }),
 
       setDisplayName: (name: string) =>
         set((state) => {

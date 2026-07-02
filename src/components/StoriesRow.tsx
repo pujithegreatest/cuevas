@@ -6,6 +6,7 @@ import { useAppStore } from "../state/appStore";
 import { useStoryStore, groupStoriesByAuthor } from "../state/storyStore";
 import { Story, StoryGroup } from "../types/story";
 import StoryFilterCanvas from "./StoryFilterCanvas";
+import { normalizeHandle } from "../utils/handles";
 
 interface StoriesRowProps {
   onOpenGroup: (groupIndex: number) => void;
@@ -69,14 +70,20 @@ function StoryThumb({
 export default function StoriesRow({ onOpenGroup, onCreate }: StoriesRowProps) {
   const isDarkMode = useAppStore((s) => s.isDarkMode);
   const userEmail = useAppStore((s) => s.userEmail);
+  const blockedHandles = useAppStore((s) => s.blockedHandles);
   const stories = useStoryStore((s) => s.stories);
   const viewedIds = useStoryStore((s) => s.viewedIds);
 
   const currentUser = userEmail?.split("@")[0] || "anonymous";
 
+  const visibleStories = useMemo(() => {
+    const blocked = new Set((blockedHandles || []).map((item) => normalizeHandle(item, "")));
+    return stories.filter((story) => !blocked.has(normalizeHandle(story.author, "")));
+  }, [stories, blockedHandles]);
+
   const groups: StoryGroup[] = useMemo(
-    () => groupStoriesByAuthor(stories, viewedIds, currentUser),
-    [stories, viewedIds, currentUser]
+    () => groupStoriesByAuthor(visibleStories, viewedIds, currentUser),
+    [visibleStories, viewedIds, currentUser]
   );
 
   const ownGroupIndex = groups.findIndex((g) => g.isOwn);

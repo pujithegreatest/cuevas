@@ -27,6 +27,7 @@ import {
   getUserHandles,
   nextCommentPrivacy,
 } from "../utils/privacy";
+import { normalizeHandle } from "../utils/handles";
 
 interface CommentsModalProps {
   visible: boolean;
@@ -48,6 +49,7 @@ export default function CommentsModal({
   const displayName = useAppStore((s) => s.displayName);
   const handleAliases = useAppStore((s) => s.handleAliases);
   const friends = useAppStore((s) => s.friends);
+  const blockedHandles = useAppStore((s) => s.blockedHandles);
   const rewardsBalance = useAppStore((s) => s.rewardsBalance);
   const isDarkMode = useAppStore((s) => s.isDarkMode);
 
@@ -61,13 +63,16 @@ export default function CommentsModal({
     [userEmail, displayName, handleAliases]
   );
   const visibleComments = useMemo(
-    () =>
-      post
-        ? (post.commentsList || []).filter((comment) =>
-            canViewComment(comment, post, userHandles, friends || [])
-          )
-        : [],
-    [post, userHandles, friends]
+    () => {
+      if (!post) return [];
+      const blocked = new Set((blockedHandles || []).map((item) => normalizeHandle(item, "")));
+      return (post.commentsList || []).filter(
+        (comment) =>
+          !blocked.has(normalizeHandle(comment.author, "")) &&
+          canViewComment(comment, post, userHandles, friends || [])
+      );
+    },
+    [post, userHandles, friends, blockedHandles]
   );
   const displayPreview = completeLinkPreview(post?.linkPreview, post?.content);
   const [enrichedPreview, setEnrichedPreview] = useState(displayPreview);

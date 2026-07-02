@@ -7,6 +7,7 @@ import {
   Dimensions,
   StatusBar,
   Image as RNImage,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as MediaLibrary from "expo-media-library";
@@ -28,6 +29,7 @@ import { StoryTextOverlay } from "../types/story";
 import StoryFilterCanvas from "./StoryFilterCanvas";
 import AnimatedStoryText from "./AnimatedStoryText";
 import { getSongById, resolveSongSourceUri } from "../utils/musicLibrary";
+import { normalizeHandle } from "../utils/handles";
 
 interface StoryViewerModalProps {
   visible: boolean;
@@ -76,6 +78,8 @@ export default function StoryViewerModal({
   onClose,
 }: StoryViewerModalProps) {
   const userEmail = useAppStore((s) => s.userEmail);
+  const blockedHandles = useAppStore((s) => s.blockedHandles);
+  const reportContent = useAppStore((s) => s.reportContent);
   const stories = useStoryStore((s) => s.stories);
   const viewedIds = useStoryStore((s) => s.viewedIds);
   const markViewed = useStoryStore((s) => s.markViewed);
@@ -83,9 +87,14 @@ export default function StoryViewerModal({
 
   const currentUser = userEmail?.split("@")[0] || "anonymous";
 
+  const visibleStories = useMemo(() => {
+    const blocked = new Set((blockedHandles || []).map((item) => normalizeHandle(item, "")));
+    return stories.filter((story) => !blocked.has(normalizeHandle(story.author, "")));
+  }, [stories, blockedHandles]);
+
   const groups = useMemo(
-    () => groupStoriesByAuthor(stories, viewedIds, currentUser),
-    [stories, viewedIds, currentUser]
+    () => groupStoriesByAuthor(visibleStories, viewedIds, currentUser),
+    [visibleStories, viewedIds, currentUser]
   );
 
   const [groupIndex, setGroupIndex] = useState(initialGroupIndex);
@@ -368,6 +377,31 @@ export default function StoryViewerModal({
     } else if (storyIndex >= safeGroup.stories.length - 1) {
       setStoryIndex((i) => Math.max(0, i - 1));
     }
+  };
+
+  const handleReportStory = () => {
+    if (!safeStory || !safeGroup || safeGroup.isOwn) return;
+    const target = normalizeHandle(safeGroup.author, "") || safeGroup.author;
+    Alert.alert(
+      "Report story?",
+      `Report @${target} for review?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Report",
+          style: "destructive",
+          onPress: () => {
+            reportContent({
+              targetHandle: target,
+              contentType: "story",
+              contentId: safeStory.id,
+              reason: "Reported from story viewer",
+            });
+            setSaveStatus("Story reported");
+          },
+        },
+      ]
+    );
   };
 
   const exportMusicTrack = async (): Promise<boolean> => {
@@ -655,6 +689,11 @@ export default function StoryViewerModal({
                 color="white"
               />
             </Pressable>
+            {!safeGroup.isOwn && (
+              <Pressable onPress={handleReportStory} hitSlop={10}>
+                <Ionicons name="warning-outline" size={22} color="#FACC15" />
+              </Pressable>
+            )}
             {safeGroup.isOwn && (
               <Pressable onPress={handleDelete} hitSlop={10}>
                 <Ionicons name="trash-outline" size={22} color="white" />

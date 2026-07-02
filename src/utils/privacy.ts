@@ -94,8 +94,12 @@ export function canViewPost(
   const privacy = normalizePrivacy(post.privacy, "public");
   if (privacy === "public") return true;
   if (userHandles.has(post.author)) return true;
+  const normalizedAuthor = normalizeHandle(post.author, "");
+  if (normalizedAuthor && userHandles.has(normalizedAuthor)) return true;
   if (privacy === "friends") {
-    return friends.some((friend) => friend.handle === post.author);
+    return friends.some(
+      (friend) => normalizeHandle(friend.handle, "") === normalizedAuthor
+    );
   }
   return false;
 }
@@ -112,8 +116,18 @@ export function canViewComment(
   }
   if (privacy === "public") return true;
   if (userHandles.has(comment.author) || userHandles.has(post.author)) return true;
+  const normalizedCommentAuthor = normalizeHandle(comment.author, "");
+  const normalizedPostAuthor = normalizeHandle(post.author, "");
+  if (
+    (normalizedCommentAuthor && userHandles.has(normalizedCommentAuthor)) ||
+    (normalizedPostAuthor && userHandles.has(normalizedPostAuthor))
+  ) {
+    return true;
+  }
   if (privacy === "friends") {
-    return friends.some((friend) => friend.handle === comment.author);
+    return friends.some(
+      (friend) => normalizeHandle(friend.handle, "") === normalizedCommentAuthor
+    );
   }
   return false;
 }

@@ -7,6 +7,7 @@ import {
   FlatList,
   Image as RNImage,
   ScrollView,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -40,11 +41,15 @@ export default function UserProfileModal({
   const displayName = useAppStore((s) => s.displayName);
   const handleAliases = useAppStore((s) => s.handleAliases);
   const friends = useAppStore((s) => s.friends);
+  const addFriend = useAppStore((s) => s.addFriend);
+  const blockHandle = useAppStore((s) => s.blockHandle);
+  const reportContent = useAppStore((s) => s.reportContent);
   const posts = useFeedStore((s) => s.posts);
   const toggleLike = useFeedStore((s) => s.toggleLike);
   const deletePost = useFeedStore((s) => s.deletePost);
   const stories = useStoryStore((s) => s.stories);
   const [completedOpen, setCompletedOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const userHandles = useMemo(
     () => getUserHandles(userEmail, displayName, handleAliases),
@@ -108,6 +113,60 @@ export default function UserProfileModal({
   const border = isDarkMode ? "#374151" : "#e5e7eb";
   const username = displayUsername(handle, null, "User");
   const cleanHandle = normalizeHandle(handle || username);
+  const isOwnProfile = userHandles.has(handle || "") || userHandles.has(cleanHandle);
+  const inNetwork = (friends || []).some(
+    (friend) => normalizeHandle(friend.handle) === cleanHandle
+  );
+
+  const handleReportProfile = () => {
+    setMenuOpen(false);
+    Alert.alert(
+      "Report profile?",
+      `Report @${cleanHandle} for review?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Report",
+          style: "destructive",
+          onPress: () =>
+            reportContent({
+              targetHandle: cleanHandle,
+              contentType: "profile",
+              reason: "Reported from profile",
+            }),
+        },
+      ]
+    );
+  };
+
+  const handleBlockProfile = () => {
+    setMenuOpen(false);
+    Alert.alert(
+      "Block user?",
+      `Block @${cleanHandle}? Their posts and stories will be hidden on this device.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Block",
+          style: "destructive",
+          onPress: () => {
+            blockHandle(cleanHandle);
+            onClose();
+          },
+        },
+      ]
+    );
+  };
+
+  const handleAddToNetwork = () => {
+    setMenuOpen(false);
+    addFriend({
+      id: `lab-${cleanHandle}`,
+      handle: cleanHandle,
+      title: username || "Research Contact",
+    });
+    Alert.alert("Research network", `@${cleanHandle} was added.`);
+  };
 
   return (
     <Modal
@@ -135,8 +194,74 @@ export default function UserProfileModal({
           <Text style={{ color: text, fontWeight: "800", fontSize: 16 }}>
             {username}
           </Text>
-          <View style={{ width: 26 }} />
+          {isOwnProfile ? (
+            <View style={{ width: 26 }} />
+          ) : (
+            <Pressable onPress={() => setMenuOpen((open) => !open)} hitSlop={10}>
+              <Ionicons name="ellipsis-horizontal" size={26} color={text} />
+            </Pressable>
+          )}
         </View>
+
+        {menuOpen && !isOwnProfile && (
+          <View
+            style={{
+              position: "absolute",
+              top: insets.top + 56,
+              right: 16,
+              zIndex: 20,
+              width: 230,
+              borderRadius: 18,
+              borderWidth: 1,
+              borderColor: "rgba(6,167,161,0.35)",
+              backgroundColor: isDarkMode ? "#111827" : "#FFFFFF",
+              shadowColor: "#000",
+              shadowOpacity: 0.22,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 6 },
+              elevation: 8,
+              overflow: "hidden",
+            }}
+          >
+            {[
+              {
+                label: "Report",
+                icon: "warning-outline",
+                color: "#FACC15",
+                onPress: handleReportProfile,
+              },
+              {
+                label: "Block",
+                icon: "ban-outline",
+                color: "#FF3B30",
+                onPress: handleBlockProfile,
+              },
+              {
+                label: inNetwork ? "In Research Network" : "Add to Research Network",
+                icon: "person-add-outline",
+                color: "#06A7A1",
+                onPress: inNetwork ? () => setMenuOpen(false) : handleAddToNetwork,
+              },
+            ].map((item) => (
+              <Pressable
+                key={item.label}
+                onPress={item.onPress}
+                style={({ pressed }) => ({
+                  paddingHorizontal: 14,
+                  paddingVertical: 13,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  opacity: pressed ? 0.72 : 1,
+                })}
+              >
+                <Ionicons name={item.icon} size={18} color={item.color} />
+                <Text style={{ marginLeft: 10, color: text, fontWeight: "800" }}>
+                  {item.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
 
         <FlatList
           data={userPosts}

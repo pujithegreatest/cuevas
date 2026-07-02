@@ -21,6 +21,7 @@ import StoryViewerModal from "../components/StoryViewerModal";
 import UserProfileModal from "../components/UserProfileModal";
 import { useStoryStore } from "../state/storyStore";
 import { canViewPost, getUserHandles } from "../utils/privacy";
+import { normalizeHandle } from "../utils/handles";
 
 type Props = BottomTabScreenProps<MainTabParamList, "Feed">;
 
@@ -42,6 +43,7 @@ export default function FeedScreen({ navigation }: Props) {
   const displayName = useAppStore((s) => s.displayName);
   const handleAliases = useAppStore((s) => s.handleAliases);
   const friends = useAppStore((s) => s.friends);
+  const blockedHandles = useAppStore((s) => s.blockedHandles);
 
   const posts = useFeedStore((s) => s.posts);
   const toggleLike = useFeedStore((s) => s.toggleLike);
@@ -81,8 +83,13 @@ export default function FeedScreen({ navigation }: Props) {
 
   const visiblePosts = useMemo(() => {
     const handles = getUserHandles(userEmail, displayName, handleAliases);
-    return posts.filter((post) => canViewPost(post, handles, friends || []));
-  }, [posts, userEmail, displayName, handleAliases, friends]);
+    const blocked = new Set((blockedHandles || []).map((item) => normalizeHandle(item, "")));
+    return posts.filter(
+      (post) =>
+        !blocked.has(normalizeHandle(post.author, "")) &&
+        canViewPost(post, handles, friends || [])
+    );
+  }, [posts, userEmail, displayName, handleAliases, friends, blockedHandles]);
 
   const renderPost = useCallback(
     ({ item }: { item: (typeof visiblePosts)[number] }) => (

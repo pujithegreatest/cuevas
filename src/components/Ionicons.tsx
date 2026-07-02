@@ -69,6 +69,10 @@ import {
   QrCode,
   Clock,
   Mic,
+  AlertTriangle,
+  Ellipsis,
+  Ban,
+  Flag,
   LucideIcon,
 } from "lucide-react-native";
 
@@ -205,6 +209,15 @@ const map: Record<string, LucideIcon> = {
   "business-outline": Building2,
   "qr-code": QrCode,
   "qr-code-outline": QrCode,
+  "warning-outline": AlertTriangle,
+  warning: AlertTriangle,
+  "alert-triangle-outline": AlertTriangle,
+  "ellipsis-horizontal": Ellipsis,
+  "ellipsis-horizontal-outline": Ellipsis,
+  "ban-outline": Ban,
+  ban: Ban,
+  "flag-outline": Flag,
+  flag: Flag,
 };
 
 const filledNames = new Set(["heart"]);
