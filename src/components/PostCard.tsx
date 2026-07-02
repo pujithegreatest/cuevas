@@ -124,13 +124,20 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const [enrichedLinkPreview, setEnrichedLinkPreview] = useState(displayLinkPreview);
   const privacy = getPrivacyOption(post.privacy);
 
-  const cyclePostPrivacy = () => {
+  const cyclePostPrivacy = async () => {
     if (!isOwnPost) return;
     const next = nextPrivacy(post.privacy);
     const option = getPrivacyOption(next);
-    updatePostPrivacy(post.id, next);
-    setPrivacyFlash(option.shortLabel);
-    setTimeout(() => setPrivacyFlash(null), 650);
+    try {
+      await updatePostPrivacy(post.id, next);
+      setPrivacyFlash(option.shortLabel);
+      setTimeout(() => setPrivacyFlash(null), 650);
+    } catch {
+      Alert.alert(
+        "Privacy not saved",
+        "That privacy change did not reach the server. Pull to refresh and try again."
+      );
+    }
   };
 
   const handleReportPost = () => {

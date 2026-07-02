@@ -25,7 +25,7 @@ interface FeedState {
   ) => Promise<void>;
   toggleLike: (postId: string) => void;
   addComment: (postId: string, comment: Omit<Comment, "id" | "timestamp">) => void;
-  updatePostPrivacy: (postId: string, privacy: PrivacyLevel) => void;
+  updatePostPrivacy: (postId: string, privacy: PrivacyLevel) => Promise<void>;
   updateCommentPrivacy: (postId: string, commentId: string, privacy: CommentPrivacyLevel) => void;
   updateAuthorHandle: (oldHandles: string[], newHandle: string, email?: string | null) => void;
   deletePost: (postId: string) => void;
@@ -532,15 +532,19 @@ export const useFeedStore = create<FeedState>()(
           ),
         })),
 
-      updatePostPrivacy: (postId, privacy) =>
-        {
+      updatePostPrivacy: async (postId, privacy) => {
           const safePrivacy = normalizePrivacyValue(privacy);
+          let previousPrivacy: PrivacyLevel = "public";
           set((state) => ({
-            posts: state.posts.map((post) =>
-              post.id === postId ? { ...post, privacy: safePrivacy } : post
-            ),
+            posts: state.posts.map((post) => {
+              if (post.id !== postId) return post;
+              previousPrivacy = normalizePrivacyValue(post.privacy);
+              return { ...post, privacy: safePrivacy };
+            }),
           }));
-          fetch(POSTS_API, {
+
+          try {
+            const res = await fetch(POSTS_API, {
             method: "PATCH",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({
@@ -550,7 +554,26 @@ export const useFeedStore = create<FeedState>()(
               privacy: safePrivacy,
               PostPrivacy: safePrivacy,
             }),
-          }).catch((e) => console.log("[FEED] updatePostPrivacy remote failed", String(e)));
+            });
+            const text = await res.text();
+            let json: any = null;
+            try {
+              json = text ? JSON.parse(text) : null;
+            } catch {
+              // Keep the response text for the error below.
+            }
+            if (!res.ok || !json?.success) {
+              throw new Error(json?.error || text || `Privacy save failed (${res.status})`);
+            }
+          } catch (e) {
+            set((state) => ({
+              posts: state.posts.map((post) =>
+                post.id === postId ? { ...post, privacy: previousPrivacy } : post
+              ),
+            }));
+            console.log("[FEED] updatePostPrivacy remote failed", String(e));
+            throw e;
+          }
         },
 
       updateCommentPrivacy: (postId, commentId, privacy) =>
