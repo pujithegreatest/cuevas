@@ -57,8 +57,16 @@ function buildPostsUrl(viewer?: FeedViewer) {
   });
   const friendHandles = (viewer.friends || []).map((friend) => friend.handle).filter(Boolean);
   const query = new URLSearchParams();
+  if (viewer.userEmail) query.set("viewerEmail", viewer.userEmail);
   if (handles.size > 0) query.set("viewer", Array.from(handles).join(","));
-  if (friendHandles.length > 0) query.set("friends", friendHandles.join(","));
+  if (friendHandles.length > 0) {
+    const normalizedFriends = new Set<string>();
+    friendHandles.forEach((handle) => {
+      normalizedFriends.add(handle);
+      normalizedFriends.add(normalizeHandle(handle));
+    });
+    query.set("friends", Array.from(normalizedFriends).filter(Boolean).join(","));
+  }
   const qs = query.toString();
   return qs ? `${POSTS_API}?${qs}` : POSTS_API;
 }
