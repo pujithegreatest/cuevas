@@ -28,6 +28,7 @@ import { Ionicons } from "../components/Ionicons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import PostCard from "../components/PostCard";
 import CommentsModal from "../components/CommentsModal";
+import UserProfileModal from "../components/UserProfileModal";
 import EditUsernameModal from "../components/EditUsernameModal";
 import BusinessProfileModal from "../components/BusinessProfileModal";
 import { LinearGradient } from "expo-linear-gradient";
@@ -245,6 +246,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const [networkError, setNetworkError] = useState<string | null>(null);
   const [editingFriendId, setEditingFriendId] = useState<string | null>(null);
   const [editingFriendTag, setEditingFriendTag] = useState("");
+  const [selectedNetworkProfileHandle, setSelectedNetworkProfileHandle] = useState<string | null>(null);
   const [profileRefreshing, setProfileRefreshing] = useState(false);
 
   const openBusinessProfile = () => {
@@ -335,6 +337,15 @@ export default function ProfileScreen({ navigation }: Props) {
     () => knownResearchUsers.find((user) => user.handle === normalizedNetworkDraft) || null,
     [knownResearchUsers, normalizedNetworkDraft]
   );
+
+  const openNetworkProfile = (rawHandle: string) => {
+    const clean = normalizeHandle(rawHandle, "");
+    if (!clean) return;
+    setNetworkOpen(false);
+    setEditingFriendId(null);
+    setEditingFriendTag("");
+    setTimeout(() => setSelectedNetworkProfileHandle(clean), 240);
+  };
 
   const friendHandleSet = useMemo(
     () => new Set((friends || []).map((friend) => normalizeHandle(friend.handle, ""))),
@@ -1284,7 +1295,11 @@ export default function ProfileScreen({ navigation }: Props) {
               const isEditing = editingFriendId === item.id;
               const cleanFriendHandle = normalizeHandle(item.handle, "");
               return (
-                <View className={`rounded-2xl border p-4 mb-3 ${statBg} ${statBorder}`}>
+                <Pressable
+                  onPress={() => openNetworkProfile(cleanFriendHandle)}
+                  className={`rounded-2xl border p-4 mb-3 ${statBg} ${statBorder}`}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.84 : 1 })}
+                >
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center flex-1">
                       <View
@@ -1328,7 +1343,8 @@ export default function ProfileScreen({ navigation }: Props) {
                     {isEditing ? (
                       <View className="flex-row items-center ml-3">
                         <Pressable
-                          onPress={() => {
+                          onPress={(e) => {
+                            e.stopPropagation?.();
                             updateFriendTitle(item.id, editingFriendTag);
                             setEditingFriendId(null);
                             setEditingFriendTag("");
@@ -1339,7 +1355,8 @@ export default function ProfileScreen({ navigation }: Props) {
                           <Ionicons name="checkmark-circle-outline" size={20} color="#06A7A1" />
                         </Pressable>
                         <Pressable
-                          onPress={() => {
+                          onPress={(e) => {
+                            e.stopPropagation?.();
                             setEditingFriendId(null);
                             setEditingFriendTag("");
                           }}
@@ -1351,7 +1368,8 @@ export default function ProfileScreen({ navigation }: Props) {
                     ) : (
                       <View className="flex-row items-center ml-3">
                         <Pressable
-                          onPress={() => {
+                          onPress={(e) => {
+                            e.stopPropagation?.();
                             setEditingFriendId(item.id);
                             setEditingFriendTag(item.title || "");
                           }}
@@ -1360,18 +1378,35 @@ export default function ProfileScreen({ navigation }: Props) {
                         >
                           <Ionicons name="pencil" size={18} color="#06A7A1" />
                         </Pressable>
-                        <Pressable onPress={() => removeFriend(item.id)} hitSlop={10}>
+                        <Pressable
+                          onPress={(e) => {
+                            e.stopPropagation?.();
+                            removeFriend(item.id);
+                          }}
+                          hitSlop={10}
+                        >
                           <Ionicons name="trash-outline" size={18} color="#FF3B30" />
                         </Pressable>
                       </View>
                     )}
                   </View>
-                </View>
+                </Pressable>
               );
             }}
           />
         </View>
       </Modal>
+
+      <UserProfileModal
+        visible={selectedNetworkProfileHandle !== null}
+        handle={selectedNetworkProfileHandle}
+        onClose={() => setSelectedNetworkProfileHandle(null)}
+        onComment={(postId) => {
+          setSelectedNetworkProfileHandle(null);
+          setSelectedPostId(postId);
+        }}
+        onAvatarPress={(h) => setSelectedNetworkProfileHandle(h)}
+      />
 
       <BusinessProfileModal
         visible={businessProfileOpen}

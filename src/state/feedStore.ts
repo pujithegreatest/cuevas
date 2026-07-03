@@ -25,6 +25,10 @@ interface FeedState {
   ) => Promise<void>;
   toggleLike: (postId: string) => void;
   addComment: (postId: string, comment: Omit<Comment, "id" | "timestamp">) => void;
+  updatePostRemote: (
+    postId: string,
+    updates: { content?: string; privacy?: PrivacyLevel; authorEmail?: string | null }
+  ) => Promise<void>;
   updatePostPrivacy: (postId: string, privacy: PrivacyLevel) => Promise<void>;
   updateCommentPrivacy: (postId: string, commentId: string, privacy: CommentPrivacyLevel) => void;
   updateAuthorHandle: (oldHandles: string[], newHandle: string, email?: string | null) => void;
@@ -531,6 +535,100 @@ export const useFeedStore = create<FeedState>()(
               : post
           ),
         })),
+
+      updatePostRemote: async (postId, updates) => {
+        const hasContent = Object.prototype.hasOwnProperty.call(updates, "content");
+        const hasPrivacy = Object.prototype.hasOwnProperty.call(updates, "privacy");
+        const nextContent = hasContent ? String(updates.content || "").trim() : undefined;
+        const nextPrivacy = hasPrivacy ? normalizePrivacyValue(updates.privacy) : undefined;
+        const nextLinkPreview =
+          hasContent && nextContent
+            ? (() => {
+                const firstUrl = extractUrlsFromText(nextContent)[0];
+                return firstUrl ? detectLinkPreview(firstUrl) || undefined : undefined;
+              })()
+            : undefined;
+        let previousPost: Post | null = null;
+
+        set((state) => ({
+          posts: state.posts.map((post) => {
+            if (post.id !== postId) return post;
+            previousPost = post;
+            return {
+              ...post,
+              ...(hasContent ? { content: nextContent || "", linkPreview: nextLinkPreview } : {}),
+              ...(nextPrivacy ? { privacy: nextPrivacy } : {}),
+            };
+          }),
+        }));
+
+        if (!previousPost) {
+          throw new Error("Post not found");
+        }
+
+        const payload: any = {
+          id: postId,
+          _id: postId,
+        };
+        if (updates.authorEmail) {
+          payload.AuthorEmail = updates.authorEmail;
+          payload.authorEmail = updates.authorEmail;
+          payload.viewerEmail = updates.authorEmail;
+        }
+        if (hasContent) {
+          payload["Plain Content"] = nextContent || "";
+          payload.plainContent = nextContent || "";
+          payload.content = nextContent || "";
+          payload.LinkPreview = nextLinkPreview ? JSON.stringify(nextLinkPreview) : null;
+          payload.linkPreview = payload.LinkPreview;
+        }
+        if (nextPrivacy) {
+          payload.Privacy = nextPrivacy;
+          payload.privacy = nextPrivacy;
+          payload.PostPrivacy = nextPrivacy;
+        }
+
+        try {
+          const res = await fetch(POSTS_API, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const text = await res.text();
+          let json: any = null;
+          try {
+            json = text ? JSON.parse(text) : null;
+          } catch {
+            // Keep raw response text for the error below.
+          }
+          if (!res.ok || !json?.success) {
+            throw new Error(json?.error || text || `Post save failed (${res.status})`);
+          }
+          if (json?.post) {
+            const mapped = mapFromBackend(json.post);
+            set((state) => ({
+              posts: state.posts.map((post) =>
+                post.id === postId
+                  ? {
+                      ...post,
+                      content: mapped.content,
+                      privacy: mapped.privacy,
+                      linkPreview: mapped.linkPreview,
+                    }
+                  : post
+              ),
+            }));
+          }
+        } catch (e) {
+          set((state) => ({
+            posts: state.posts.map((post) =>
+              post.id === postId && previousPost ? previousPost : post
+            ),
+          }));
+          console.log("[FEED] updatePostRemote failed", String(e));
+          throw e;
+        }
+      },
 
       updatePostPrivacy: async (postId, privacy) => {
           const safePrivacy = normalizePrivacyValue(privacy);

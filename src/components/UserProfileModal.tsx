@@ -57,15 +57,21 @@ export default function UserProfileModal({
   );
 
   const userPosts = useMemo(
-    () =>
-      handle
-        ? posts.filter((p) => p.author === handle && canViewPost(p, userHandles, friends || []))
-        : [],
+    () => {
+      const clean = normalizeHandle(handle || "", "");
+      if (!clean) return [];
+      return posts.filter(
+        (p) => normalizeHandle(p.author, "") === clean && canViewPost(p, userHandles, friends || [])
+      );
+    },
     [posts, handle, userHandles, friends]
   );
 
   const userStories = useMemo(
-    () => (handle ? stories.filter((s) => s.author === handle) : []),
+    () => {
+      const clean = normalizeHandle(handle || "", "");
+      return clean ? stories.filter((s) => normalizeHandle(s.author, "") === clean) : [];
+    },
     [stories, handle]
   );
 

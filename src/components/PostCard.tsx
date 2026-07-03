@@ -1,11 +1,23 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, Pressable, Image as RNImage, Linking, Modal, Share, Alert } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  Image as RNImage,
+  Linking,
+  Modal,
+  Share,
+  Alert,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { Ionicons } from "./Ionicons";
 import { Post } from "../types/feed";
 import { completeLinkPreview, enrichLinkPreview, extractUrlsFromText, formatRelativeTime } from "../utils/linkPreview";
 import { useAppStore } from "../state/appStore";
 import { useFeedStore } from "../state/feedStore";
-import { getPrivacyOption, getUserHandles, nextPrivacy } from "../utils/privacy";
+import { getPrivacyOption, getUserHandles, nextPrivacy, POST_PRIVACY_OPTIONS } from "../utils/privacy";
 import { normalizeHandle } from "../utils/handles";
 import ViewShot from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
@@ -32,11 +44,16 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const rewardsBalance = useAppStore((s) => s.rewardsBalance);
   const reportContent = useAppStore((s) => s.reportContent);
   const updatePostPrivacy = useFeedStore((s) => s.updatePostPrivacy);
+  const updatePostRemote = useFeedStore((s) => s.updatePostRemote);
   const viewShotRef = useRef<ViewShot>(null);
   const singleVideoRef = useRef<any>(null);
   const gridVideoRefs = useRef<Record<string, any>>({});
   const [showComments, setShowComments] = useState(false);
   const [privacyFlash, setPrivacyFlash] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editContent, setEditContent] = useState(post.content || "");
+  const [editPrivacy, setEditPrivacy] = useState(post.privacy || "public");
+  const [editSaving, setEditSaving] = useState(false);
 
   const userHandles = getUserHandles(userEmail, displayName, handleAliases);
   const normalizedAuthor = normalizeHandle(post.author, "");
@@ -113,6 +130,39 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const confirmDelete = () => {
     setConfirmDeleteOpen(false);
     onDelete(post.id);
+  };
+
+  const openEdit = () => {
+    if (!isOwnPost) return;
+    setEditContent(post.content || "");
+    setEditPrivacy(post.privacy || "public");
+    setEditOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (editSaving) return;
+    const content = editContent.trim();
+    if (!content && mediaList.length === 0 && !post.audio) {
+      Alert.alert("Add text or media", "A post needs text, media, audio, or a link.");
+      return;
+    }
+
+    setEditSaving(true);
+    try {
+      await updatePostRemote(post.id, {
+        content,
+        privacy: editPrivacy,
+        authorEmail: post.authorEmail || userEmail,
+      });
+      setEditOpen(false);
+    } catch {
+      Alert.alert(
+        "Post not saved",
+        "That edit did not reach the server. Pull to refresh and try again."
+      );
+    } finally {
+      setEditSaving(false);
+    }
   };
 
   const [isCapturing, setIsCapturing] = useState(false);
@@ -367,6 +417,200 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
               </Pressable>
             </View>
           </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Edit Post Modal */}
+      <Modal
+        visible={editOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEditOpen(false)}
+      >
+        <Pressable
+          onPress={() => {
+            if (!editSaving) setEditOpen(false);
+          }}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.62)",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 22,
+          }}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            keyboardVerticalOffset={24}
+            style={{ width: "100%", alignItems: "center" }}
+          >
+            <Pressable
+              onPress={() => {}}
+              style={{
+                width: "100%",
+                maxWidth: 420,
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: "rgba(6,167,161,0.42)",
+                backgroundColor: isDarkMode ? "#111827" : "#FFFFFF",
+                padding: 18,
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <View
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 16,
+                      backgroundColor: "rgba(6,167,161,0.16)",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 10,
+                    }}
+                  >
+                    <Ionicons name="create-outline" size={21} color="#06A7A1" />
+                  </View>
+                  <Text
+                    style={{
+                      color: isDarkMode ? "#CFEFEC" : "#1F2937",
+                      fontSize: 18,
+                      fontWeight: "900",
+                    }}
+                  >
+                    Edit Post
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={() => {
+                    if (!editSaving) setEditOpen(false);
+                  }}
+                  hitSlop={10}
+                >
+                  <Ionicons name="close" size={24} color={isDarkMode ? "#CFEFEC" : "#1F2937"} />
+                </Pressable>
+              </View>
+
+              <TextInput
+                value={editContent}
+                onChangeText={setEditContent}
+                placeholder="Update your transmission..."
+                placeholderTextColor={isDarkMode ? "#6B7280" : "#9CA3AF"}
+                multiline
+                textAlignVertical="top"
+                style={{
+                  minHeight: 128,
+                  borderRadius: 18,
+                  borderWidth: 1,
+                  borderColor: "rgba(6,167,161,0.35)",
+                  backgroundColor: isDarkMode ? "#0B1115" : "#F9FAFB",
+                  color: isDarkMode ? "#CFEFEC" : "#111827",
+                  fontWeight: "800",
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  marginTop: 16,
+                }}
+              />
+
+            <View style={{ marginTop: 14 }}>
+              <Text
+                style={{
+                  color: isDarkMode ? "#9CA3AF" : "#6B7280",
+                  fontSize: 11,
+                  fontWeight: "900",
+                  letterSpacing: 1.6,
+                  marginBottom: 8,
+                }}
+              >
+                VISIBILITY
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                {POST_PRIVACY_OPTIONS.map((option) => {
+                  const active = editPrivacy === option.value;
+                  return (
+                    <Pressable
+                      key={option.value}
+                      onPress={() => setEditPrivacy(option.value)}
+                      style={({ pressed }) => ({
+                        minHeight: 40,
+                        borderRadius: 16,
+                        paddingHorizontal: 11,
+                        paddingVertical: 9,
+                        borderWidth: 1,
+                        borderColor: active ? "#06A7A1" : isDarkMode ? "#374151" : "#E5E7EB",
+                        backgroundColor: active
+                          ? "rgba(6,167,161,0.18)"
+                          : isDarkMode
+                          ? "#0B1115"
+                          : "#F3F4F6",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        opacity: pressed ? 0.78 : 1,
+                      })}
+                    >
+                      <Ionicons
+                        name={option.icon}
+                        size={16}
+                        color={active ? "#06A7A1" : isDarkMode ? "#9CA3AF" : "#6B7280"}
+                      />
+                      <Text
+                        style={{
+                          marginLeft: 6,
+                          color: active ? "#06A7A1" : isDarkMode ? "#CFEFEC" : "#1F2937",
+                          fontSize: 12,
+                          fontWeight: "900",
+                        }}
+                      >
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View style={{ flexDirection: "row", gap: 10, marginTop: 18 }}>
+              <Pressable
+                onPress={() => {
+                  if (!editSaving) setEditOpen(false);
+                }}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  minHeight: 48,
+                  borderRadius: 16,
+                  backgroundColor: isDarkMode ? "#0B1115" : "#F3F4F6",
+                  borderWidth: 1,
+                  borderColor: isDarkMode ? "#374151" : "#E5E7EB",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: pressed ? 0.75 : 1,
+                })}
+              >
+                <Text style={{ color: isDarkMode ? "#CFEFEC" : "#1F2937", fontWeight: "900" }}>
+                  Cancel
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={saveEdit}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  minHeight: 48,
+                  borderRadius: 16,
+                  backgroundColor: "#06A7A1",
+                  borderWidth: 2,
+                  borderColor: isDarkMode ? "#39D8D0" : "#057D78",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: pressed || editSaving ? 0.75 : 1,
+                })}
+              >
+                <Text style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontWeight: "900" }}>
+                  {editSaving ? "Saving..." : "Save"}
+                </Text>
+              </Pressable>
+            </View>
+            </Pressable>
+          </KeyboardAvoidingView>
         </Pressable>
       </Modal>
 
@@ -754,9 +998,30 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
             </Pressable>
           )}
 
+          {isOwnPost && (
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation?.();
+                openEdit();
+              }}
+              className="flex-row items-center mr-6"
+            >
+              <Ionicons
+                name="create-outline"
+                size={20}
+                color={isDarkMode ? "#888" : "#666"}
+              />
+            </Pressable>
+          )}
+
           {/* Delete Button (only for own posts) */}
           {isOwnPost && (
-            <Pressable onPress={handleDelete}>
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation?.();
+                handleDelete();
+              }}
+            >
               <Ionicons
                 name="trash-outline"
                 size={20}
@@ -780,6 +1045,8 @@ const PostCard = React.memo(PostCardImpl, (prev, next) => {
   if (prev.post.content !== next.post.content) return false;
   if ((prev.post.images?.length || 0) !== (next.post.images?.length || 0)) return false;
   if (prev.post.audio?.uri !== next.post.audio?.uri) return false;
+  if (prev.post.linkPreview?.url !== next.post.linkPreview?.url) return false;
+  if (prev.post.linkPreview?.title !== next.post.linkPreview?.title) return false;
   if (prev.post.authorAvatar !== next.post.authorAvatar) return false;
   if (prev.post.authorRewardPoints !== next.post.authorRewardPoints) return false;
   if (prev.post.privacy !== next.post.privacy) return false;
