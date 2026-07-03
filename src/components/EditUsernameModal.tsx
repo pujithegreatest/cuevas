@@ -293,7 +293,7 @@ export default function EditUsernameModal({
                     setUsername(t);
                     if (error) setError(null);
                   }}
-                  placeholder="Kevin Lasenberry"
+                  placeholder="cleanenergy"
                   placeholderTextColor={sub}
                   autoCapitalize="words"
                   autoCorrect={false}
