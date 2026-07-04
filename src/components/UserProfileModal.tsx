@@ -19,6 +19,8 @@ import PostCard from "./PostCard";
 import { formatRelativeTime } from "../utils/linkPreview";
 import { canViewPost, getUserHandles } from "../utils/privacy";
 import { displayUsername, normalizeHandle } from "../utils/handles";
+import ReportReasonModal from "./ReportReasonModal";
+import { ReportReason, submitModerationReport } from "../api/moderation-reports";
 
 interface Props {
   visible: boolean;
@@ -50,6 +52,8 @@ export default function UserProfileModal({
   const stories = useStoryStore((s) => s.stories);
   const [completedOpen, setCompletedOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportSubmitting, setReportSubmitting] = useState(false);
 
   const userHandles = useMemo(
     () => getUserHandles(userEmail, displayName, handleAliases),
@@ -126,23 +130,36 @@ export default function UserProfileModal({
 
   const handleReportProfile = () => {
     setMenuOpen(false);
-    Alert.alert(
-      "Report profile?",
-      `Report @${cleanHandle} for review?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Report",
-          style: "destructive",
-          onPress: () =>
-            reportContent({
-              targetHandle: cleanHandle,
-              contentType: "profile",
-              reason: "Reported from profile",
-            }),
-        },
-      ]
-    );
+    setReportOpen(true);
+  };
+
+  const submitProfileReport = async (reason: ReportReason) => {
+    if (!cleanHandle) return;
+    setReportSubmitting(true);
+    const report = {
+      targetHandle: cleanHandle,
+      contentType: "profile" as const,
+      contentId: cleanHandle,
+      reason,
+    };
+    reportContent(report);
+    try {
+      await submitModerationReport({
+        ...report,
+        reporterEmail: userEmail,
+        contentPreview: `${username} @${cleanHandle}`,
+      });
+      setReportOpen(false);
+      Alert.alert("Report sent", `@${cleanHandle} was sent for review.`);
+    } catch (error) {
+      console.log("[REPORT] profile report failed", String((error as any)?.message || error));
+      Alert.alert(
+        "Report saved locally",
+        "The report was saved on this device, but the server did not receive it yet. Try again after refreshing."
+      );
+    } finally {
+      setReportSubmitting(false);
+    }
   };
 
   const handleBlockProfile = () => {
@@ -182,6 +199,17 @@ export default function UserProfileModal({
       onRequestClose={onClose}
     >
       <View style={{ flex: 1, backgroundColor: bg }}>
+        <ReportReasonModal
+          visible={reportOpen}
+          title="Report profile"
+          targetLabel={`Report @${cleanHandle || "user"} for review`}
+          isDarkMode={isDarkMode}
+          submitting={reportSubmitting}
+          onCancel={() => {
+            if (!reportSubmitting) setReportOpen(false);
+          }}
+          onSubmit={submitProfileReport}
+        />
         <View
           style={{
             flexDirection: "row",
@@ -216,7 +244,7 @@ export default function UserProfileModal({
               top: insets.top + 56,
               right: 16,
               zIndex: 20,
-              width: 230,
+              width: 286,
               borderRadius: 18,
               borderWidth: 1,
               borderColor: "rgba(6,167,161,0.35)",
@@ -253,15 +281,27 @@ export default function UserProfileModal({
                 key={item.label}
                 onPress={item.onPress}
                 style={({ pressed }) => ({
-                  paddingHorizontal: 14,
-                  paddingVertical: 13,
+                  minHeight: 54,
+                  paddingHorizontal: 16,
+                  paddingVertical: 10,
                   flexDirection: "row",
                   alignItems: "center",
                   opacity: pressed ? 0.72 : 1,
                 })}
               >
-                <Ionicons name={item.icon} size={18} color={item.color} />
-                <Text style={{ marginLeft: 10, color: text, fontWeight: "800" }}>
+                <View style={{ width: 30, alignItems: "center", justifyContent: "center" }}>
+                  <Ionicons name={item.icon} size={20} color={item.color} />
+                </View>
+                <Text
+                  numberOfLines={2}
+                  style={{
+                    marginLeft: 12,
+                    color: text,
+                    fontWeight: "900",
+                    flex: 1,
+                    lineHeight: 19,
+                  }}
+                >
                   {item.label}
                 </Text>
               </Pressable>
@@ -547,10 +587,12 @@ export default function UserProfileModal({
                       opacity: pressed ? 0.78 : 1,
                       flexDirection: "row",
                       alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
                     })}
                   >
                     <Ionicons name="arrow-back-outline" size={17} color="#FFFFFF" />
-                    <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>
+                    <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>
                       Back to Profile
                     </Text>
                   </Pressable>

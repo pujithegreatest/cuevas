@@ -285,13 +285,22 @@ export default function ProfileScreen({ navigation }: Props) {
   const ownedHandles = useMemo(() => {
     const set = new Set<string>();
     set.add(username);
+    set.add(normalizeHandle(username, ""));
     set.add(handle);
+    set.add(normalizeHandle(handle, ""));
     if (displayName) set.add(displayName);
+    if (displayName) set.add(normalizeHandle(displayName, ""));
     if (userEmail) {
+      set.add(userEmail);
+      set.add(userEmail.toLowerCase());
       set.add(emailLocalPart(userEmail));
       set.add(normalizeHandle(emailLocalPart(userEmail)));
     }
-    (handleAliases || []).forEach((a) => a && set.add(a));
+    (handleAliases || []).forEach((a) => {
+      if (!a) return;
+      set.add(a);
+      set.add(normalizeHandle(a, ""));
+    });
     return set;
   }, [username, handle, displayName, userEmail, handleAliases]);
 
@@ -353,12 +362,17 @@ export default function ProfileScreen({ navigation }: Props) {
   );
 
   const myPosts = useMemo(
-    () => posts.filter((p) => ownedHandles.has(p.author)),
-    [posts, ownedHandles]
+    () =>
+      posts.filter((p) => {
+        if (p.authorEmail && userEmail && p.authorEmail.toLowerCase() === userEmail.toLowerCase()) return true;
+        return ownedHandles.has(p.author) || ownedHandles.has(normalizeHandle(p.author, ""));
+      }),
+    [posts, ownedHandles, userEmail]
   );
 
   const myStories = useMemo(
-    () => stories.filter((s) => ownedHandles.has(s.author)),
+    () =>
+      stories.filter((s) => ownedHandles.has(s.author) || ownedHandles.has(normalizeHandle(s.author, ""))),
     [stories, ownedHandles]
   );
 
@@ -1187,20 +1201,20 @@ export default function ProfileScreen({ navigation }: Props) {
                           style={({ pressed }) => ({
                             flexDirection: "row",
                             alignItems: "center",
-                            paddingVertical: 8,
-                            paddingHorizontal: 10,
-                            borderRadius: 14,
+                            paddingVertical: 10,
+                            paddingHorizontal: 12,
+                            borderRadius: 16,
                             backgroundColor: pressed
                               ? "rgba(6,167,161,0.20)"
                               : "rgba(6,167,161,0.10)",
-                            marginBottom: 6,
+                            marginBottom: 8,
                           })}
                         >
                           <View
                             style={{
-                              width: 30,
-                              height: 30,
-                              borderRadius: 15,
+                              width: 38,
+                              height: 38,
+                              borderRadius: 19,
                               backgroundColor: "#06A7A1",
                               alignItems: "center",
                               justifyContent: "center",
@@ -1208,19 +1222,39 @@ export default function ProfileScreen({ navigation }: Props) {
                             }}
                           >
                             {user.avatar ? (
-                              <RNImage source={{ uri: user.avatar }} style={{ width: 30, height: 30 }} />
+                              <RNImage source={{ uri: user.avatar }} style={{ width: 38, height: 38 }} />
                             ) : (
-                              <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>
+                              <Text style={{ color: "#FFFFFF", fontWeight: "900", fontSize: 15 }}>
                                 {(user.name[0] || user.handle[0] || "U").toUpperCase()}
                               </Text>
                             )}
                           </View>
-                          <View style={{ marginLeft: 10, flex: 1 }}>
-                            <Text className={`font-bold ${textColor}`}>{user.name}</Text>
-                            <Text className={`text-xs ${subText}`}>@{user.handle}</Text>
+                          <View style={{ marginLeft: 12, flex: 1, justifyContent: "center" }}>
+                            <Text
+                              numberOfLines={1}
+                              style={{
+                                color: isDarkMode ? "#CFEFEC" : "#1F2937",
+                                fontWeight: "900",
+                                fontSize: 15,
+                                lineHeight: 19,
+                              }}
+                            >
+                              {user.name}
+                            </Text>
+                            <Text
+                              numberOfLines={1}
+                              style={{
+                                color: isDarkMode ? "#9CA3AF" : "#6B7280",
+                                fontSize: 12,
+                                fontWeight: "700",
+                                lineHeight: 16,
+                              }}
+                            >
+                              @{user.handle}
+                            </Text>
                           </View>
                           {alreadyAdded && (
-                            <Text style={{ color: "#06A7A1", fontSize: 11, fontWeight: "900" }}>
+                            <Text style={{ color: "#06A7A1", fontSize: 11, fontWeight: "900", marginLeft: 8 }}>
                               ADDED
                             </Text>
                           )}
@@ -1586,10 +1620,12 @@ export default function ProfileScreen({ navigation }: Props) {
                     opacity: pressed ? 0.78 : 1,
                     flexDirection: "row",
                     alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
                   })}
                 >
                   <Ionicons name="arrow-back-outline" size={17} color={isDarkMode ? "#FFFFFF" : "#10252B"} />
-                  <Text style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontWeight: "900", marginLeft: 8 }}>
+                  <Text style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontWeight: "900" }}>
                     Back to Profile
                   </Text>
                 </Pressable>

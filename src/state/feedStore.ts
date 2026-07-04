@@ -13,6 +13,7 @@ const UPLOAD_FINALIZE_API = "https://www.ecothot.com/_functions/uploadMediaFinal
 interface FeedViewer {
   userEmail?: string | null;
   displayName?: string | null;
+  userHandle?: string | null;
   handleAliases?: string[];
   friends?: { handle: string }[];
 }
@@ -29,7 +30,7 @@ interface FeedState {
     postId: string,
     updates: { content?: string; privacy?: PrivacyLevel; authorEmail?: string | null }
   ) => Promise<void>;
-  updatePostPrivacy: (postId: string, privacy: PrivacyLevel) => Promise<void>;
+  updatePostPrivacy: (postId: string, privacy: PrivacyLevel, authorEmail?: string | null) => Promise<void>;
   updateCommentPrivacy: (postId: string, commentId: string, privacy: CommentPrivacyLevel) => void;
   updateAuthorHandle: (oldHandles: string[], newHandle: string, email?: string | null) => void;
   deletePost: (postId: string) => void;
@@ -50,7 +51,13 @@ function buildPostsUrl(viewer?: FeedViewer) {
   const handles = new Set<string>();
   if (viewer.displayName) handles.add(viewer.displayName);
   if (viewer.displayName) handles.add(normalizeHandle(viewer.displayName));
+  if (viewer.userHandle) {
+    handles.add(viewer.userHandle);
+    handles.add(normalizeHandle(viewer.userHandle));
+  }
   if (viewer.userEmail) {
+    handles.add(viewer.userEmail);
+    handles.add(viewer.userEmail.toLowerCase());
     handles.add(viewer.userEmail.split("@")[0]);
     handles.add(normalizeHandle(viewer.userEmail.split("@")[0]));
   }
@@ -630,7 +637,7 @@ export const useFeedStore = create<FeedState>()(
         }
       },
 
-      updatePostPrivacy: async (postId, privacy) => {
+      updatePostPrivacy: async (postId, privacy, authorEmail) => {
           const safePrivacy = normalizePrivacyValue(privacy);
           let previousPrivacy: PrivacyLevel = "public";
           set((state) => ({
@@ -648,6 +655,7 @@ export const useFeedStore = create<FeedState>()(
             body: JSON.stringify({
               id: postId,
               _id: postId,
+              ...(authorEmail ? { AuthorEmail: authorEmail, authorEmail, viewerEmail: authorEmail } : {}),
               Privacy: safePrivacy,
               privacy: safePrivacy,
               PostPrivacy: safePrivacy,
@@ -692,6 +700,7 @@ export const useFeedStore = create<FeedState>()(
         const aliases = new Set((oldHandles || []).map(normalizeHandle).filter(Boolean));
         const normalizedEmail = normalizeHandle(email);
         if (!newHandle.trim() || (aliases.size === 0 && !normalizedEmail)) return;
+        const safeNewHandle = newHandle.trim();
 
         set((state) => ({
           posts: state.posts.map((post) => {
@@ -702,12 +711,12 @@ export const useFeedStore = create<FeedState>()(
               const commentMatches =
                 (normalizedEmail && normalizeHandle(comment.authorEmail) === normalizedEmail) ||
                 aliases.has(normalizeHandle(comment.author));
-              return commentMatches ? { ...comment, author: newHandle, authorEmail: email || comment.authorEmail } : comment;
+              return commentMatches ? { ...comment, author: safeNewHandle, authorEmail: email || comment.authorEmail } : comment;
             });
 
             return {
               ...post,
-              author: postMatches ? newHandle : post.author,
+              author: postMatches ? safeNewHandle : post.author,
               authorEmail: postMatches && email ? email : post.authorEmail,
               commentsList,
             };

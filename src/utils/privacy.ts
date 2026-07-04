@@ -74,6 +74,8 @@ export function getUserHandles(
     handles.add(normalizeHandle(displayName));
   }
   if (userEmail) {
+    handles.add(userEmail);
+    handles.add(userEmail.toLowerCase());
     const local = userEmail.split("@")[0];
     handles.add(local);
     handles.add(normalizeHandle(local));
@@ -93,6 +95,10 @@ export function canViewPost(
 ): boolean {
   const privacy = normalizePrivacy(post.privacy, "public");
   if (privacy === "public") return true;
+  if (post.authorEmail) {
+    const postEmail = post.authorEmail.toLowerCase();
+    if (userHandles.has(post.authorEmail) || userHandles.has(postEmail)) return true;
+  }
   if (userHandles.has(post.author)) return true;
   const normalizedAuthor = normalizeHandle(post.author, "");
   if (normalizedAuthor && userHandles.has(normalizedAuthor)) return true;
@@ -112,9 +118,16 @@ export function canViewComment(
 ): boolean {
   const privacy = normalizeCommentPrivacy(comment.privacy, "public");
   if (privacy === "poster") {
-    return userHandles.has(post.author) || userHandles.has(comment.author);
+    return (
+      userHandles.has(post.author) ||
+      userHandles.has(comment.author) ||
+      (!!post.authorEmail && userHandles.has(post.authorEmail.toLowerCase())) ||
+      (!!comment.authorEmail && userHandles.has(comment.authorEmail.toLowerCase()))
+    );
   }
   if (privacy === "public") return true;
+  if (post.authorEmail && userHandles.has(post.authorEmail.toLowerCase())) return true;
+  if (comment.authorEmail && userHandles.has(comment.authorEmail.toLowerCase())) return true;
   if (userHandles.has(comment.author) || userHandles.has(post.author)) return true;
   const normalizedCommentAuthor = normalizeHandle(comment.author, "");
   const normalizedPostAuthor = normalizeHandle(post.author, "");

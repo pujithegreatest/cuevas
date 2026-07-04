@@ -73,6 +73,7 @@ import {
   Ellipsis,
   Ban,
   Flag,
+  Circle,
   LucideIcon,
 } from "lucide-react-native";
 
@@ -184,6 +185,8 @@ const map: Record<string, LucideIcon> = {
   "sync-outline": SwitchCamera,
   "radio-button-on": Target,
   "radio-button-on-outline": Target,
+  "radio-button-off": Circle,
+  "radio-button-off-outline": Circle,
   locate: Target,
   "locate-outline": Target,
   "location-outline": MapPin,

@@ -111,12 +111,21 @@ export default function EditUsernameModal({
     const usernameChanged = trimmedUsername !== currentUsername;
     const previousHandles = Array.from(
       new Set(
-        [currentHandle, currentUsername, ...(handleAliases || []), userEmail?.split("@")[0]].filter(
+        [
+          currentHandle,
+          normalizeHandle(currentHandle, ""),
+          currentUsername,
+          normalizeHandle(currentUsername, ""),
+          ...(handleAliases || []),
+          userEmail,
+          userEmail?.split("@")[0],
+        ].filter(
           (value): value is string => !!value
         )
       )
     );
     let savedHandle = trimmedHandle;
+    let savedUsername = trimmedUsername;
     if (handleChanged || usernameChanged) {
       if (!userEmail) {
         setError("You must be signed in to change your profile.");
@@ -130,16 +139,17 @@ export default function EditUsernameModal({
       });
       if (result.success && (result.handle || result.username)) {
         savedHandle = result.handle || result.username || trimmedHandle;
+        savedUsername = result.displayName || trimmedUsername;
       } else {
         setSaving(false);
         setError(result.error || "Could not update handle.");
         return;
       }
     }
-    setDisplayName(trimmedUsername);
+    setDisplayName(savedUsername);
     setUserHandle(savedHandle);
     if (handleChanged || usernameChanged) {
-      updateAuthorHandle(previousHandles, trimmedUsername, userEmail);
+      updateAuthorHandle(previousHandles, savedUsername, userEmail);
     }
     setSaving(false);
     setSuccess(true);

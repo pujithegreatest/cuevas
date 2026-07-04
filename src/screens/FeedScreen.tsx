@@ -41,6 +41,7 @@ export default function FeedScreen({ navigation }: Props) {
   const logout = useAppStore((s) => s.logout);
   const userEmail = useAppStore((s) => s.userEmail);
   const displayName = useAppStore((s) => s.displayName);
+  const userHandle = useAppStore((s) => s.userHandle);
   const handleAliases = useAppStore((s) => s.handleAliases);
   const friends = useAppStore((s) => s.friends);
   const blockedHandles = useAppStore((s) => s.blockedHandles);
@@ -51,8 +52,8 @@ export default function FeedScreen({ navigation }: Props) {
   const fetchPosts = useFeedStore((s) => s.fetchPosts);
   const pruneExpiredStories = useStoryStore((s) => s.pruneExpired);
   const feedViewer = useMemo(
-    () => ({ userEmail, displayName, handleAliases, friends }),
-    [userEmail, displayName, handleAliases, friends]
+    () => ({ userEmail, displayName, userHandle, handleAliases, friends }),
+    [userEmail, displayName, userHandle, handleAliases, friends]
   );
 
   const handleRefresh = async () => {
@@ -82,14 +83,14 @@ export default function FeedScreen({ navigation }: Props) {
   }, []);
 
   const visiblePosts = useMemo(() => {
-    const handles = getUserHandles(userEmail, displayName, handleAliases);
+    const handles = getUserHandles(userEmail, displayName, [userHandle || "", ...(handleAliases || [])]);
     const blocked = new Set((blockedHandles || []).map((item) => normalizeHandle(item, "")));
     return posts.filter(
       (post) =>
         !blocked.has(normalizeHandle(post.author, "")) &&
         canViewPost(post, handles, friends || [])
     );
-  }, [posts, userEmail, displayName, handleAliases, friends, blockedHandles]);
+  }, [posts, userEmail, displayName, userHandle, handleAliases, friends, blockedHandles]);
 
   const renderPost = useCallback(
     ({ item }: { item: (typeof visiblePosts)[number] }) => (

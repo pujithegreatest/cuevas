@@ -27,6 +27,8 @@ import { sharePngUriToInstagramStory } from "../utils/instagramStories";
 import ImageViewerModal from "./ImageViewerModal";
 import PostShareableCard from "./PostShareableCard";
 import PostAudioPlayer from "./PostAudioPlayer";
+import ReportReasonModal from "./ReportReasonModal";
+import { submitModerationReport, ReportReason } from "../api/moderation-reports";
 
 interface PostCardProps {
   post: Post;
@@ -54,6 +56,8 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const [editContent, setEditContent] = useState(post.content || "");
   const [editPrivacy, setEditPrivacy] = useState(post.privacy || "public");
   const [editSaving, setEditSaving] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportSubmitting, setReportSubmitting] = useState(false);
 
   const userHandles = getUserHandles(userEmail, displayName, handleAliases);
   const normalizedAuthor = normalizeHandle(post.author, "");
@@ -179,7 +183,7 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
     const next = nextPrivacy(post.privacy);
     const option = getPrivacyOption(next);
     try {
-      await updatePostPrivacy(post.id, next);
+      await updatePostPrivacy(post.id, next, post.authorEmail || userEmail);
       setPrivacyFlash(option.shortLabel);
       setTimeout(() => setPrivacyFlash(null), 650);
     } catch {
@@ -191,25 +195,39 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   };
 
   const handleReportPost = () => {
+    if (reportSubmitting) return;
+    setReportOpen(true);
+  };
+
+  const submitPostReport = async (reason: ReportReason) => {
     const target = normalizedAuthor || post.author;
-    Alert.alert(
-      "Report post?",
-      `Report @${target} for review?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Report",
-          style: "destructive",
-          onPress: () =>
-            reportContent({
-              targetHandle: target,
-              contentType: "post",
-              contentId: post.id,
-              reason: "Reported from feed post",
-            }),
-        },
-      ]
-    );
+    if (!target) return;
+    setReportSubmitting(true);
+    const report = {
+      targetHandle: target,
+      contentType: "post" as const,
+      contentId: post.id,
+      reason,
+    };
+    reportContent(report);
+    try {
+      await submitModerationReport({
+        ...report,
+        reporterEmail: userEmail,
+        contentPreview: post.content || displayLinkPreview?.url || mediaList[0] || "",
+      });
+      setReportOpen(false);
+      setPrivacyFlash("Reported");
+      setTimeout(() => setPrivacyFlash(null), 900);
+    } catch (error) {
+      console.log("[REPORT] post report failed", String((error as any)?.message || error));
+      Alert.alert(
+        "Report saved locally",
+        "The report was saved on this device, but the server did not receive it yet. Try again after refreshing."
+      );
+    } finally {
+      setReportSubmitting(false);
+    }
   };
 
   useEffect(() => {
@@ -320,6 +338,18 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
         visible={viewerUri !== null}
         imageUri={viewerUri}
         onClose={() => setViewerUri(null)}
+      />
+
+      <ReportReasonModal
+        visible={reportOpen}
+        title="Report post"
+        targetLabel={`Report @${normalizedAuthor || post.author || "user"} for review`}
+        isDarkMode={isDarkMode}
+        submitting={reportSubmitting}
+        onCancel={() => {
+          if (!reportSubmitting) setReportOpen(false);
+        }}
+        onSubmit={submitPostReport}
       />
 
       {/* Delete Confirm Modal */}
@@ -524,7 +554,7 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
               >
                 VISIBILITY
               </Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              <View style={{ flexDirection: "row", gap: 8 }}>
                 {POST_PRIVACY_OPTIONS.map((option) => {
                   const active = editPrivacy === option.value;
                   return (
@@ -532,10 +562,11 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
                       key={option.value}
                       onPress={() => setEditPrivacy(option.value)}
                       style={({ pressed }) => ({
-                        minHeight: 40,
-                        borderRadius: 16,
-                        paddingHorizontal: 11,
-                        paddingVertical: 9,
+                        flex: 1,
+                        minHeight: 66,
+                        borderRadius: 15,
+                        paddingHorizontal: 4,
+                        paddingVertical: 8,
                         borderWidth: 1,
                         borderColor: active ? "#06A7A1" : isDarkMode ? "#374151" : "#E5E7EB",
                         backgroundColor: active
@@ -543,22 +574,26 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
                           : isDarkMode
                           ? "#0B1115"
                           : "#F3F4F6",
-                        flexDirection: "row",
+                        flexDirection: "column",
                         alignItems: "center",
+                        justifyContent: "center",
                         opacity: pressed ? 0.78 : 1,
                       })}
                     >
                       <Ionicons
                         name={option.icon}
-                        size={16}
+                        size={18}
                         color={active ? "#06A7A1" : isDarkMode ? "#9CA3AF" : "#6B7280"}
                       />
                       <Text
+                        numberOfLines={2}
                         style={{
-                          marginLeft: 6,
+                          marginTop: 5,
                           color: active ? "#06A7A1" : isDarkMode ? "#CFEFEC" : "#1F2937",
-                          fontSize: 12,
+                          fontSize: 10,
                           fontWeight: "900",
+                          lineHeight: 12,
+                          textAlign: "center",
                         }}
                       >
                         {option.label}

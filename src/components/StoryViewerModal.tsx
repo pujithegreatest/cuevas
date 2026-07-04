@@ -7,7 +7,6 @@ import {
   Dimensions,
   StatusBar,
   Image as RNImage,
-  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as MediaLibrary from "expo-media-library";
@@ -30,6 +29,8 @@ import StoryFilterCanvas from "./StoryFilterCanvas";
 import AnimatedStoryText from "./AnimatedStoryText";
 import { getSongById, resolveSongSourceUri } from "../utils/musicLibrary";
 import { normalizeHandle } from "../utils/handles";
+import ReportReasonModal from "./ReportReasonModal";
+import { ReportReason, submitModerationReport } from "../api/moderation-reports";
 
 interface StoryViewerModalProps {
   visible: boolean;
@@ -101,6 +102,8 @@ export default function StoryViewerModal({
   const [storyIndex, setStoryIndex] = useState(0);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [isSavingShot, setIsSavingShot] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportSubmitting, setReportSubmitting] = useState(false);
   const progress = useSharedValue(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const captureWrapRef = useRef<View>(null);
@@ -381,27 +384,34 @@ export default function StoryViewerModal({
 
   const handleReportStory = () => {
     if (!safeStory || !safeGroup || safeGroup.isOwn) return;
+    setReportOpen(true);
+  };
+
+  const submitStoryReport = async (reason: ReportReason) => {
+    if (!safeStory || !safeGroup || safeGroup.isOwn) return;
     const target = normalizeHandle(safeGroup.author, "") || safeGroup.author;
-    Alert.alert(
-      "Report story?",
-      `Report @${target} for review?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Report",
-          style: "destructive",
-          onPress: () => {
-            reportContent({
-              targetHandle: target,
-              contentType: "story",
-              contentId: safeStory.id,
-              reason: "Reported from story viewer",
-            });
-            setSaveStatus("Story reported");
-          },
-        },
-      ]
-    );
+    setReportSubmitting(true);
+    const report = {
+      targetHandle: target,
+      contentType: "story" as const,
+      contentId: safeStory.id,
+      reason,
+    };
+    reportContent(report);
+    try {
+      await submitModerationReport({
+        ...report,
+        reporterEmail: userEmail,
+        contentPreview: safeStory.textOverlays?.[0]?.text || safeStory.imageUri || "",
+      });
+      setReportOpen(false);
+      setSaveStatus("Story reported");
+    } catch (error) {
+      console.log("[REPORT] story report failed", String((error as any)?.message || error));
+      setSaveStatus("Report saved locally. Server retry needed.");
+    } finally {
+      setReportSubmitting(false);
+    }
   };
 
   const exportMusicTrack = async (): Promise<boolean> => {
@@ -511,6 +521,17 @@ export default function StoryViewerModal({
       statusBarTranslucent
     >
       <StatusBar hidden />
+      <ReportReasonModal
+        visible={reportOpen}
+        title="Report story"
+        targetLabel={`Report @${normalizeHandle(safeGroup.author, "") || safeGroup.author || "user"} for review`}
+        isDarkMode
+        submitting={reportSubmitting}
+        onCancel={() => {
+          if (!reportSubmitting) setReportOpen(false);
+        }}
+        onSubmit={submitStoryReport}
+      />
       <View style={{ flex: 1, backgroundColor: "#000" }}>
         {/* Capture wrapper — view-shot captures only this subtree */}
         <View
