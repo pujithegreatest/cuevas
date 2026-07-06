@@ -28,6 +28,7 @@ import ImageViewerModal from "./ImageViewerModal";
 import PostShareableCard from "./PostShareableCard";
 import PostAudioPlayer from "./PostAudioPlayer";
 import ReportReasonModal from "./ReportReasonModal";
+import MissionShareCard from "./MissionShareCard";
 import { submitModerationReport, ReportReason } from "../api/moderation-reports";
 
 interface PostCardProps {
@@ -61,7 +62,10 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
 
   const userHandles = getUserHandles(userEmail, displayName, handleAliases);
   const normalizedAuthor = normalizeHandle(post.author, "");
+  const normalizedUserEmail = String(userEmail || "").toLowerCase().trim();
+  const normalizedAuthorEmail = String(post.authorEmail || "").toLowerCase().trim();
   const isOwnPost =
+    (!!normalizedUserEmail && !!normalizedAuthorEmail && normalizedUserEmail === normalizedAuthorEmail) ||
     userHandles.has(post.author) ||
     (!!normalizedAuthor && userHandles.has(normalizedAuthor));
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -554,7 +558,7 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
               >
                 VISIBILITY
               </Text>
-              <View style={{ flexDirection: "row", gap: 8 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                 {POST_PRIVACY_OPTIONS.map((option) => {
                   const active = editPrivacy === option.value;
                   return (
@@ -562,10 +566,10 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
                       key={option.value}
                       onPress={() => setEditPrivacy(option.value)}
                       style={({ pressed }) => ({
-                        flex: 1,
-                        minHeight: 66,
+                        width: "24%",
+                        minHeight: 76,
                         borderRadius: 15,
-                        paddingHorizontal: 4,
+                        paddingHorizontal: 3,
                         paddingVertical: 8,
                         borderWidth: 1,
                         borderColor: active ? "#06A7A1" : isDarkMode ? "#374151" : "#E5E7EB",
@@ -580,17 +584,21 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
                         opacity: pressed ? 0.78 : 1,
                       })}
                     >
-                      <Ionicons
-                        name={option.icon}
-                        size={18}
-                        color={active ? "#06A7A1" : isDarkMode ? "#9CA3AF" : "#6B7280"}
-                      />
+                      <View style={{ height: 24, width: "100%", alignItems: "center", justifyContent: "center" }}>
+                        <Ionicons
+                          name={option.icon}
+                          size={19}
+                          color={active ? "#06A7A1" : isDarkMode ? "#9CA3AF" : "#6B7280"}
+                        />
+                      </View>
                       <Text
                         numberOfLines={2}
                         style={{
-                          marginTop: 5,
+                          width: "100%",
+                          minHeight: 26,
+                          marginTop: 6,
                           color: active ? "#06A7A1" : isDarkMode ? "#CFEFEC" : "#1F2937",
-                          fontSize: 10,
+                          fontSize: option.label.length > 12 ? 9 : 10,
                           fontWeight: "900",
                           lineHeight: 12,
                           textAlign: "center",
@@ -793,6 +801,10 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
 
         {/* Content */}
         {renderContent()}
+
+        {post.missionShare ? (
+          <MissionShareCard mission={post.missionShare} isDarkMode={isDarkMode} compact />
+        ) : null}
 
         {/* Media (images or videos) */}
         {mediaList.length > 0 && (

@@ -74,7 +74,7 @@ export default function ReportReasonModal({
             </View>
           </View>
 
-          <View style={{ gap: 8 }}>
+          <View>
             {REPORT_REASONS.map((reason) => {
               const active = selected === reason;
               return (
@@ -90,6 +90,7 @@ export default function ReportReasonModal({
                     paddingHorizontal: 12,
                     flexDirection: "row",
                     alignItems: "center",
+                    marginBottom: 8,
                     opacity: pressed ? 0.76 : 1,
                   })}
                 >
@@ -106,12 +107,13 @@ export default function ReportReasonModal({
             })}
           </View>
 
-          <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
+          <View style={{ flexDirection: "row", marginTop: 16 }}>
             <Pressable
               onPress={onCancel}
               disabled={submitting}
               style={({ pressed }) => ({
                 flex: 1,
+                marginRight: 5,
                 minHeight: 48,
                 borderRadius: 16,
                 backgroundColor: rowBg,
@@ -129,6 +131,7 @@ export default function ReportReasonModal({
               disabled={submitting}
               style={({ pressed }) => ({
                 flex: 1,
+                marginLeft: 5,
                 minHeight: 48,
                 borderRadius: 16,
                 backgroundColor: "#FACC15",

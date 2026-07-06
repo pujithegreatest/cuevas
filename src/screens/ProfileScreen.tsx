@@ -1199,6 +1199,7 @@ export default function ProfileScreen({ navigation }: Props) {
                             setNetworkError(null);
                           }}
                           style={({ pressed }) => ({
+                            minHeight: 62,
                             flexDirection: "row",
                             alignItems: "center",
                             paddingVertical: 10,
@@ -1229,7 +1230,7 @@ export default function ProfileScreen({ navigation }: Props) {
                               </Text>
                             )}
                           </View>
-                          <View style={{ marginLeft: 12, flex: 1, justifyContent: "center" }}>
+                          <View style={{ marginLeft: 12, flex: 1, justifyContent: "center", minWidth: 0 }}>
                             <Text
                               numberOfLines={1}
                               style={{
@@ -1312,10 +1313,14 @@ export default function ProfileScreen({ navigation }: Props) {
                     alignItems: "center",
                     flexDirection: "row",
                     justifyContent: "center",
-                    gap: 8,
                   }}
                 >
-                  <Ionicons name="person-add-outline" size={18} color={isDarkMode ? "#FFFFFF" : "#10252B"} />
+                  <Ionicons
+                    name="person-add-outline"
+                    size={18}
+                    color={isDarkMode ? "#FFFFFF" : "#10252B"}
+                    style={{ marginRight: 8 }}
+                  />
                   <Text style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontWeight: "900" }}>Add to Network</Text>
                 </Pressable>
               </View>
@@ -1621,10 +1626,14 @@ export default function ProfileScreen({ navigation }: Props) {
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: 8,
                   })}
                 >
-                  <Ionicons name="arrow-back-outline" size={17} color={isDarkMode ? "#FFFFFF" : "#10252B"} />
+                  <Ionicons
+                    name="arrow-back-outline"
+                    size={17}
+                    color={isDarkMode ? "#FFFFFF" : "#10252B"}
+                    style={{ marginRight: 8 }}
+                  />
                   <Text style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontWeight: "900" }}>
                     Back to Profile
                   </Text>

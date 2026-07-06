@@ -19,18 +19,21 @@ import { Image } from "expo-image";
 import { useAppStore } from "../state/appStore";
 import { useFeedStore } from "../state/feedStore";
 import { detectLinkPreview, enrichLinkPreview, extractUrlsFromText } from "../utils/linkPreview";
-import { LinkPreview, PostAudio, PrivacyLevel } from "../types/feed";
+import { LinkPreview, MissionShare, PostAudio, PrivacyLevel } from "../types/feed";
 import { getPrivacyOption, nextPrivacy } from "../utils/privacy";
 import PostPhotoEditorModal from "./PostPhotoEditorModal";
+import MissionShareCard from "./MissionShareCard";
 
 interface CreatePostModalProps {
   visible: boolean;
   onClose: () => void;
+  initialMissionShare?: MissionShare | null;
 }
 
 export default function CreatePostModal({
   visible,
   onClose,
+  initialMissionShare,
 }: CreatePostModalProps) {
   const [content, setContent] = useState("");
   const [media, setMedia] = useState<string[]>([]);
@@ -89,12 +92,24 @@ export default function CreatePostModal({
   const defaultPostPrivacy = useAppStore((s) => s.defaultPostPrivacy);
   const createPostRemote = useFeedStore((s) => s.createPostRemote);
   const authorHandle = displayName || userEmail?.split("@")[0] || "anonymous";
+  const hasPostBody =
+    Boolean(content.trim()) ||
+    media.length > 0 ||
+    Boolean(selectedAudio) ||
+    Boolean(initialMissionShare);
 
   useEffect(() => {
     if (visible) {
       setPrivacy(defaultPostPrivacy || "public");
+      setErrorMsg(null);
+      if (initialMissionShare) {
+        setContent("");
+        setMedia([]);
+        setSelectedAudio(null);
+        setLinkPreview(null);
+      }
     }
-  }, [visible, defaultPostPrivacy]);
+  }, [visible, defaultPostPrivacy, initialMissionShare?.id]);
 
   useEffect(() => {
     let canceled = false;
@@ -350,7 +365,7 @@ export default function CreatePostModal({
   };
 
   const handlePost = async () => {
-    if (!content.trim() && media.length === 0 && !selectedAudio) {
+    if (!hasPostBody) {
       return;
     }
 
@@ -365,6 +380,7 @@ export default function CreatePostModal({
         images: media.length > 0 ? media : undefined,
         audio: selectedAudio || undefined,
         linkPreview: linkPreview || undefined,
+        missionShare: initialMissionShare || undefined,
         privacy,
       });
 
@@ -468,9 +484,9 @@ export default function CreatePostModal({
             </Text>
             <Pressable
               onPress={handlePost}
-              disabled={isSubmitting || (!content.trim() && media.length === 0 && !selectedAudio)}
+              disabled={isSubmitting || !hasPostBody}
               className={`px-4 py-2 rounded-full ${
-                isSubmitting || (!content.trim() && media.length === 0 && !selectedAudio)
+                isSubmitting || !hasPostBody
                   ? "bg-gray-300"
                   : isDarkMode
                   ? "bg-dark-accent"
@@ -480,7 +496,7 @@ export default function CreatePostModal({
               <Text
                 className="font-bold"
                 style={{
-                  color: isSubmitting || (!content.trim() && media.length === 0 && !selectedAudio)
+                  color: isSubmitting || !hasPostBody
                     ? "#6B7280"
                     : isDarkMode
                     ? "#FFFFFF"
@@ -562,6 +578,23 @@ export default function CreatePostModal({
               }`}
               autoFocus
             />
+
+            {initialMissionShare ? (
+              <View style={{ marginTop: 8, marginBottom: 10 }}>
+                <Text
+                  style={{
+                    color: isDarkMode ? "#9CA3AF" : "#6B7280",
+                    fontSize: 11,
+                    fontWeight: "900",
+                    letterSpacing: 1.4,
+                    marginBottom: 4,
+                  }}
+                >
+                  RESHARED MISSION
+                </Text>
+                <MissionShareCard mission={initialMissionShare} isDarkMode={isDarkMode} compact />
+              </View>
+            ) : null}
 
             {/* Link Preview */}
             {linkPreview && (

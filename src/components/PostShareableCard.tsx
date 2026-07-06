@@ -81,6 +81,79 @@ const PostShareableCard = forwardRef<ViewShot, Props>(function PostShareableCard
     </View>
   );
 
+  const renderMissionShare = () => {
+    if (!post.missionShare) return null;
+    const mission = post.missionShare;
+    return (
+      <View
+        style={{
+          borderRadius: 22,
+          borderWidth: 2,
+          borderColor: "#06A7A1",
+          backgroundColor: "#F8FFFE",
+          padding: 22,
+          marginBottom: 20,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              width: 70,
+              height: 70,
+              borderRadius: 22,
+              backgroundColor: "#062B31",
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: 18,
+            }}
+          >
+            <Image source={require("../../assets/coin.gif")} style={{ width: 48, height: 48 }} contentFit="contain" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: "#06A7A1", fontSize: 16, fontWeight: "900", marginBottom: 4 }}>
+              @{mission.businessHandle || "cuevas-partner"}
+            </Text>
+            <Text style={{ color: "#10252B", fontSize: 26, fontWeight: "900" }} numberOfLines={2}>
+              {mission.title}
+            </Text>
+          </View>
+          {mission.points ? (
+            <Text style={{ color: "#06A7A1", fontSize: 24, fontWeight: "900", marginLeft: 12 }}>
+              +{mission.points} ₡
+            </Text>
+          ) : null}
+        </View>
+        {mission.description ? (
+          <Text style={{ color: "#5F6B73", fontSize: 18, lineHeight: 26, marginTop: 18 }} numberOfLines={3}>
+            {mission.description}
+          </Text>
+        ) : null}
+        <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 16 }}>
+          {[mission.location, mission.eventDate, mission.difficulty]
+            .filter(Boolean)
+            .map((label) => (
+              <Text
+                key={String(label)}
+                style={{
+                  color: "#5F6B73",
+                  fontSize: 15,
+                  fontWeight: "800",
+                  borderRadius: 999,
+                  backgroundColor: "rgba(6,167,161,0.10)",
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  marginRight: 8,
+                  marginBottom: 8,
+                }}
+              >
+                {String(label)}
+              </Text>
+            ))}
+        </View>
+      </View>
+    );
+  };
+
   if (isInstagramVideoOverlay && mediaList.length === 1 && isVideoUri(mediaList[0])) {
     const cardX = 160;
     const cardY = 500;
@@ -189,6 +262,8 @@ const PostShareableCard = forwardRef<ViewShot, Props>(function PostShareableCard
                 {post.content}
               </Text>
             )}
+
+            {renderMissionShare()}
 
             {post.images && post.images.length > 0 && (
               <View style={{ marginBottom: 20 }}>

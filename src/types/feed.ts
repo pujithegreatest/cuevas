@@ -33,6 +33,28 @@ export interface PostAudio {
   durationMs?: number;
 }
 
+export interface MissionShare {
+  id: string;
+  title: string;
+  description?: string;
+  points?: number;
+  durationHours?: number;
+  location?: string;
+  eventDate?: string;
+  eventDateISO?: string;
+  type?: string;
+  difficulty?: string;
+  peopleNeeded?: number | string;
+  gearProvided?: boolean;
+  materialsNote?: string;
+  eventUrl?: string;
+  businessName?: string;
+  businessHandle?: string;
+  businessVerified?: boolean;
+  goingCount?: number;
+  status?: string;
+}
+
 export interface Post {
   id: string;
   author: string;
@@ -43,6 +65,7 @@ export interface Post {
   images?: string[];
   audio?: PostAudio;
   linkPreview?: LinkPreview;
+  missionShare?: MissionShare;
   timestamp: number;
   likes: number;
   commentsList: Comment[];

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Post, Comment, LinkPreview, CommentPrivacyLevel, PrivacyLevel, PostAudio } from "../types/feed";
+import { Post, Comment, LinkPreview, CommentPrivacyLevel, PrivacyLevel, PostAudio, MissionShare } from "../types/feed";
 import { completeLinkPreview, detectLinkPreview, extractUrlsFromText } from "../utils/linkPreview";
 import * as FileSystem from 'expo-file-system/legacy';
 import { normalizeHandle as normalizePublicHandle } from "../utils/handles";
@@ -44,6 +44,66 @@ function normalizeHandle(value?: string | null) {
 
 function normalizePrivacyValue(value: any): PrivacyLevel {
   return PRIVACY_VALUES.includes(value) ? value : "public";
+}
+
+function parseJsonField<T = any>(raw: any): T | undefined {
+  if (!raw) return undefined;
+  if (typeof raw === "object") return raw as T;
+  if (typeof raw !== "string") return undefined;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return undefined;
+  }
+}
+
+function normalizeMissionShare(raw: any): MissionShare | undefined {
+  const parsed = parseJsonField<MissionShare>(raw);
+  if (!parsed || typeof parsed !== "object") return undefined;
+  const id = String(parsed.id || "").trim();
+  const title = String(parsed.title || "").trim();
+  if (!id || !title) return undefined;
+  const points = Number(parsed.points || 0);
+  const durationHours = Number(parsed.durationHours || 0);
+  const goingCount = Number(parsed.goingCount || 0);
+  return {
+    ...parsed,
+    id,
+    title,
+    points: Number.isFinite(points) && points > 0 ? points : undefined,
+    durationHours: Number.isFinite(durationHours) && durationHours > 0 ? durationHours : undefined,
+    goingCount: Number.isFinite(goingCount) && goingCount >= 0 ? goingCount : undefined,
+  };
+}
+
+function applyViewerIdentity(post: Post, viewer?: FeedViewer): Post {
+  if (!viewer?.userEmail) return post;
+  const viewerEmail = viewer.userEmail.toLowerCase().trim();
+  const displayName = String(viewer.displayName || "").trim();
+  if (!viewerEmail || !displayName) return post;
+  const postEmail = String(post.authorEmail || "").toLowerCase().trim();
+  const aliases = new Set(
+    [
+      viewer.displayName,
+      viewer.userHandle,
+      viewer.userEmail,
+      viewer.userEmail.split("@")[0],
+      ...(viewer.handleAliases || []),
+    ]
+      .map(normalizeHandle)
+      .filter(Boolean)
+  );
+  const isOwnPost = postEmail === viewerEmail || aliases.has(normalizeHandle(post.author));
+  if (!isOwnPost) return post;
+  return {
+    ...post,
+    author: displayName,
+    commentsList: (post.commentsList || []).map((comment) => {
+      const commentEmail = String(comment.authorEmail || "").toLowerCase().trim();
+      const isOwnComment = commentEmail === viewerEmail || aliases.has(normalizeHandle(comment.author));
+      return isOwnComment ? { ...comment, author: displayName, authorEmail: comment.authorEmail || viewer.userEmail || undefined } : comment;
+    }),
+  };
 }
 
 function buildPostsUrl(viewer?: FeedViewer) {
@@ -210,6 +270,14 @@ function mapFromBackend(item: any): Post {
     };
   }
 
+  const missionShare = normalizeMissionShare(
+    item?.MissionShare ||
+      item?.missionShare ||
+      item?.["Mission Share"] ||
+      item?.mission_share ||
+      null
+  );
+
   return {
     id: item?._id?.toString?.() || Date.now().toString(),
     author: item?.User || item?.author || "anonymous",
@@ -219,6 +287,7 @@ function mapFromBackend(item: any): Post {
     images: media.length ? media : undefined,
     audio,
     linkPreview,
+    missionShare,
     timestamp: new Date(date).getTime(),
     likes: item?.["Like Count"] ?? item?.likeCount ?? 0,
     commentsList: item?.commentsList || [],
@@ -253,6 +322,11 @@ function mapToBackend(
     payload.AudioTitle = postData.audio.title;
     payload.AudioArtist = postData.audio.artist || "";
     payload.AudioDurationMs = postData.audio.durationMs || 0;
+  }
+  if (postData.missionShare) {
+    const serializedMission = JSON.stringify(postData.missionShare);
+    payload.MissionShare = serializedMission;
+    payload.missionShare = serializedMission;
   }
   return payload;
 }
@@ -441,7 +515,7 @@ export const useFeedStore = create<FeedState>()(
           const res = await fetch(buildPostsUrl(viewer), { method: "GET" });
           const json = await res.json();
           if (json?.success && Array.isArray(json.posts)) {
-            set({ posts: json.posts.map(mapFromBackend) });
+            set({ posts: json.posts.map((item: any) => applyViewerIdentity(mapFromBackend(item), viewer)) });
           }
         } catch (e) {
           console.error("fetchPosts error", e);
@@ -482,6 +556,7 @@ export const useFeedStore = create<FeedState>()(
             const newPost = {
               ...mappedPost,
               audio: mappedPost.audio || audio,
+              missionShare: mappedPost.missionShare || postData.missionShare,
               privacy: normalizePrivacyValue(postData.privacy),
             };
             set((state) => ({

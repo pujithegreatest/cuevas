@@ -588,10 +588,9 @@ export default function UserProfileModal({
                       flexDirection: "row",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: 8,
                     })}
                   >
-                    <Ionicons name="arrow-back-outline" size={17} color="#FFFFFF" />
+                    <Ionicons name="arrow-back-outline" size={17} color="#FFFFFF" style={{ marginRight: 8 }} />
                     <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>
                       Back to Profile
                     </Text>

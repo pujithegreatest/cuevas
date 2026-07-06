@@ -20,8 +20,10 @@ import {
   submitMissionProof,
 } from "../api/cuevas-missions";
 import { Ionicons } from "../components/Ionicons";
+import CreatePostModal from "../components/CreatePostModal";
 import MissionChatModal from "../components/MissionChatModal";
 import { useAppStore } from "../state/appStore";
+import { MissionShare } from "../types/feed";
 import { MainTabParamList } from "../types/navigation";
 import { encodeUploadUri, uploadMediaFile } from "../utils/uploadMedia";
 
@@ -56,6 +58,30 @@ function formatPeopleNeeded(value: CuevasMission["peopleNeeded"]) {
   const count = Number(value);
   if (Number.isFinite(count) && count > 0) return `${count} ppl`;
   return value || "Open crew";
+}
+
+function toMissionShare(mission: CuevasMission): MissionShare {
+  return {
+    id: mission.id,
+    title: mission.title,
+    description: mission.description,
+    points: mission.points,
+    durationHours: mission.durationHours,
+    location: mission.location,
+    eventDate: mission.eventDate,
+    eventDateISO: mission.eventDateISO,
+    type: mission.type,
+    difficulty: mission.difficulty,
+    peopleNeeded: mission.peopleNeeded,
+    gearProvided: mission.gearProvided,
+    materialsNote: mission.materialsNote,
+    eventUrl: mission.eventUrl,
+    businessName: mission.businessName,
+    businessHandle: mission.businessHandle,
+    businessVerified: mission.businessVerified,
+    goingCount: mission.goingCount,
+    status: mission.status,
+  };
 }
 
 async function getWritableCuevasCalendarId() {
@@ -110,6 +136,7 @@ function MissionCard({
   onToggle,
   onAddCalendar,
   onOpenEventUrl,
+  onShareMission,
   onOpenChat,
   canChat,
   actionStatus,
@@ -128,6 +155,7 @@ function MissionCard({
   onToggle?: () => void;
   onAddCalendar?: () => void;
   onOpenEventUrl?: () => void;
+  onShareMission?: () => void;
   onOpenChat?: () => void;
   canChat?: boolean;
   actionStatus?: string;
@@ -289,6 +317,35 @@ function MissionCard({
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Ionicons name="globe-outline" size={18} color="#06A7A1" />
             <Text style={{ color: "#06A7A1", fontWeight: "900", marginLeft: 8 }}>Open Event Page</Text>
+          </View>
+        </Pressable>
+      ) : null}
+
+      {onShareMission ? (
+        <Pressable
+          onPress={onShareMission}
+          style={({ pressed }) => ({
+            marginTop: 10,
+            borderRadius: 16,
+            paddingVertical: 12,
+            paddingHorizontal: 12,
+            alignItems: "center",
+            backgroundColor: isDarkMode ? "rgba(6,167,161,0.14)" : "#E8FFFC",
+            borderWidth: 2,
+            borderColor: isDarkMode ? "rgba(6,167,161,0.50)" : "#057D78",
+            shadowColor: "#000",
+            shadowOpacity: isDarkMode ? 0 : 0.06,
+            shadowRadius: 8,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: 1,
+            opacity: pressed ? 0.78 : 1,
+          })}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Ionicons name="repeat-outline" size={18} color="#06A7A1" />
+            <Text style={{ color: "#06A7A1", fontWeight: "900", marginLeft: 8 }}>
+              Reshare Mission
+            </Text>
           </View>
         </Pressable>
       ) : null}
@@ -586,6 +643,7 @@ export default function MissionsScreen({ navigation }: Props) {
   const [uploadingProofIds, setUploadingProofIds] = useState<Record<string, boolean>>({});
   const [proofErrors, setProofErrors] = useState<Record<string, string>>({});
   const [chatMission, setChatMission] = useState<CuevasMission | null>(null);
+  const [shareMission, setShareMission] = useState<MissionShare | null>(null);
   const [missionActionStatus, setMissionActionStatus] = useState<Record<string, string>>({});
 
   const refreshMissions = React.useCallback(() => {
@@ -1090,6 +1148,7 @@ export default function MissionsScreen({ navigation }: Props) {
               onToggle={() => toggleMission(mission)}
               onAddCalendar={() => addMissionToCalendar(mission)}
               onOpenEventUrl={mission.eventUrl ? () => Linking.openURL(mission.eventUrl || "").catch(() => null) : undefined}
+              onShareMission={() => setShareMission(toMissionShare(mission))}
               canChat
               onOpenChat={() => setChatMission(mission)}
               actionStatus={missionActionStatus[mission.id]}
@@ -1138,6 +1197,7 @@ export default function MissionsScreen({ navigation }: Props) {
             onToggle={() => toggleMission(mission)}
             onAddCalendar={() => addMissionToCalendar(mission)}
             onOpenEventUrl={mission.eventUrl ? () => Linking.openURL(mission.eventUrl || "").catch(() => null) : undefined}
+            onShareMission={() => setShareMission(toMissionShare(mission))}
             canChat={queuedMissionIds.includes(mission.id)}
             onOpenChat={() => setChatMission(mission)}
             actionStatus={missionActionStatus[mission.id]}
@@ -1205,6 +1265,7 @@ export default function MissionsScreen({ navigation }: Props) {
             mission={mission}
             isDarkMode={isDarkMode}
             isCompleted
+            onShareMission={() => setShareMission(toMissionShare(mission))}
             proofMedia={proofMedia[mission.id] || []}
             isUploadingProof={!!uploadingProofIds[mission.id]}
             proofError={proofErrors[mission.id]}
@@ -1262,6 +1323,11 @@ export default function MissionsScreen({ navigation }: Props) {
         businessHandle={chatMission?.businessHandle}
         isDarkMode={isDarkMode}
         onClose={() => setChatMission(null)}
+      />
+      <CreatePostModal
+        visible={!!shareMission}
+        onClose={() => setShareMission(null)}
+        initialMissionShare={shareMission}
       />
     </LinearGradient>
   );
