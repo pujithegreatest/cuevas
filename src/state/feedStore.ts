@@ -7,6 +7,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { normalizeHandle as normalizePublicHandle } from "../utils/handles";
 
 const POSTS_API = "https://www.ecothot.com/_functions/posts";
+const POST_UPDATE_API = "https://www.ecothot.com/_functions/postUpdate";
 const UPLOAD_API = "https://www.ecothot.com/_functions/uploadMedia";
 const UPLOAD_FINALIZE_API = "https://www.ecothot.com/_functions/uploadMediaFinalize";
 
@@ -688,7 +689,7 @@ export const useFeedStore = create<FeedState>()(
         }
 
         try {
-          const res = await fetch(POSTS_API, {
+          const res = await fetch(POST_UPDATE_API, {
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify(payload),
@@ -741,7 +742,7 @@ export const useFeedStore = create<FeedState>()(
           }));
 
           try {
-            const res = await fetch(POSTS_API, {
+            const res = await fetch(POST_UPDATE_API, {
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({
