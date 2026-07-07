@@ -28,9 +28,19 @@ interface FeedState {
   addComment: (postId: string, comment: Omit<Comment, "id" | "timestamp">) => void;
   updatePostRemote: (
     postId: string,
-    updates: { content?: string; privacy?: PrivacyLevel; authorEmail?: string | null }
+    updates: {
+      content?: string;
+      privacy?: PrivacyLevel;
+      authorEmail?: string | null;
+      ownerHandles?: string[];
+    }
   ) => Promise<void>;
-  updatePostPrivacy: (postId: string, privacy: PrivacyLevel, authorEmail?: string | null) => Promise<void>;
+  updatePostPrivacy: (
+    postId: string,
+    privacy: PrivacyLevel,
+    authorEmail?: string | null,
+    ownerHandles?: string[]
+  ) => Promise<void>;
   updateCommentPrivacy: (postId: string, commentId: string, privacy: CommentPrivacyLevel) => void;
   updateAuthorHandle: (oldHandles: string[], newHandle: string, email?: string | null) => void;
   deletePost: (postId: string) => void;
@@ -655,7 +665,13 @@ export const useFeedStore = create<FeedState>()(
         if (updates.authorEmail) {
           payload.AuthorEmail = updates.authorEmail;
           payload.authorEmail = updates.authorEmail;
+          payload.UserEmail = updates.authorEmail;
+          payload.userEmail = updates.authorEmail;
           payload.viewerEmail = updates.authorEmail;
+        }
+        if (updates.ownerHandles?.length) {
+          payload.ownerHandles = updates.ownerHandles;
+          payload.aliases = updates.ownerHandles;
         }
         if (hasContent) {
           payload["Plain Content"] = nextContent || "";
@@ -712,7 +728,7 @@ export const useFeedStore = create<FeedState>()(
         }
       },
 
-      updatePostPrivacy: async (postId, privacy, authorEmail) => {
+      updatePostPrivacy: async (postId, privacy, authorEmail, ownerHandles) => {
           const safePrivacy = normalizePrivacyValue(privacy);
           let previousPrivacy: PrivacyLevel = "public";
           set((state) => ({
@@ -730,7 +746,16 @@ export const useFeedStore = create<FeedState>()(
             body: JSON.stringify({
               id: postId,
               _id: postId,
-              ...(authorEmail ? { AuthorEmail: authorEmail, authorEmail, viewerEmail: authorEmail } : {}),
+              ...(authorEmail
+                ? {
+                    AuthorEmail: authorEmail,
+                    authorEmail,
+                    UserEmail: authorEmail,
+                    userEmail: authorEmail,
+                    viewerEmail: authorEmail,
+                  }
+                : {}),
+              ...(ownerHandles?.length ? { ownerHandles, aliases: ownerHandles } : {}),
               Privacy: safePrivacy,
               privacy: safePrivacy,
               PostPrivacy: safePrivacy,

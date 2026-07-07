@@ -244,7 +244,7 @@ export default function UserProfileModal({
               top: insets.top + 56,
               right: 16,
               zIndex: 20,
-              width: 286,
+              width: 304,
               borderRadius: 18,
               borderWidth: 1,
               borderColor: "rgba(6,167,161,0.35)",
@@ -254,7 +254,9 @@ export default function UserProfileModal({
               shadowRadius: 12,
               shadowOffset: { width: 0, height: 6 },
               elevation: 8,
-              overflow: "hidden",
+              overflow: "visible",
+              paddingVertical: 8,
+              paddingHorizontal: 8,
             }}
           >
             {[
@@ -281,25 +283,39 @@ export default function UserProfileModal({
                 key={item.label}
                 onPress={item.onPress}
                 style={({ pressed }) => ({
-                  minHeight: 54,
-                  paddingHorizontal: 16,
-                  paddingVertical: 10,
+                  minHeight: 52,
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: 14,
                   flexDirection: "row",
                   alignItems: "center",
+                  backgroundColor: pressed ? "rgba(6,167,161,0.12)" : "transparent",
                   opacity: pressed ? 0.72 : 1,
                 })}
               >
-                <View style={{ width: 30, alignItems: "center", justifyContent: "center" }}>
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(6,167,161,0.10)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   <Ionicons name={item.icon} size={20} color={item.color} />
                 </View>
                 <Text
                   numberOfLines={2}
                   style={{
-                    marginLeft: 12,
+                    marginLeft: 14,
                     color: text,
                     fontWeight: "900",
+                    fontSize: 15,
                     flex: 1,
-                    lineHeight: 19,
+                    lineHeight: 18,
+                    paddingRight: 4,
+                    includeFontPadding: false,
                   }}
                 >
                   {item.label}
@@ -588,6 +604,8 @@ export default function UserProfileModal({
                       flexDirection: "row",
                       alignItems: "center",
                       justifyContent: "center",
+                      alignSelf: "center",
+                      minWidth: 188,
                     })}
                   >
                     <Ionicons name="arrow-back-outline" size={17} color="#FFFFFF" style={{ marginRight: 8 }} />

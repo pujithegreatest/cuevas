@@ -1199,23 +1199,27 @@ export default function ProfileScreen({ navigation }: Props) {
                             setNetworkError(null);
                           }}
                           style={({ pressed }) => ({
-                            minHeight: 62,
+                            minHeight: 70,
                             flexDirection: "row",
                             alignItems: "center",
-                            paddingVertical: 10,
-                            paddingHorizontal: 12,
+                            paddingVertical: 12,
+                            paddingHorizontal: 14,
                             borderRadius: 16,
+                            borderWidth: 1,
+                            borderColor: "rgba(6,167,161,0.22)",
                             backgroundColor: pressed
                               ? "rgba(6,167,161,0.20)"
-                              : "rgba(6,167,161,0.10)",
-                            marginBottom: 8,
+                              : isDarkMode
+                              ? "#111827"
+                              : "#EEF7F6",
+                            marginBottom: 10,
                           })}
                         >
                           <View
                             style={{
-                              width: 38,
-                              height: 38,
-                              borderRadius: 19,
+                              width: 46,
+                              height: 46,
+                              borderRadius: 23,
                               backgroundColor: "#06A7A1",
                               alignItems: "center",
                               justifyContent: "center",
@@ -1223,9 +1227,9 @@ export default function ProfileScreen({ navigation }: Props) {
                             }}
                           >
                             {user.avatar ? (
-                              <RNImage source={{ uri: user.avatar }} style={{ width: 38, height: 38 }} />
+                              <RNImage source={{ uri: user.avatar }} style={{ width: 46, height: 46 }} />
                             ) : (
-                              <Text style={{ color: "#FFFFFF", fontWeight: "900", fontSize: 15 }}>
+                              <Text style={{ color: "#FFFFFF", fontWeight: "900", fontSize: 17 }}>
                                 {(user.name[0] || user.handle[0] || "U").toUpperCase()}
                               </Text>
                             )}
@@ -1236,8 +1240,8 @@ export default function ProfileScreen({ navigation }: Props) {
                               style={{
                                 color: isDarkMode ? "#CFEFEC" : "#1F2937",
                                 fontWeight: "900",
-                                fontSize: 15,
-                                lineHeight: 19,
+                                fontSize: 16,
+                                lineHeight: 20,
                               }}
                             >
                               {user.name}
@@ -1246,16 +1250,16 @@ export default function ProfileScreen({ navigation }: Props) {
                               numberOfLines={1}
                               style={{
                                 color: isDarkMode ? "#9CA3AF" : "#6B7280",
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: "700",
-                                lineHeight: 16,
+                                lineHeight: 17,
                               }}
                             >
                               @{user.handle}
                             </Text>
                           </View>
                           {alreadyAdded && (
-                            <Text style={{ color: "#06A7A1", fontSize: 11, fontWeight: "900", marginLeft: 8 }}>
+                            <Text style={{ color: "#06A7A1", fontSize: 11, fontWeight: "900", marginLeft: 10 }}>
                               ADDED
                             </Text>
                           )}
@@ -1626,6 +1630,8 @@ export default function ProfileScreen({ navigation }: Props) {
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "center",
+                    alignSelf: "center",
+                    minWidth: 188,
                   })}
                 >
                   <Ionicons

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Modal, Pressable, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "./Ionicons";
 import { REPORT_REASONS, ReportReason } from "../api/moderation-reports";
 
@@ -26,7 +26,11 @@ export default function ReportReasonModal({
   const text = isDarkMode ? "#CFEFEC" : "#1F2937";
   const sub = isDarkMode ? "#9CA3AF" : "#6B7280";
   const surface = isDarkMode ? "#111827" : "#FFFFFF";
-  const rowBg = isDarkMode ? "#0B1115" : "#F3F4F6";
+  const rowBg = isDarkMode ? "#17212C" : "#F3F4F6";
+
+  useEffect(() => {
+    if (visible) setSelected("Spam or scam");
+  }, [visible]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
@@ -50,6 +54,7 @@ export default function ReportReasonModal({
             borderColor: "rgba(250,204,21,0.45)",
             backgroundColor: surface,
             padding: 18,
+            overflow: "visible",
           }}
         >
           <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
@@ -74,7 +79,11 @@ export default function ReportReasonModal({
             </View>
           </View>
 
-          <View>
+          <ScrollView
+            style={{ maxHeight: 390 }}
+            contentContainerStyle={{ paddingTop: 2, paddingBottom: 2 }}
+            showsVerticalScrollIndicator={false}
+          >
             {REPORT_REASONS.map((reason) => {
               const active = selected === reason;
               return (
@@ -82,15 +91,17 @@ export default function ReportReasonModal({
                   key={reason}
                   onPress={() => setSelected(reason)}
                   style={({ pressed }) => ({
-                    minHeight: 44,
+                    minHeight: 50,
                     borderRadius: 14,
                     borderWidth: 1,
                     borderColor: active ? "#FACC15" : isDarkMode ? "#374151" : "#E5E7EB",
                     backgroundColor: active ? "rgba(250,204,21,0.12)" : rowBg,
-                    paddingHorizontal: 12,
+                    paddingHorizontal: 14,
+                    paddingVertical: 10,
                     flexDirection: "row",
                     alignItems: "center",
                     marginBottom: 8,
+                    width: "100%",
                     opacity: pressed ? 0.76 : 1,
                   })}
                 >
@@ -99,13 +110,26 @@ export default function ReportReasonModal({
                     size={18}
                     color={active ? "#FACC15" : sub}
                   />
-                  <Text style={{ marginLeft: 10, color: text, fontWeight: "800", flex: 1 }}>
+                  <Text
+                    numberOfLines={3}
+                    style={{
+                      marginLeft: 12,
+                      color: active ? "#FFF7C2" : isDarkMode ? "#E9FFFC" : "#111827",
+                      fontSize: 15,
+                      lineHeight: 19,
+                      fontWeight: "900",
+                      flex: 1,
+                      minWidth: 0,
+                      paddingRight: 4,
+                      includeFontPadding: false,
+                    }}
+                  >
                     {reason}
                   </Text>
                 </Pressable>
               );
             })}
-          </View>
+          </ScrollView>
 
           <View style={{ flexDirection: "row", marginTop: 16 }}>
             <Pressable

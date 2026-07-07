@@ -43,6 +43,8 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const isDarkMode = useAppStore((s) => s.isDarkMode);
   const userEmail = useAppStore((s) => s.userEmail);
   const displayName = useAppStore((s) => s.displayName);
+  const userHandle = useAppStore((s) => s.userHandle);
+  const userAvatar = useAppStore((s) => s.userAvatar);
   const handleAliases = useAppStore((s) => s.handleAliases);
   const rewardsBalance = useAppStore((s) => s.rewardsBalance);
   const reportContent = useAppStore((s) => s.reportContent);
@@ -60,7 +62,10 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const [reportOpen, setReportOpen] = useState(false);
   const [reportSubmitting, setReportSubmitting] = useState(false);
 
-  const userHandles = getUserHandles(userEmail, displayName, handleAliases);
+  const userHandles = getUserHandles(userEmail, displayName, [
+    userHandle || "",
+    ...(handleAliases || []),
+  ]);
   const normalizedAuthor = normalizeHandle(post.author, "");
   const normalizedUserEmail = String(userEmail || "").toLowerCase().trim();
   const normalizedAuthorEmail = String(post.authorEmail || "").toLowerCase().trim();
@@ -68,6 +73,24 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
     (!!normalizedUserEmail && !!normalizedAuthorEmail && normalizedUserEmail === normalizedAuthorEmail) ||
     userHandles.has(post.author) ||
     (!!normalizedAuthor && userHandles.has(normalizedAuthor));
+  const displayedAuthor = isOwnPost && displayName ? displayName : post.author;
+  const displayedAvatar = isOwnPost && userAvatar ? userAvatar : post.authorAvatar;
+  const displayedInitial = (displayedAuthor || post.author || "?")[0]?.toUpperCase?.() || "?";
+  const ownerHandles = Array.from(
+    new Set(
+      [
+        displayName,
+        userHandle,
+        userEmail,
+        userEmail?.split("@")[0],
+        post.author,
+        normalizedAuthor,
+        ...(handleAliases || []),
+      ]
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+    )
+  );
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const mediaList = (post.images || []).filter(Boolean);
@@ -160,7 +183,8 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
       await updatePostRemote(post.id, {
         content,
         privacy: editPrivacy,
-        authorEmail: post.authorEmail || userEmail,
+        authorEmail: userEmail || post.authorEmail,
+        ownerHandles,
       });
       setEditOpen(false);
     } catch {
@@ -187,7 +211,7 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
     const next = nextPrivacy(post.privacy);
     const option = getPrivacyOption(next);
     try {
-      await updatePostPrivacy(post.id, next, post.authorEmail || userEmail);
+      await updatePostPrivacy(post.id, next, userEmail || post.authorEmail, ownerHandles);
       setPrivacyFlash(option.shortLabel);
       setTimeout(() => setPrivacyFlash(null), 650);
     } catch {
@@ -584,7 +608,15 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
                         opacity: pressed ? 0.78 : 1,
                       })}
                     >
-                      <View style={{ height: 24, width: "100%", alignItems: "center", justifyContent: "center" }}>
+                      <View
+                        style={{
+                          height: 28,
+                          width: 34,
+                          alignSelf: "center",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
                         <Ionicons
                           name={option.icon}
                           size={19}
@@ -717,9 +749,9 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
                 isDarkMode ? "bg-dark-accent" : "bg-pixel-teal"
               }`}
             >
-              {post.authorAvatar ? (
+              {displayedAvatar ? (
                 <RNImage
-                  source={{ uri: post.authorAvatar }}
+                  source={{ uri: displayedAvatar }}
                   style={{ width: 40, height: 40 }}
                 />
               ) : (
@@ -727,7 +759,7 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
                   className="font-bold text-lg"
                   style={{ color: isDarkMode ? "#FFFFFF" : "#10252B" }}
                 >
-                  {post.author[0].toUpperCase()}
+                  {displayedInitial}
                 </Text>
               )}
             </Pressable>
@@ -747,7 +779,7 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
                       isDarkMode ? "text-dark-text" : "text-pixel-text"
                     }`}
                   >
-                    {post.author}
+                    {displayedAuthor}
                   </Text>
                 </Pressable>
                 <View
