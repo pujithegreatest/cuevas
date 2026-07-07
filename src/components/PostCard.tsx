@@ -69,10 +69,13 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const normalizedAuthor = normalizeHandle(post.author, "");
   const normalizedUserEmail = String(userEmail || "").toLowerCase().trim();
   const normalizedAuthorEmail = String(post.authorEmail || "").toLowerCase().trim();
-  const isOwnPost =
-    (!!normalizedUserEmail && !!normalizedAuthorEmail && normalizedUserEmail === normalizedAuthorEmail) ||
-    userHandles.has(post.author) ||
-    (!!normalizedAuthor && userHandles.has(normalizedAuthor));
+  const hasAuthorEmail = !!normalizedAuthorEmail;
+  const isOwnPostByEmail =
+    !!normalizedUserEmail && !!normalizedAuthorEmail && normalizedUserEmail === normalizedAuthorEmail;
+  const isLegacyOwnPostByHandle =
+    !hasAuthorEmail &&
+    (userHandles.has(post.author) || (!!normalizedAuthor && userHandles.has(normalizedAuthor)));
+  const isOwnPost = isOwnPostByEmail || isLegacyOwnPostByHandle;
   const displayedAuthor = isOwnPost && displayName ? displayName : post.author;
   const displayedAvatar = isOwnPost && userAvatar ? userAvatar : post.authorAvatar;
   const displayedInitial = (displayedAuthor || post.author || "?")[0]?.toUpperCase?.() || "?";
@@ -83,8 +86,6 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
         userHandle,
         userEmail,
         userEmail?.split("@")[0],
-        post.author,
-        normalizedAuthor,
         ...(handleAliases || []),
       ]
         .map((value) => String(value || "").trim())

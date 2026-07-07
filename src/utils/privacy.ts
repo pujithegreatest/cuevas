@@ -95,13 +95,14 @@ export function canViewPost(
 ): boolean {
   const privacy = normalizePrivacy(post.privacy, "public");
   if (privacy === "public") return true;
+  const normalizedAuthor = normalizeHandle(post.author, "");
   if (post.authorEmail) {
     const postEmail = post.authorEmail.toLowerCase();
     if (userHandles.has(post.authorEmail) || userHandles.has(postEmail)) return true;
+  } else {
+    if (userHandles.has(post.author)) return true;
+    if (normalizedAuthor && userHandles.has(normalizedAuthor)) return true;
   }
-  if (userHandles.has(post.author)) return true;
-  const normalizedAuthor = normalizeHandle(post.author, "");
-  if (normalizedAuthor && userHandles.has(normalizedAuthor)) return true;
   if (privacy === "friends") {
     return friends.some(
       (friend) => normalizeHandle(friend.handle, "") === normalizedAuthor
@@ -117,26 +118,19 @@ export function canViewComment(
   friends: FriendNode[] = []
 ): boolean {
   const privacy = normalizeCommentPrivacy(comment.privacy, "public");
-  if (privacy === "poster") {
-    return (
-      userHandles.has(post.author) ||
-      userHandles.has(comment.author) ||
-      (!!post.authorEmail && userHandles.has(post.authorEmail.toLowerCase())) ||
-      (!!comment.authorEmail && userHandles.has(comment.authorEmail.toLowerCase()))
-    );
-  }
-  if (privacy === "public") return true;
-  if (post.authorEmail && userHandles.has(post.authorEmail.toLowerCase())) return true;
-  if (comment.authorEmail && userHandles.has(comment.authorEmail.toLowerCase())) return true;
-  if (userHandles.has(comment.author) || userHandles.has(post.author)) return true;
   const normalizedCommentAuthor = normalizeHandle(comment.author, "");
   const normalizedPostAuthor = normalizeHandle(post.author, "");
-  if (
-    (normalizedCommentAuthor && userHandles.has(normalizedCommentAuthor)) ||
-    (normalizedPostAuthor && userHandles.has(normalizedPostAuthor))
-  ) {
-    return true;
+  const ownsPost = post.authorEmail
+    ? userHandles.has(post.authorEmail.toLowerCase()) || userHandles.has(post.authorEmail)
+    : userHandles.has(post.author) || (!!normalizedPostAuthor && userHandles.has(normalizedPostAuthor));
+  const ownsComment = comment.authorEmail
+    ? userHandles.has(comment.authorEmail.toLowerCase()) || userHandles.has(comment.authorEmail)
+    : userHandles.has(comment.author) || (!!normalizedCommentAuthor && userHandles.has(normalizedCommentAuthor));
+  if (privacy === "poster") {
+    return ownsPost || ownsComment;
   }
+  if (privacy === "public") return true;
+  if (ownsPost || ownsComment) return true;
   if (privacy === "friends") {
     return friends.some(
       (friend) => normalizeHandle(friend.handle, "") === normalizedCommentAuthor

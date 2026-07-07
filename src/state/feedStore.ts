@@ -104,14 +104,19 @@ function applyViewerIdentity(post: Post, viewer?: FeedViewer): Post {
       .map(normalizeHandle)
       .filter(Boolean)
   );
-  const isOwnPost = postEmail === viewerEmail || aliases.has(normalizeHandle(post.author));
+  const hasPostEmail = !!postEmail;
+  const isOwnPost = hasPostEmail
+    ? postEmail === viewerEmail
+    : aliases.has(normalizeHandle(post.author));
   if (!isOwnPost) return post;
   return {
     ...post,
     author: displayName,
     commentsList: (post.commentsList || []).map((comment) => {
       const commentEmail = String(comment.authorEmail || "").toLowerCase().trim();
-      const isOwnComment = commentEmail === viewerEmail || aliases.has(normalizeHandle(comment.author));
+      const isOwnComment = commentEmail
+        ? commentEmail === viewerEmail
+        : aliases.has(normalizeHandle(comment.author));
       return isOwnComment ? { ...comment, author: displayName, authorEmail: comment.authorEmail || viewer.userEmail || undefined } : comment;
     }),
   };

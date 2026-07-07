@@ -86,16 +86,30 @@ export const useAppStore = create<AppState>()(
 
       login: (email: string) =>
         set((state) => {
+          const previousEmail = state.userEmail?.toLowerCase().trim();
+          const nextEmail = email.toLowerCase().trim();
+          const isSameAccount = previousEmail === nextEmail;
           const handleFromEmail = email.split("@")[0];
           const normalizedHandle = normalizeHandle(handleFromEmail);
           const aliases = Array.from(
-            new Set([...(state.handleAliases || []), handleFromEmail, normalizedHandle])
+            new Set([...(isSameAccount ? state.handleAliases || [] : []), handleFromEmail, normalizedHandle])
           );
           return {
             isAuthenticated: true,
             userEmail: email,
-            userHandle: state.userHandle || normalizedHandle,
+            displayName: isSameAccount ? state.displayName : null,
+            userHandle: isSameAccount ? state.userHandle || normalizedHandle : normalizedHandle,
+            userAvatar: isSameAccount ? state.userAvatar : null,
+            userBio: isSameAccount ? state.userBio : null,
             handleAliases: aliases,
+            isBusinessAccount: isSameAccount ? state.isBusinessAccount : false,
+            businessName: isSameAccount ? state.businessName : null,
+            businessProfileUnlocked: isSameAccount ? state.businessProfileUnlocked : false,
+            rewardsBalance: isSameAccount ? state.rewardsBalance : 0,
+            defaultPostPrivacy: isSameAccount ? state.defaultPostPrivacy : "public",
+            friends: isSameAccount ? state.friends : [],
+            blockedHandles: isSameAccount ? state.blockedHandles : [],
+            reportedItems: isSameAccount ? state.reportedItems : [],
           };
         }),
 
@@ -107,8 +121,15 @@ export const useAppStore = create<AppState>()(
           userHandle: null,
           userAvatar: null,
           userBio: null,
+          handleAliases: [],
           isBusinessAccount: false,
           businessName: null,
+          businessProfileUnlocked: false,
+          rewardsBalance: 0,
+          defaultPostPrivacy: "public",
+          friends: [],
+          blockedHandles: [],
+          reportedItems: [],
         }),
 
       setRewardsBalance: (balance: number) =>
