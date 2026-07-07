@@ -659,6 +659,7 @@ export const useFeedStore = create<FeedState>()(
         }
 
         const payload: any = {
+          action: "updatePost",
           id: postId,
           _id: postId,
         };
@@ -688,7 +689,7 @@ export const useFeedStore = create<FeedState>()(
 
         try {
           const res = await fetch(POSTS_API, {
-            method: "PATCH",
+            method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify(payload),
           });
@@ -741,9 +742,10 @@ export const useFeedStore = create<FeedState>()(
 
           try {
             const res = await fetch(POSTS_API, {
-            method: "PATCH",
+            method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({
+              action: "updatePost",
               id: postId,
               _id: postId,
               ...(authorEmail
