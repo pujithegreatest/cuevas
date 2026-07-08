@@ -76,8 +76,14 @@ function GoogleAuthButton({
   useEffect(() => {
     if (Platform.OS !== "ios") return;
     AppleAuthentication.isAvailableAsync()
-      .then(setIsAppleAvailable)
-      .catch(() => setIsAppleAvailable(false));
+      .then((available) => {
+        console.log("[AppleAuth] availability:", available);
+        setIsAppleAvailable(available);
+      })
+      .catch((err) => {
+        console.log("[AppleAuth] availability error:", err);
+        setIsAppleAvailable(false);
+      });
   }, []);
 
   // Debug: Log the redirect URI
@@ -180,9 +186,11 @@ function GoogleAuthButton({
   };
 
   const handleApplePress = async () => {
+    if (isLoading || isAppleLoading || isGoogleLoading) return;
     onError("");
     setIsAppleLoading(true);
     try {
+      console.log("[AppleAuth] button pressed");
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
@@ -193,11 +201,27 @@ function GoogleAuthButton({
         .filter(Boolean)
         .join(" ")
         .trim();
+      console.log("[AppleAuth] credential summary:", {
+        hasUser: Boolean(credential.user),
+        hasEmail: Boolean(credential.email),
+        hasIdentityToken: Boolean(credential.identityToken),
+        fullNameParts: {
+          givenName: Boolean(credential.fullName?.givenName),
+          familyName: Boolean(credential.fullName?.familyName),
+        },
+      });
       const cuevasResponse = await loginWithApple({
         email: credential.email,
         appleUserId: credential.user,
         appleIdentityToken: credential.identityToken,
         displayName,
+      });
+      console.log("[AppleAuth] backend response:", {
+        success: cuevasResponse.success,
+        hasEmail: Boolean(cuevasResponse.email),
+        cuevas: cuevasResponse.cuevas,
+        hasHandle: Boolean(cuevasResponse.handle),
+        error: cuevasResponse.error,
       });
 
       if (cuevasResponse.success && cuevasResponse.cuevas !== undefined) {
@@ -213,7 +237,7 @@ function GoogleAuthButton({
     } catch (err: any) {
       if (err?.code !== "ERR_REQUEST_CANCELED") {
         console.log("Apple login error:", err);
-        onError("Apple sign-in failed. Please try again.");
+        onError(`Apple sign-in failed${err?.code ? ` (${err.code})` : ""}. Please try again.`);
       }
     } finally {
       setIsAppleLoading(false);
@@ -245,30 +269,32 @@ function GoogleAuthButton({
       </View>
 
       {isAppleAvailable ? (
-        <Pressable
-          onPress={handleApplePress}
-          disabled={isLoading || isAppleLoading || isGoogleLoading}
-          className={`py-4 px-6 border-2 items-center flex-row justify-center mb-3 ${
-            isAppleLoading
-              ? isDarkMode
-                ? "bg-dark-surface border-gray-600"
-                : "bg-gray-100 border-gray-300"
-              : "bg-black border-black"
-          }`}
-          style={({ pressed }) => ({
-            minHeight: 54,
-            borderRadius: 18,
-            opacity: pressed ? 0.7 : 1,
-          })}
-        >
-          {isAppleLoading ? (
+        isAppleLoading ? (
+          <View
+            className={`items-center justify-center mb-3 ${
+              isDarkMode ? "bg-dark-surface border-gray-600" : "bg-gray-100 border-gray-300"
+            }`}
+            style={{
+              height: 54,
+              borderRadius: 18,
+              borderWidth: 2,
+            }}
+          >
             <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text className="text-lg font-bold text-white" style={{ fontFamily: "Courier New" }}>
-               SIGN IN WITH APPLE
-            </Text>
-          )}
-        </Pressable>
+          </View>
+        ) : (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            cornerRadius={18}
+            onPress={handleApplePress}
+            style={{
+              height: 54,
+              width: "100%",
+              marginBottom: 12,
+            }}
+          />
+        )
       ) : null}
 
       {/* Google Sign-In Button */}

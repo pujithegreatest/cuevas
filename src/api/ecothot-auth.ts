@@ -364,6 +364,13 @@ export async function loginWithApple(input: {
       displayName: input.displayName?.trim() || undefined,
       handle: input.displayName ? normalizeHandle(input.displayName) : undefined,
     };
+    console.log("[AppleAuth] request summary:", {
+      hasEmail: Boolean(requestBody.email),
+      hasAppleUserId: Boolean(requestBody.appleUserId),
+      hasIdentityToken: Boolean(requestBody.appleIdentityToken),
+      hasDisplayName: Boolean(requestBody.displayName),
+      hasHandle: Boolean(requestBody.handle),
+    });
 
     const response = await fetch("https://www.ecothot.com/_functions/login", {
       method: "POST",
@@ -380,12 +387,25 @@ export async function loginWithApple(input: {
       try {
         data = JSON.parse(responseText);
       } catch {
+        console.log("[AppleAuth] invalid backend response:", {
+          status: response.status,
+          responseText: responseText.substring(0, 200),
+        });
         return {
           success: false,
           error: `Invalid server response (${response.status}). Please try again.`,
         };
       }
     }
+    console.log("[AppleAuth] login endpoint result:", {
+      ok: response.ok,
+      status: response.status,
+      success: Boolean(data.success),
+      code: data.code,
+      error: data.error,
+      hasEmail: Boolean(data.email),
+      hasHandle: Boolean(data.handle || data.username),
+    });
 
     if (!response.ok || !data.success) {
       return {
@@ -394,9 +414,13 @@ export async function loginWithApple(input: {
       };
     }
 
+    const safeAppleFallbackEmail = input.appleUserId
+      ? `apple_${input.appleUserId.replace(/[^a-z0-9]/gi, "").slice(-24) || "user"}@apple.cuevas.local`
+      : undefined;
+
     return {
       success: true,
-      email: data.email || input.email || `apple:${input.appleUserId}`,
+      email: data.email || input.email || safeAppleFallbackEmail,
       cuevas: data.cuevas,
       displayName: data.displayName,
       handle: data.handle || data.username,
