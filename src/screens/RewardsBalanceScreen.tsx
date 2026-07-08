@@ -14,6 +14,7 @@ import { addRewardsCardToWallet } from "../utils/walletAdd";
 import { QRCodeDisplay } from "../components/QRCodeDisplay";
 import { fetchCuevasLeaderboard } from "../api/cuevas-leaderboard";
 import type { CuevasLeaderboardEntry } from "../api/cuevas-leaderboard";
+import { deriveHandle } from "../utils/handles";
 
 type Props = BottomTabScreenProps<MainTabParamList, "RewardsBalance">;
 
@@ -25,6 +26,8 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
   const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
   const rewardsBalance = useAppStore((s) => s.rewardsBalance);
   const userEmail = useAppStore((s) => s.userEmail);
+  const userHandle = useAppStore((s) => s.userHandle);
+  const displayName = useAppStore((s) => s.displayName);
   const isDarkMode = useAppStore((s) => s.isDarkMode);
   const toggleDarkMode = useAppStore((s) => s.toggleDarkMode);
   const logout = useAppStore((s) => s.logout);
@@ -80,8 +83,14 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
   };
 
   const handleAddToWallet = async () => {
-    console.log("[REWARDS] addToWallet tapped", { userEmail, rewardsBalance });
-    await addRewardsCardToWallet({ email: userEmail, rewardsBalance });
+    const isApplePrivateRelay = String(userEmail || "").trim().toLowerCase().endsWith("@privaterelay.appleid.com");
+    const appleMemberDisplayName = isApplePrivateRelay ? `@${deriveHandle(userHandle, displayName, undefined)}` : undefined;
+    console.log("[REWARDS] addToWallet tapped", {
+      userEmail,
+      rewardsBalance,
+      usesAppleMemberDisplayName: Boolean(appleMemberDisplayName),
+    });
+    await addRewardsCardToWallet({ email: userEmail, rewardsBalance, memberDisplayName: appleMemberDisplayName });
   };
 
   const loadLeaderboard = useCallback(async () => {

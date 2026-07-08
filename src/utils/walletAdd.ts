@@ -1,7 +1,11 @@
 import { Alert, Linking, Platform } from "react-native";
 import { generateWalletLinks } from "../api/ecothot-wallet";
 
-export async function addRewardsCardToWallet(params: { email: string | null; rewardsBalance?: number }) {
+export async function addRewardsCardToWallet(params: {
+  email: string | null;
+  rewardsBalance?: number;
+  memberDisplayName?: string;
+}) {
   const tag = "[WALLET]";
   try {
     const email = (params.email || "").trim();
@@ -10,7 +14,11 @@ export async function addRewardsCardToWallet(params: { email: string | null; rew
       return false;
     }
 
-    const res = await generateWalletLinks({ email, rewardsBalance: params.rewardsBalance });
+    const res = await generateWalletLinks({
+      email,
+      rewardsBalance: params.rewardsBalance,
+      memberDisplayName: params.memberDisplayName,
+    });
 
     if (!res.success) {
       if (res.missingConfig) {

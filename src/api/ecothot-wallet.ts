@@ -7,6 +7,7 @@ export type WalletGenerateResponse =
 export async function generateWalletLinks(params: {
   email: string;
   rewardsBalance?: number;
+  memberDisplayName?: string;
 }): Promise<WalletGenerateResponse> {
   const tag = "[WALLET_API]";
   try {
@@ -14,7 +15,11 @@ export async function generateWalletLinks(params: {
       return { success: false, error: "Missing email." };
     }
 
-    console.log(tag, "POST walletLinks", { email: params.email, rewardsBalance: params.rewardsBalance });
+    console.log(tag, "POST walletLinks", {
+      email: params.email,
+      rewardsBalance: params.rewardsBalance,
+      hasMemberDisplayName: Boolean(params.memberDisplayName),
+    });
 
     const response = await fetch(`${BACKEND_URL}/walletLinks`, {
       method: "POST",
@@ -22,6 +27,7 @@ export async function generateWalletLinks(params: {
       body: JSON.stringify({
         email: params.email,
         rewardsBalance: typeof params.rewardsBalance === "number" ? params.rewardsBalance : 0,
+        memberDisplayName: params.memberDisplayName,
       }),
     });
 

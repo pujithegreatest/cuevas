@@ -264,6 +264,15 @@ function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
 }
 
+function normalizeWalletMemberDisplayName(value, email) {
+  const cleaned = String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/[\r\n\t]/g, " ")
+    .slice(0, 64);
+  return cleaned || normalizeEmail(email);
+}
+
 function walletSerialForEmail(email) {
   return `cuevas-${sha1Hex(normalizeEmail(email)).slice(0, 12)}`;
 }
@@ -285,7 +294,7 @@ function escapeXml(s) {
     .replace(/'/g, "&apos;");
 }
 
-function buildStripSvg(width, height, points, email) {
+function buildStripSvg(width, height, points, memberDisplayName) {
   const coinSize = Math.round(height * 0.4);
   const coinTop = Math.round(height * 0.04);
   const pointsY = coinTop + coinSize + Math.round(height * 0.19);
@@ -328,7 +337,7 @@ function buildStripSvg(width, height, points, email) {
     <text x="${width / 2}" y="${pointsY}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${pointsFont}" font-weight="700" fill="rgb(207,239,236)">${points}</text>
     <text x="${width / 2}" y="${cuevasLabelY}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${cuevasLabelFont}" font-weight="600" fill="rgb(6,167,161)" letter-spacing="${Math.round(cuevasLabelFont * 0.25)}">CUEVAS</text>
     <text x="${width / 2}" y="${memberLabelY}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${memberLabelFont}" font-weight="600" fill="rgb(6,167,161)" letter-spacing="${Math.max(1, Math.round(memberLabelFont * 0.25))}">MEMBER</text>
-    <text x="${width / 2}" y="${emailY}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${emailFont}" font-weight="400" fill="rgb(207,239,236)">${escapeXml(email)}</text>
+    <text x="${width / 2}" y="${emailY}" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="${emailFont}" font-weight="400" fill="rgb(207,239,236)">${escapeXml(memberDisplayName)}</text>
   </svg>`;
 }
 
@@ -348,8 +357,8 @@ async function resizePng(input, width, height) {
     .toBuffer();
 }
 
-async function makeStrip(width, height, coinPng, points, email) {
-  const stripBase = await sharp(Buffer.from(buildStripSvg(width, height, points, email))).png().toBuffer();
+async function makeStrip(width, height, coinPng, points, memberDisplayName) {
+  const stripBase = await sharp(Buffer.from(buildStripSvg(width, height, points, memberDisplayName))).png().toBuffer();
   if (!coinPng) return stripBase;
 
   const coinSize = Math.round(height * 0.4);
@@ -367,7 +376,7 @@ async function makeStrip(width, height, coinPng, points, email) {
     .toBuffer();
 }
 
-async function buildApplePassImages(points, email) {
+async function buildApplePassImages(points, memberDisplayName) {
   const transparentPng = Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+XhyoAAAAASUVORK5CYII=",
     "base64"
@@ -379,9 +388,9 @@ async function buildApplePassImages(points, email) {
     "icon.png": await resizePng(iconSource, 29, 29),
     "icon@2x.png": await resizePng(iconSource, 58, 58),
     "icon@3x.png": await resizePng(iconSource, 87, 87),
-    "strip.png": await makeStrip(375, 144, coinPng, points, email),
-    "strip@2x.png": await makeStrip(750, 288, coinPng, points, email),
-    "strip@3x.png": await makeStrip(1125, 432, coinPng, points, email),
+    "strip.png": await makeStrip(375, 144, coinPng, points, memberDisplayName),
+    "strip@2x.png": await makeStrip(750, 288, coinPng, points, memberDisplayName),
+    "strip@3x.png": await makeStrip(1125, 432, coinPng, points, memberDisplayName),
   };
 }
 
@@ -406,16 +415,20 @@ async function getCurrentPointsForEmail(email, fallbackPoints = 0) {
   return toIntPoints(user.loyaltyPoints !== undefined ? user.loyaltyPoints : user.loyaltypoints !== undefined ? user.loyaltypoints : fallbackPoints);
 }
 
-async function recordWalletPassInstallIntent(email, points) {
+async function recordWalletPassInstallIntent(email, points, memberDisplayName) {
   const normalized = normalizeEmail(email);
   const serialNumber = walletSerialForEmail(normalized);
   const issuerId = getSecretMaybe("GOOGLE_WALLET_ISSUER_ID");
   const updateTag = nowTag();
+  const existingSnap = await admin.database().ref(`wallet/applePasses/${serialNumber}`).once("value").catch(() => null);
+  const existing = existingSnap && existingSnap.exists() ? existingSnap.val() || {} : {};
+  const safeMemberDisplayName = normalizeWalletMemberDisplayName(memberDisplayName || existing.memberDisplayName, normalized);
   const updates = {};
   updates[`wallet/applePasses/${serialNumber}`] = {
     email: normalized,
     serialNumber,
     points: toIntPoints(points),
+    memberDisplayName: safeMemberDisplayName,
     lastUpdated: updateTag,
     updatedAt: new Date().toISOString(),
   };
@@ -424,6 +437,7 @@ async function recordWalletPassInstallIntent(email, points) {
       email: normalized,
       objectId: googleWalletObjectId(issuerId, normalized),
       points: toIntPoints(points),
+      memberDisplayName: safeMemberDisplayName,
       lastUpdated: updateTag,
       updatedAt: new Date().toISOString(),
     };
@@ -432,7 +446,7 @@ async function recordWalletPassInstallIntent(email, points) {
   return { serialNumber, updateTag };
 }
 
-async function buildApplePkpass({ email, points }) {
+async function buildApplePkpass({ email, points, memberDisplayName }) {
   const passTypeIdentifier = requireSecret("APPLE_WALLET_PASS_TYPE_ID");
   const teamIdentifier = requireSecret("APPLE_WALLET_TEAM_ID");
   const organizationName = requireSecret("APPLE_WALLET_ORG_NAME");
@@ -455,6 +469,7 @@ async function buildApplePkpass({ email, points }) {
   if (!privateKey || !passCert) throw new Error("P12 is missing private key or certificate");
 
   const normalizedEmail = normalizeEmail(email);
+  const safeMemberDisplayName = normalizeWalletMemberDisplayName(memberDisplayName, normalizedEmail);
   const serialNumber = walletSerialForEmail(normalizedEmail);
   const authenticationToken = createWalletToken(
     { v: 1, kind: "apple-pass-auth", email: normalizedEmail, serialNumber },
@@ -479,7 +494,7 @@ async function buildApplePkpass({ email, points }) {
         {
           key: "member",
           label: "MEMBER",
-          value: String(normalizedEmail),
+          value: String(safeMemberDisplayName),
         },
       ],
       auxiliaryFields: [
@@ -511,12 +526,12 @@ async function buildApplePkpass({ email, points }) {
         format: "PKBarcodeFormatQR",
         message: String(normalizedEmail),
         messageEncoding: "iso-8859-1",
-        altText: String(normalizedEmail),
+        altText: String(safeMemberDisplayName),
       },
     ],
   };
 
-  const images = await buildApplePassImages(points, normalizedEmail);
+  const images = await buildApplePassImages(points, safeMemberDisplayName);
 
   const files = {
     ...images,
@@ -552,7 +567,7 @@ async function buildApplePkpass({ email, points }) {
   return await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 }
 
-function buildGoogleWalletSaveUrl({ issuerId, serviceAccountJsonBase64, email, points, coinImageUrl }) {
+function buildGoogleWalletSaveUrl({ issuerId, serviceAccountJsonBase64, email, points, coinImageUrl, memberDisplayName }) {
   const saJson = JSON.parse(Buffer.from(String(serviceAccountJsonBase64), "base64").toString("utf8"));
   const privateKey = saJson.private_key;
   const clientEmail = saJson.client_email;
@@ -560,6 +575,8 @@ function buildGoogleWalletSaveUrl({ issuerId, serviceAccountJsonBase64, email, p
 
   const classId = `${issuerId}.cuevas_rewards`;
   const normalizedEmail = normalizeEmail(email);
+  const safeMemberDisplayName = normalizeWalletMemberDisplayName(memberDisplayName, normalizedEmail);
+  const memberHeader = safeMemberDisplayName === normalizedEmail ? "Email" : "Member";
   const objectId = googleWalletObjectId(issuerId, normalizedEmail);
   const localized = (value) => ({ defaultValue: { language: "en-US", value } });
   const image = (uri, description) => ({
@@ -590,12 +607,12 @@ function buildGoogleWalletSaveUrl({ issuerId, serviceAccountJsonBase64, email, p
     logo: coinImageUrl ? image(coinImageUrl, "Cuevas logo") : undefined,
     cardTitle: localized("Cuevas Rewards"),
     header: localized(`${points} Cuevas`),
-    subheader: localized(String(normalizedEmail)),
+    subheader: localized(String(safeMemberDisplayName)),
     hexBackgroundColor: "#081920",
-    barcode: { type: "QR_CODE", value: String(normalizedEmail), alternateText: String(normalizedEmail) },
+    barcode: { type: "QR_CODE", value: String(normalizedEmail), alternateText: String(safeMemberDisplayName) },
     textModulesData: [
       { id: "points", header: "Points", body: String(points) },
-      { id: "email", header: "Email", body: String(normalizedEmail) },
+      { id: "email", header: memberHeader, body: String(safeMemberDisplayName) },
     ],
   };
   if (!genericObject.heroImage) delete genericObject.heroImage;
@@ -884,8 +901,9 @@ async function handleAppleLatestPass(req, res, parts) {
   const email = normalizeEmail(pass.email || verified.payload.email);
   if (!email) return json(res, 404, { success: false, error: "Pass not found" });
   const points = await getCurrentPointsForEmail(email, pass.points);
-  await recordWalletPassInstallIntent(email, points);
-  const pkpass = await buildApplePkpass({ email, points });
+  const memberDisplayName = pass.memberDisplayName;
+  await recordWalletPassInstallIntent(email, points, memberDisplayName);
+  const pkpass = await buildApplePkpass({ email, points, memberDisplayName });
   res
     .status(200)
     .set("Content-Type", "application/vnd.apple.pkpass")
@@ -937,12 +955,13 @@ exports.walletLinks = onRequest(
       const body = req.body || {};
       const email = String(body.email || "").trim();
       const rewardsBalance = body.rewardsBalance;
+      const memberDisplayName = normalizeWalletMemberDisplayName(body.memberDisplayName, email);
       if (!email) return json(res, 400, { success: false, error: "Missing email" });
 
       const points = await getCurrentPointsForEmail(email, rewardsBalance);
       const hmacSecret = requireSecret("WALLET_TOKEN_HMAC_SECRET");
       const token = createWalletToken(
-        { v: 1, kind: "apple-pass-download", email: normalizeEmail(email), points, iat: Date.now() },
+        { v: 1, kind: "apple-pass-download", email: normalizeEmail(email), points, memberDisplayName, iat: Date.now() },
         hmacSecret
       );
 
@@ -954,7 +973,7 @@ exports.walletLinks = onRequest(
       const walletPassUrl = `${walletPassBaseUrl.replace(/\/+$/, "")}/pass.pkpass?token=${encodeURIComponent(
         token
       )}`;
-      await recordWalletPassInstallIntent(email, points);
+      await recordWalletPassInstallIntent(email, points, memberDisplayName);
 
       let google = undefined;
       const issuerId = getSecretMaybe("GOOGLE_WALLET_ISSUER_ID");
@@ -962,7 +981,7 @@ exports.walletLinks = onRequest(
       if (issuerId && saB64) {
         try {
           const coinImageUrl = getSecretMaybe("GOOGLE_WALLET_COIN_IMAGE_URL");
-          const saveUrl = buildGoogleWalletSaveUrl({ issuerId, serviceAccountJsonBase64: saB64, email, points, coinImageUrl });
+          const saveUrl = buildGoogleWalletSaveUrl({ issuerId, serviceAccountJsonBase64: saB64, email, points, coinImageUrl, memberDisplayName });
           google = { saveUrl };
         } catch (e) {
           google = { error: String(e && e.message ? e.message : e) };
@@ -1043,11 +1062,12 @@ exports.walletPass = onRequest(
 
       const payload = verified.payload || {};
       const email = String(payload.email || "").trim();
+      const memberDisplayName = payload.memberDisplayName;
       const points = await getCurrentPointsForEmail(email, payload.points);
       if (!email) return json(res, 400, { success: false, error: "Token missing email" });
 
-      await recordWalletPassInstallIntent(email, points);
-      const pkpass = await buildApplePkpass({ email, points });
+      await recordWalletPassInstallIntent(email, points, memberDisplayName);
+      const pkpass = await buildApplePkpass({ email, points, memberDisplayName });
       const filename = `cuevas-${sha1Hex(email).slice(0, 8)}.pkpass`;
       res
         .status(200)
