@@ -186,7 +186,12 @@ function GoogleAuthButton({
   };
 
   const handleApplePress = async () => {
-    if (isLoading || isAppleLoading || isGoogleLoading) return;
+    console.log("[AppleAuth] press attempt:", {
+      parentLoading: isLoading,
+      appleLoading: isAppleLoading,
+      googleLoading: isGoogleLoading,
+    });
+    if (isAppleLoading || isGoogleLoading) return;
     onError("");
     setIsAppleLoading(true);
     try {
