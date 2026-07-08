@@ -298,24 +298,16 @@ function GoogleAuthButton({
         ) : (
           <Pressable
             onPress={handleApplePress}
-            style={{
-              height: 54,
-              width: "100%",
-              marginBottom: 12,
-            }}
+            className="py-4 px-6 border-2 items-center flex-row justify-center mb-3 bg-black border-black"
+            style={({ pressed }) => ({
+              minHeight: 54,
+              borderRadius: 8,
+              opacity: pressed ? 0.7 : 1,
+            })}
           >
-            <View pointerEvents="none" style={{ flex: 1 }}>
-              <AppleAuthentication.AppleAuthenticationButton
-                buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-                cornerRadius={18}
-                onPress={handleApplePress}
-                style={{
-                  height: 54,
-                  width: "100%",
-                }}
-              />
-            </View>
+            <Text className="text-lg font-bold text-white" style={{ fontFamily: "Courier New" }}>
+               SIGN IN WITH APPLE
+            </Text>
           </Pressable>
         )
       ) : null}
