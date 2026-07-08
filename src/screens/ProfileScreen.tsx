@@ -1634,15 +1634,20 @@ export default function ProfileScreen({ navigation }: Props) {
                     minWidth: 188,
                   })}
                 >
-                  <Ionicons
-                    name="arrow-back-outline"
-                    size={17}
-                    color={isDarkMode ? "#FFFFFF" : "#10252B"}
-                    style={{ marginRight: 8 }}
-                  />
-                  <Text style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontWeight: "900" }}>
-                    Back to Profile
-                  </Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                    <Ionicons
+                      name="arrow-back-outline"
+                      size={17}
+                      color={isDarkMode ? "#FFFFFF" : "#10252B"}
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text
+                      numberOfLines={1}
+                      style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontWeight: "900" }}
+                    >
+                      Back to Profile
+                    </Text>
+                  </View>
                 </Pressable>
               </View>
             </LinearGradient>

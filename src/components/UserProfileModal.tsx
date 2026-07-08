@@ -608,10 +608,12 @@ export default function UserProfileModal({
                       minWidth: 188,
                     })}
                   >
-                    <Ionicons name="arrow-back-outline" size={17} color="#FFFFFF" style={{ marginRight: 8 }} />
-                    <Text style={{ color: "#FFFFFF", fontWeight: "900" }}>
-                      Back to Profile
-                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="arrow-back-outline" size={17} color="#FFFFFF" style={{ marginRight: 8 }} />
+                      <Text numberOfLines={1} style={{ color: "#FFFFFF", fontWeight: "900" }}>
+                        Back to Profile
+                      </Text>
+                    </View>
                   </Pressable>
                 </View>
               </View>
