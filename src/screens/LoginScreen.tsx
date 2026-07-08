@@ -225,8 +225,13 @@ function GoogleAuthButton({
       });
 
       if (cuevasResponse.success && cuevasResponse.cuevas !== undefined) {
+        const safeAppleEmail =
+          cuevasResponse.email ||
+          credential.email ||
+          `apple_${credential.user.replace(/[^a-z0-9]/gi, "").slice(-24) || "user"}@apple.cuevas.local`;
+
         onLoginSuccess(
-          cuevasResponse.email || credential.email || `apple:${credential.user}`,
+          safeAppleEmail,
           cuevasResponse.cuevas,
           cuevasResponse.displayName || displayName,
           cuevasResponse.handle
