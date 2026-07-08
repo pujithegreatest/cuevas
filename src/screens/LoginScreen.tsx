@@ -226,6 +226,9 @@ function GoogleAuthButton({
         hasEmail: Boolean(cuevasResponse.email),
         cuevas: cuevasResponse.cuevas,
         hasHandle: Boolean(cuevasResponse.handle),
+        code: cuevasResponse.code,
+        details: cuevasResponse.details,
+        stage: cuevasResponse.stage,
         error: cuevasResponse.error,
       });
 

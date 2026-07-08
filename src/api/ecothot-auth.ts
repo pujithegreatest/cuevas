@@ -38,6 +38,9 @@ interface LoginResponse {
   displayName?: string;
   handle?: string;
   error?: string;
+  code?: string;
+  details?: string;
+  stage?: string;
 }
 
 /**
@@ -403,6 +406,9 @@ export async function loginWithApple(input: {
       success: Boolean(data.success),
       code: data.code,
       error: data.error,
+      details: data.details,
+      stage: data.stage,
+      appleDebug: data.appleDebug,
       hasEmail: Boolean(data.email),
       hasHandle: Boolean(data.handle || data.username),
     });
@@ -411,6 +417,9 @@ export async function loginWithApple(input: {
       return {
         success: false,
         error: data.error || `Server error (${response.status})`,
+        code: data.code,
+        details: data.details,
+        stage: data.stage,
       };
     }
 
