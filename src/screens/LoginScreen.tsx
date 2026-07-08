@@ -293,17 +293,27 @@ function GoogleAuthButton({
             <ActivityIndicator size="small" color="#FFFFFF" />
           </View>
         ) : (
-          <AppleAuthentication.AppleAuthenticationButton
-            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-            cornerRadius={18}
+          <Pressable
             onPress={handleApplePress}
             style={{
               height: 54,
               width: "100%",
               marginBottom: 12,
             }}
-          />
+          >
+            <View pointerEvents="none" style={{ flex: 1 }}>
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                cornerRadius={18}
+                onPress={handleApplePress}
+                style={{
+                  height: 54,
+                  width: "100%",
+                }}
+              />
+            </View>
+          </Pressable>
         )
       ) : null}
 
