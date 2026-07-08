@@ -593,7 +593,8 @@ export default function UserProfileModal({
                   <Pressable
                     onPress={() => setCompletedOpen(false)}
                     style={({ pressed }) => ({
-                      marginTop: 22,
+                      marginTop: 34,
+                      marginLeft: -28,
                       borderRadius: 16,
                       paddingVertical: 12,
                       paddingHorizontal: 18,
@@ -606,7 +607,6 @@ export default function UserProfileModal({
                       justifyContent: "center",
                       alignSelf: "center",
                       minWidth: 188,
-                      transform: [{ translateX: -10 }],
                     })}
                   >
                     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
