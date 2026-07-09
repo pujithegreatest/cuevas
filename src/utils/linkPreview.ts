@@ -45,16 +45,21 @@ export async function enrichLinkPreview(preview: LinkPreview | null): Promise<Li
     const html = await response.text();
     const title =
       readMeta(html, "property", "og:title") ||
+      readMeta(html, "property", "twitter:title") ||
       readMeta(html, "name", "twitter:title") ||
       readTitle(html) ||
       preview.title;
     const description =
       readMeta(html, "property", "og:description") ||
+      readMeta(html, "property", "twitter:description") ||
       readMeta(html, "name", "description") ||
       readMeta(html, "name", "twitter:description") ||
       preview.description;
     const image =
       readMeta(html, "property", "og:image") ||
+      readMeta(html, "property", "og:image:secure_url") ||
+      readMeta(html, "property", "twitter:image") ||
+      readMeta(html, "name", "og:image") ||
       readMeta(html, "name", "twitter:image") ||
       preview.thumbnail;
 

@@ -3,11 +3,12 @@ import { View, Text } from "react-native";
 import { Image } from "expo-image";
 import ViewShot from "react-native-view-shot";
 import { Post } from "../types/feed";
-import { formatRelativeTime } from "../utils/linkPreview";
+import { completeLinkPreview, formatRelativeTime } from "../utils/linkPreview";
 
 interface Props {
   post: Post;
   variant?: "default" | "instagramVideoOverlay";
+  linkPreviewOverride?: Post["linkPreview"] | null;
 }
 
 const STORY_BG = "#081920";
@@ -16,12 +17,13 @@ const STORY_SCANLINE_STEP = 10;
 const STORY_SCANLINE_HEIGHT = 2;
 
 const PostShareableCard = forwardRef<ViewShot, Props>(function PostShareableCard(
-  { post, variant = "default" },
+  { post, variant = "default", linkPreviewOverride },
   ref,
 ) {
   const [exportImgAspect, setExportImgAspect] = useState<number | null>(null);
   const isInstagramVideoOverlay = variant === "instagramVideoOverlay";
   const mediaList = (post.images || []).filter(Boolean);
+  const linkPreview = completeLinkPreview(linkPreviewOverride ?? post.linkPreview, post.content);
   const isVideoUri = (uri?: string) =>
     !!uri &&
     (/\.(mp4|mov|m4v|avi|webm)$/i.test(uri) ||
@@ -303,7 +305,7 @@ const PostShareableCard = forwardRef<ViewShot, Props>(function PostShareableCard
               </View>
             )}
 
-            {post.linkPreview && (
+            {linkPreview && (
               <View
                 style={{
                   borderRadius: 16,
@@ -313,9 +315,9 @@ const PostShareableCard = forwardRef<ViewShot, Props>(function PostShareableCard
                   backgroundColor: "#F9FAFB",
                 }}
               >
-                {post.linkPreview.thumbnail && (
+                {linkPreview.thumbnail && (
                   <Image
-                    source={{ uri: post.linkPreview.thumbnail }}
+                    source={{ uri: linkPreview.thumbnail }}
                     style={{ width: "100%", height: 300 }}
                     contentFit="cover"
                     cachePolicy="memory-disk"
@@ -323,16 +325,16 @@ const PostShareableCard = forwardRef<ViewShot, Props>(function PostShareableCard
                 )}
                 <View style={{ padding: 20 }}>
                   <Text style={{ fontSize: 16, color: "#6B7280", marginBottom: 8 }}>
-                    {post.linkPreview.domain}
+                    {linkPreview.domain}
                   </Text>
                   <Text
                     style={{ fontSize: 20, fontWeight: "bold", color: "#1F2937", marginBottom: 8 }}
                   >
-                    {post.linkPreview.title}
+                    {linkPreview.title}
                   </Text>
-                  {post.linkPreview.description && (
+                  {linkPreview.description && (
                     <Text style={{ fontSize: 16, color: "#6B7280" }} numberOfLines={3}>
-                      {post.linkPreview.description}
+                      {linkPreview.description}
                     </Text>
                   )}
                 </View>

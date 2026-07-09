@@ -279,13 +279,26 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
     return false;
   };
 
+  const prepareShareLinkPreview = async () => {
+    const basePreview = completeLinkPreview(enrichedLinkPreview ?? displayLinkPreview, post.content);
+    if (!basePreview) return null;
+
+    const preview = await enrichLinkPreview(basePreview);
+    if (preview) {
+      setEnrichedLinkPreview(preview);
+      await new Promise((resolve) => setTimeout(resolve, 80));
+    }
+    return preview;
+  };
+
   const handleShare = async () => {
     try {
+      await prepareShareLinkPreview();
       setIsCapturing(true);
       setExportVariant("default");
       setExportMounted(true);
       await waitForRef();
-      await new Promise((resolve) => setTimeout(resolve, 400));
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
       if (viewShotRef.current && viewShotRef.current.capture) {
         const uri = await viewShotRef.current.capture();
@@ -315,11 +328,12 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   const handleShareToInstagramStory = async () => {
     try {
       const hasSingleVideo = mediaList.length === 1 && isVideoUri(mediaList[0]);
+      await prepareShareLinkPreview();
       setIsCapturing(true);
       setExportVariant(hasSingleVideo ? "instagramVideoOverlay" : "default");
       setExportMounted(true);
       await waitForRef();
-      await new Promise((resolve) => setTimeout(resolve, 400));
+      await new Promise((resolve) => setTimeout(resolve, 600));
       if (viewShotRef.current && viewShotRef.current.capture) {
         const uri = await viewShotRef.current.capture();
         setIsCapturing(false);
@@ -360,7 +374,14 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
   return (
     <>
       {/* Shareable View for Export (hidden, only mounted while capturing to keep feed scrolling smooth) */}
-      {exportMounted && <PostShareableCard ref={viewShotRef} post={post} variant={exportVariant} />}
+      {exportMounted && (
+        <PostShareableCard
+          ref={viewShotRef}
+          post={post}
+          variant={exportVariant}
+          linkPreviewOverride={enrichedLinkPreview}
+        />
+      )}
 
       {/* Image Viewer Modal */}
       <ImageViewerModal
