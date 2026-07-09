@@ -45,6 +45,7 @@ interface StoryCameraModalProps {
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const MAX_RECORD_MS = 15000;
+const VIDEO_CAMERA_ARM_MS = 850;
 const RECORD_BTN_SIZE = 84;
 const RING_SIZE = 104;
 type LiveFilter =
@@ -100,6 +101,7 @@ export default function StoryCameraModal({
   const [elapsedMs, setElapsedMs] = useState(0);
   const [liveFilter, setLiveFilter] = useState<LiveFilter>("none");
   const [cameraReady, setCameraReady] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const [micPermission, requestMicPermission] = useMicrophonePermissions();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -109,14 +111,38 @@ export default function StoryCameraModal({
   const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cameraReadyFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const videoReadyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFinalCaptureInFlightRef = useRef(false);
   const recordStartRef = useRef<number>(0);
   const cameraModeRef = useRef<CameraMode>("picture");
   const shouldMirrorFrontCamera = facing === "front";
 
+  const clearVideoReadyTimer = () => {
+    if (videoReadyTimerRef.current) {
+      clearTimeout(videoReadyTimerRef.current);
+      videoReadyTimerRef.current = null;
+    }
+  };
+
+  const armVideoCamera = () => {
+    clearVideoReadyTimer();
+    setVideoReady(false);
+    videoReadyTimerRef.current = setTimeout(() => {
+      if (cameraModeRef.current === "video") {
+        setVideoReady(true);
+      }
+    }, VIDEO_CAMERA_ARM_MS);
+  };
+
   const setNativeCameraMode = (nextMode: CameraMode) => {
+    const changed = cameraModeRef.current !== nextMode;
     cameraModeRef.current = nextMode;
     setCameraMode(nextMode);
+    if (changed) {
+      clearVideoReadyTimer();
+      setCameraReady(false);
+      setVideoReady(nextMode !== "video");
+    }
   };
 
   const prepareNativeCameraMode = async (nextMode: CameraMode) => {
@@ -158,12 +184,14 @@ export default function StoryCameraModal({
   useEffect(() => {
     if (!visible) {
       cleanupRecording();
+      clearVideoReadyTimer();
       setIsRecording(false);
       setElapsedMs(0);
       setMode("picture");
       setNativeCameraMode("picture");
       setLiveFilter("none");
       setCameraReady(false);
+      setVideoReady(false);
       setErrorMsg(null);
       progress.value = 0;
       redDot.value = 0;
@@ -171,21 +199,31 @@ export default function StoryCameraModal({
   }, [visible]);
 
   useEffect(() => {
+    if (!visible || !permission?.granted || isRecording) return;
+    setErrorMsg(null);
+    setNativeCameraMode(mode);
+  }, [visible, permission?.granted, mode, isRecording]);
+
+  useEffect(() => {
     if (!visible || !permission?.granted) return;
     setCameraReady(false);
+    setVideoReady(cameraMode !== "video");
     if (cameraReadyFallbackTimerRef.current) {
       clearTimeout(cameraReadyFallbackTimerRef.current);
     }
     cameraReadyFallbackTimerRef.current = setTimeout(() => {
       setCameraReady(true);
-    }, 700);
+      if (cameraMode === "video") {
+        armVideoCamera();
+      }
+    }, cameraMode === "video" ? 1200 : 700);
     return () => {
       if (cameraReadyFallbackTimerRef.current) {
         clearTimeout(cameraReadyFallbackTimerRef.current);
         cameraReadyFallbackTimerRef.current = null;
       }
     };
-  }, [visible, permission?.granted, facing]);
+  }, [visible, permission?.granted, facing, cameraMode]);
 
   useEffect(() => {
     if (isRecording) {
@@ -241,6 +279,10 @@ export default function StoryCameraModal({
     try {
       isFinalCaptureInFlightRef.current = true;
       await prepareNativeCameraMode("picture");
+      if (!cameraReady || cameraModeRef.current !== "picture") {
+        setErrorMsg("Camera is warming up. Try again.");
+        return;
+      }
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.85,
         skipProcessing: true,
@@ -273,6 +315,12 @@ export default function StoryCameraModal({
         setErrorMsg("Mic permission needed to record video.");
         return;
       }
+    }
+
+    if (cameraModeRef.current !== "video" || !cameraReady || !videoReady) {
+      setNativeCameraMode("video");
+      setErrorMsg("Video camera is warming up. Try again.");
+      return;
     }
 
     try {
@@ -437,6 +485,22 @@ export default function StoryCameraModal({
     return `${String(sec).padStart(2, "0")}.${tenths}`;
   };
 
+  const canUsePrimary =
+    mode === "picture"
+      ? cameraReady && cameraMode === "picture"
+      : isRecording || (cameraReady && cameraMode === "video" && videoReady);
+
+  const handleCameraReady = (readyMode: CameraMode) => {
+    if (cameraModeRef.current !== readyMode) return;
+    setCameraReady(true);
+    if (readyMode === "video") {
+      armVideoCamera();
+    } else {
+      clearVideoReadyTimer();
+      setVideoReady(false);
+    }
+  };
+
   if (!visible) return null;
 
   return (
@@ -452,14 +516,14 @@ export default function StoryCameraModal({
       <View style={{ flex: 1, backgroundColor: "#000" }}>
         {permission?.granted ? (
           <CameraView
-            key={`story-camera-${facing}`}
+            key={`story-camera-${facing}-${cameraMode}`}
             ref={cameraRef}
             style={{ flex: 1 }}
             facing={facing}
             mirror={shouldMirrorFrontCamera}
             mode={cameraMode}
             videoQuality="720p"
-            onCameraReady={() => setCameraReady(true)}
+            onCameraReady={() => handleCameraReady(cameraMode)}
           />
         ) : (
           <View
@@ -672,7 +736,13 @@ export default function StoryCameraModal({
                     fontSize: 12,
                   }}
                 >
-                  {mode === "picture" ? "PHOTO • READY" : "VIDEO • 15s MAX"}
+                  {mode === "picture"
+                    ? cameraReady
+                      ? "PHOTO • READY"
+                      : "PHOTO • WARMING"
+                    : canUsePrimary
+                      ? "VIDEO • 15s MAX"
+                      : "VIDEO • WARMING"}
                 </Text>
               </View>
             )}
@@ -964,6 +1034,7 @@ export default function StoryCameraModal({
             />
             <Pressable
               onPress={handlePrimaryPress}
+              disabled={!canUsePrimary}
               style={{
                 width: RECORD_BTN_SIZE,
                 height: RECORD_BTN_SIZE,
@@ -973,6 +1044,7 @@ export default function StoryCameraModal({
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: "transparent",
+                opacity: canUsePrimary ? 1 : 0.45,
               }}
             >
               <Animated.View
