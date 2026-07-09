@@ -16,6 +16,7 @@ import * as ImageManipulator from "expo-image-manipulator";
 import * as MediaLibrary from "expo-media-library";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
+import * as VideoThumbnails from "expo-video-thumbnails";
 import { Audio } from "expo-av";
 import { captureRef } from "react-native-view-shot";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -57,6 +58,31 @@ interface CreateStoryModalProps {
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const makeVideoStoryThumbnail = async (
+  uri: string,
+  startMs?: number,
+  endMs?: number
+) => {
+  const start = Math.max(0, startMs || 0);
+  const latestSafeFrame =
+    typeof endMs === "number" && endMs > start + 150 ? endMs - 100 : undefined;
+  const requestedFrame = start + 180;
+  const time =
+    typeof latestSafeFrame === "number"
+      ? Math.min(requestedFrame, latestSafeFrame)
+      : requestedFrame;
+
+  try {
+    const thumbnail = await VideoThumbnails.getThumbnailAsync(uri, {
+      time: Math.max(0, Math.floor(time)),
+      quality: 0.45,
+    });
+    return thumbnail.uri;
+  } catch {
+    return undefined;
+  }
+};
 
 const FILTERS: { id: StoryFilter; label: string }[] = [
   { id: "none", label: "Original" },
@@ -922,6 +948,14 @@ export default function CreateStoryModal({
     await unloadVoiceoverPreview();
     try {
       const cleanOverlays = overlays.filter((o) => o.text.trim().length > 0);
+      const thumbnailUri =
+        mediaType === "video"
+          ? await makeVideoStoryThumbnail(
+              mediaUri,
+              videoTrimStartMs,
+              videoTrimEndMs
+            )
+          : undefined;
       addStory({
         author: storyAuthor,
         authorRewardPoints: rewardsBalance,
@@ -930,6 +964,7 @@ export default function CreateStoryModal({
         videoDurationMs,
         videoTrimStartMs,
         videoTrimEndMs,
+        thumbnailUri,
         filter,
         liveFilter: lockedLiveFilter || undefined,
         textOverlays: cleanOverlays.length > 0 ? cleanOverlays : undefined,
