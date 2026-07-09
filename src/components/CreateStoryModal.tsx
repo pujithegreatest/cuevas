@@ -43,6 +43,7 @@ import MusicPickerModal from "./MusicPickerModal";
 import DrawingCanvas from "./DrawingCanvas";
 import DraggableSticker from "./DraggableSticker";
 import StickerPickerModal from "./StickerPickerModal";
+import { displayUsername } from "../utils/handles";
 import { getSongById, resolveSongSourceUri } from "../utils/musicLibrary";
 import { Image as RNImage } from "react-native";
 
@@ -193,9 +194,11 @@ export default function CreateStoryModal({
 
   const isDarkMode = useAppStore((s) => s.isDarkMode);
   const userEmail = useAppStore((s) => s.userEmail);
+  const displayName = useAppStore((s) => s.displayName);
   const rewardsBalance = useAppStore((s) => s.rewardsBalance);
   const defaultPostPrivacy = useAppStore((s) => s.defaultPostPrivacy);
   const addStory = useStoryStore((s) => s.addStory);
+  const storyAuthor = displayUsername(displayName, userEmail, "anonymous");
 
   const canvasW = SCREEN_W - 32;
   const canvasH = Math.min(SCREEN_H * 0.6, canvasW * (16 / 9));
@@ -932,7 +935,7 @@ export default function CreateStoryModal({
         );
       }
       addStory({
-        author: userEmail?.split("@")[0] || "anonymous",
+        author: storyAuthor,
         authorRewardPoints: rewardsBalance,
         imageUri: mediaUri,
         mediaType,

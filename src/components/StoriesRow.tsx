@@ -6,7 +6,7 @@ import { useAppStore } from "../state/appStore";
 import { useStoryStore, groupStoriesByAuthor } from "../state/storyStore";
 import { Story, StoryGroup } from "../types/story";
 import StoryFilterCanvas from "./StoryFilterCanvas";
-import { normalizeHandle } from "../utils/handles";
+import { displayUsername, normalizeHandle } from "../utils/handles";
 
 interface StoriesRowProps {
   onOpenGroup: (groupIndex: number) => void;
@@ -70,11 +70,12 @@ function StoryThumb({
 export default function StoriesRow({ onOpenGroup, onCreate }: StoriesRowProps) {
   const isDarkMode = useAppStore((s) => s.isDarkMode);
   const userEmail = useAppStore((s) => s.userEmail);
+  const displayName = useAppStore((s) => s.displayName);
   const blockedHandles = useAppStore((s) => s.blockedHandles);
   const stories = useStoryStore((s) => s.stories);
   const viewedIds = useStoryStore((s) => s.viewedIds);
 
-  const currentUser = userEmail?.split("@")[0] || "anonymous";
+  const currentUser = displayUsername(displayName, userEmail, "anonymous");
 
   const visibleStories = useMemo(() => {
     const blocked = new Set((blockedHandles || []).map((item) => normalizeHandle(item, "")));
@@ -132,7 +133,7 @@ export default function StoriesRow({ onOpenGroup, onCreate }: StoriesRowProps) {
                       isDarkMode ? "text-dark-text" : "text-pixel-text"
                     }`}
                   >
-                    {(userEmail?.[0] || "A").toUpperCase()}
+                    {(currentUser[0] || "A").toUpperCase()}
                   </Text>
                 )}
               </View>
