@@ -593,8 +593,8 @@ export default function UserProfileModal({
                   <Pressable
                     onPress={() => setCompletedOpen(false)}
                     style={({ pressed }) => ({
-                      marginTop: 34,
-                      marginLeft: -28,
+                      marginTop: 24,
+                      marginLeft: -14,
                       borderRadius: 16,
                       paddingVertical: 12,
                       paddingHorizontal: 18,
