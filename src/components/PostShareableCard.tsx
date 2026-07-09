@@ -224,7 +224,7 @@ const PostShareableCard = forwardRef<ViewShot, Props>(function PostShareableCard
                 right: 0,
               }}
             >
-              apps by ecothot
+              tools by ecothot
             </Text>
           </View>
         </ViewShot>
@@ -354,7 +354,7 @@ const PostShareableCard = forwardRef<ViewShot, Props>(function PostShareableCard
               right: 0,
             }}
           >
-            apps by ecothot
+            tools by ecothot
           </Text>
         </View>
       </ViewShot>

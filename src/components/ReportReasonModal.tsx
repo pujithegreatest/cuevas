@@ -28,8 +28,8 @@ export default function ReportReasonModal({
   const surface = isDarkMode ? "#111827" : "#FFFFFF";
   const rowBg = isDarkMode ? "#17212C" : "#F3F4F6";
   const { height } = useWindowDimensions();
-  const modalMaxHeight = Math.min(height - 64, 600);
-  const reasonMaxHeight = Math.max(170, Math.min(302, modalMaxHeight - 214));
+  const modalMaxHeight = Math.min(height - 48, 560);
+  const reasonMaxHeight = Math.max(150, Math.min(238, modalMaxHeight - 248));
 
   useEffect(() => {
     if (visible) setSelected("Spam or scam");
@@ -95,16 +95,16 @@ export default function ReportReasonModal({
                   key={reason}
                   onPress={() => setSelected(reason)}
                   style={({ pressed }) => ({
-                    minHeight: 40,
+                    minHeight: 42,
                     borderRadius: 14,
                     borderWidth: 1,
                     borderColor: active ? "#FACC15" : isDarkMode ? "#374151" : "#E5E7EB",
                     backgroundColor: active ? "rgba(250,204,21,0.12)" : rowBg,
                     paddingHorizontal: 12,
-                    paddingVertical: 6,
+                    paddingVertical: 7,
                     flexDirection: "row",
                     alignItems: "center",
-                    marginBottom: 5,
+                    marginBottom: 6,
                     width: "100%",
                     opacity: pressed ? 0.76 : 1,
                   })}
@@ -136,42 +136,53 @@ export default function ReportReasonModal({
             })}
           </ScrollView>
 
-          <View style={{ flexDirection: "row", marginTop: 10 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: 12,
+            }}
+          >
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Cancel report"
               onPress={onCancel}
               disabled={submitting}
               style={({ pressed }) => ({
-                flex: 1,
-                marginRight: 5,
-                minHeight: 46,
-                borderRadius: 16,
-                backgroundColor: rowBg,
-                borderWidth: 1,
-                borderColor: isDarkMode ? "#374151" : "#E5E7EB",
+                width: "35%",
+                borderRadius: 18,
+                paddingVertical: 12,
                 alignItems: "center",
                 justifyContent: "center",
-                opacity: pressed || submitting ? 0.72 : 1,
+                opacity: pressed ? 0.75 : submitting ? 0.55 : 1,
+                backgroundColor: rowBg,
               })}
             >
-              <Text style={{ color: text, fontWeight: "900" }}>Cancel</Text>
+              <Text style={{ color: text, fontWeight: "900", fontSize: 15 }}>Cancel</Text>
             </Pressable>
+
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Send report"
               onPress={() => onSubmit(selected)}
               disabled={submitting}
               style={({ pressed }) => ({
-                flex: 1,
-                marginLeft: 5,
-                minHeight: 46,
-                borderRadius: 16,
-                backgroundColor: "#FACC15",
+                width: "61%",
+                borderRadius: 18,
+                paddingVertical: 12,
                 alignItems: "center",
                 justifyContent: "center",
-                opacity: pressed || submitting ? 0.75 : 1,
+                opacity: pressed ? 0.8 : submitting ? 0.65 : 1,
+                backgroundColor: "#FACC15",
               })}
             >
-              <Text style={{ color: "#111827", fontWeight: "900" }}>
-                {submitting ? "Sending..." : "Send Report"}
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
+                <Ionicons name="send" size={16} color="#111827" />
+                <Text style={{ color: "#111827", fontWeight: "900", fontSize: 15, marginLeft: 8 }}>
+                  {submitting ? "Sending..." : "Send Report"}
+                </Text>
+              </View>
             </Pressable>
           </View>
         </Pressable>

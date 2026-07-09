@@ -525,7 +525,7 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
                 marginTop: 40,
               }}
             >
-              apps by ecothot
+              tools by ecothot
             </Text>
           </View>
           </LinearGradient>

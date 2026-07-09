@@ -737,7 +737,7 @@ export default function StockBalanceScreen({ navigation }: Props) {
                     marginTop: 40,
                   }}
                 >
-                  apps by ecothot
+                  tools by ecothot
                 </Text>
               </View>
             </ViewShot>
