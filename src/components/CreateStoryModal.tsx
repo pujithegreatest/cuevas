@@ -14,7 +14,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as MediaLibrary from "expo-media-library";
-import * as VideoThumbnails from "expo-video-thumbnails";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { Audio } from "expo-av";
@@ -801,21 +800,6 @@ export default function CreateStoryModal({
     setStrokes([]);
   };
 
-  const generateThumbnailForVideo = async (
-    videoUri: string,
-    atMs: number
-  ): Promise<string | undefined> => {
-    try {
-      const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
-        time: Math.max(0, Math.floor(atMs)),
-        quality: 0.8,
-      });
-      return uri;
-    } catch {
-      return undefined;
-    }
-  };
-
   const exportMusicTrack = async (): Promise<boolean> => {
     if (!music || !musicSong) return false;
     try {
@@ -927,13 +911,6 @@ export default function CreateStoryModal({
     }
     try {
       const cleanOverlays = overlays.filter((o) => o.text.trim().length > 0);
-      let thumbnailUri: string | undefined;
-      if (mediaType === "video") {
-        thumbnailUri = await generateThumbnailForVideo(
-          mediaUri,
-          videoTrimStartMs ?? 0
-        );
-      }
       addStory({
         author: storyAuthor,
         authorRewardPoints: rewardsBalance,
@@ -942,7 +919,6 @@ export default function CreateStoryModal({
         videoDurationMs,
         videoTrimStartMs,
         videoTrimEndMs,
-        thumbnailUri,
         filter,
         liveFilter: lockedLiveFilter || undefined,
         textOverlays: cleanOverlays.length > 0 ? cleanOverlays : undefined,

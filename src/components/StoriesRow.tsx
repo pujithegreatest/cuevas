@@ -26,6 +26,42 @@ function StoryThumb({
   const thumbType: "image" | "video" =
     isVideo && story.thumbnailUri ? "image" : story.mediaType || "image";
 
+  if (isVideo && !story.thumbnailUri) {
+    return (
+      <View
+        style={{
+          width: size,
+          height: size,
+          overflow: "hidden",
+          borderRadius: size / 2,
+          backgroundColor: "#061B20",
+          alignItems: "center",
+          justifyContent: "center",
+          borderWidth: 1,
+          borderColor: "rgba(6,167,161,0.65)",
+        }}
+      >
+        <LinearGradient
+          colors={["#06262B", "#07151A", "#063D3E"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+          }}
+        />
+        <Ionicons
+          name="videocam"
+          size={Math.max(16, size * 0.34)}
+          color="#CFEFEC"
+        />
+      </View>
+    );
+  }
+
   return (
     <View
       style={{
