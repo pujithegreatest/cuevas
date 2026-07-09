@@ -47,7 +47,7 @@ import { getSongById, resolveSongSourceUri } from "../utils/musicLibrary";
 import { Image as RNImage } from "react-native";
 
 const MAX_VIDEO_MS = 15000;
-const VIDEO_PREVIEW_STOP_MS = 140;
+const VIDEO_PREVIEW_STOP_MS = 650;
 
 interface CreateStoryModalProps {
   visible: boolean;
@@ -1111,27 +1111,41 @@ export default function CreateStoryModal({
                     overflow: "hidden",
                   }}
                 >
-                  <StoryFilterCanvas
-                    uri={mediaUri}
-                    filter={filter}
-                    width={canvasW}
-                    height={canvasH}
-                    contentFit="cover"
-                    mediaType={mediaType}
-                    videoShouldPlay={
-                      mediaType === "video" && videoPreviewEnabled && !isSaving
-                    }
-                    videoLooping={
-                      mediaType === "video" && videoPreviewEnabled && !isSaving
-                    }
-                    videoMuted={!!music || !!voiceover}
-                    videoStartMs={videoTrimStartMs}
-                    videoEndMs={videoTrimEndMs}
-                    effectMode={lockedLiveFilter ? "live" : "static"}
-                    onVideoLoad={(d) => {
-                      if (!videoDurationMs) setVideoDurationMs(d);
-                    }}
-                  />
+                  {mediaType === "video" && isSaving ? (
+                    <View
+                      style={{
+                        width: canvasW,
+                        height: canvasH,
+                        backgroundColor: "#061B20",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Ionicons name="videocam" size={32} color="#06A7A1" />
+                    </View>
+                  ) : (
+                    <StoryFilterCanvas
+                      uri={mediaUri}
+                      filter={filter}
+                      width={canvasW}
+                      height={canvasH}
+                      contentFit="cover"
+                      mediaType={mediaType}
+                      videoShouldPlay={
+                        mediaType === "video" && videoPreviewEnabled && !isSaving
+                      }
+                      videoLooping={
+                        mediaType === "video" && videoPreviewEnabled && !isSaving
+                      }
+                      videoMuted={!!music || !!voiceover}
+                      videoStartMs={videoTrimStartMs}
+                      videoEndMs={videoTrimEndMs}
+                      effectMode={lockedLiveFilter ? "live" : "static"}
+                      onVideoLoad={(d) => {
+                        if (!videoDurationMs) setVideoDurationMs(d);
+                      }}
+                    />
+                  )}
 
                   {/* Drawing layer (under text/stickers) */}
                   <DrawingCanvas

@@ -1726,16 +1726,6 @@ export default function StoryFilterCanvas({
     videoRef.current?.pauseAsync().catch(() => {});
   }, [mediaType, videoShouldPlay]);
 
-  useEffect(() => {
-    return () => {
-      const video = videoRef.current;
-      videoRef.current = null;
-      if (!video) return;
-      video.pauseAsync().catch(() => {});
-      video.unloadAsync().catch(() => {});
-    };
-  }, [mediaType, uri]);
-
   if (mediaType === "video") {
     const handleStatus = (status: AVPlaybackStatus) => {
       if (!status.isLoaded) return;
