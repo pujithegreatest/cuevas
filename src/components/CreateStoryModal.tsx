@@ -47,6 +47,7 @@ import { getSongById, resolveSongSourceUri } from "../utils/musicLibrary";
 import { Image as RNImage } from "react-native";
 
 const MAX_VIDEO_MS = 15000;
+const VIDEO_PREVIEW_STOP_MS = 140;
 
 interface CreateStoryModalProps {
   visible: boolean;
@@ -54,6 +55,8 @@ interface CreateStoryModalProps {
 }
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const FILTERS: { id: StoryFilter; label: string }[] = [
   { id: "none", label: "Original" },
@@ -155,6 +158,7 @@ export default function CreateStoryModal({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [videoPreviewEnabled, setVideoPreviewEnabled] = useState(true);
   const [isSavingToCameraRoll, setIsSavingToCameraRoll] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
@@ -230,6 +234,7 @@ export default function CreateStoryModal({
       setEditingId(null);
       setEditingText("");
       setIsSaving(false);
+      setVideoPreviewEnabled(true);
       setIsSavingToCameraRoll(false);
       setStatusMsg(null);
       setErrorMsg(null);
@@ -662,6 +667,7 @@ export default function CreateStoryModal({
     if (!trimSourceUri) return;
     setMediaUri(trimSourceUri);
     setMediaType("video");
+    setVideoPreviewEnabled(true);
     setVideoDurationMs(result.durationMs);
     setVideoTrimStartMs(result.startMs);
     setVideoTrimEndMs(result.endMs);
@@ -899,6 +905,10 @@ export default function CreateStoryModal({
     if (!mediaUri) return;
     setIsSaving(true);
     setErrorMsg(null);
+    if (mediaType === "video") {
+      setVideoPreviewEnabled(false);
+      await wait(VIDEO_PREVIEW_STOP_MS);
+    }
     if (musicSoundRef.current) {
       const s = musicSoundRef.current;
       musicSoundRef.current = null;
@@ -909,6 +919,7 @@ export default function CreateStoryModal({
         await s.unloadAsync();
       } catch {}
     }
+    await unloadVoiceoverPreview();
     try {
       const cleanOverlays = overlays.filter((o) => o.text.trim().length > 0);
       addStory({
@@ -928,6 +939,7 @@ export default function CreateStoryModal({
       });
       onClose();
     } catch {
+      setVideoPreviewEnabled(true);
       setErrorMsg("Failed to share story.");
     } finally {
       setIsSaving(false);
@@ -1106,8 +1118,12 @@ export default function CreateStoryModal({
                     height={canvasH}
                     contentFit="cover"
                     mediaType={mediaType}
-                    videoShouldPlay={mediaType === "video"}
-                    videoLooping={mediaType === "video"}
+                    videoShouldPlay={
+                      mediaType === "video" && videoPreviewEnabled && !isSaving
+                    }
+                    videoLooping={
+                      mediaType === "video" && videoPreviewEnabled && !isSaving
+                    }
                     videoMuted={!!music || !!voiceover}
                     videoStartMs={videoTrimStartMs}
                     videoEndMs={videoTrimEndMs}
