@@ -24,14 +24,14 @@ export default function ReportReasonModal({
 }: ReportReasonModalProps) {
   const [selected, setSelected] = useState<ReportReason>("Spam or scam");
   const text = isDarkMode ? "#FFFFFF" : "#1F2937";
-  const sub = isDarkMode ? "#D1D5DB" : "#6B7280";
-  const surface = isDarkMode ? "#111827" : "#FFFFFF";
-  const rowBg = isDarkMode ? "#17212C" : "#F3F4F6";
+  const sub = isDarkMode ? "#C9D1DF" : "#6B7280";
+  const surface = isDarkMode ? "#111927" : "#FFFFFF";
+  const rowBg = isDarkMode ? "#1B2533" : "#F3F4F6";
   const actionBg = isDarkMode ? "rgba(250,204,21,0.14)" : "#FACC15";
   const actionText = isDarkMode ? "#FFFFFF" : "#111827";
   const { height } = useWindowDimensions();
-  const modalMaxHeight = Math.min(height - 48, 560);
-  const reasonMaxHeight = Math.max(250, Math.min(430, modalMaxHeight - 176));
+  const modalMaxHeight = Math.min(height - 40, 620);
+  const reasonMaxHeight = Math.max(320, Math.min(470, modalMaxHeight - 188));
 
   useEffect(() => {
     if (visible) setSelected("Spam or scam");
@@ -53,33 +53,35 @@ export default function ReportReasonModal({
           onPress={() => {}}
           style={{
             width: "100%",
-            maxWidth: 390,
+            maxWidth: 430,
             maxHeight: modalMaxHeight,
-            borderRadius: 22,
+            borderRadius: 24,
             borderWidth: 1,
-            borderColor: "rgba(250,204,21,0.45)",
+            borderColor: isDarkMode ? "rgba(250,204,21,0.42)" : "rgba(180,83,9,0.3)",
             backgroundColor: surface,
-            padding: 14,
+            paddingHorizontal: 22,
+            paddingTop: 20,
+            paddingBottom: 16,
             overflow: "hidden",
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 22 }}>
             <View
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 14,
-                backgroundColor: "rgba(250,204,21,0.14)",
+                width: 58,
+                height: 58,
+                borderRadius: 18,
+                backgroundColor: isDarkMode ? "rgba(250,204,21,0.12)" : "rgba(250,204,21,0.2)",
                 alignItems: "center",
                 justifyContent: "center",
-                marginRight: 10,
+                marginRight: 14,
               }}
             >
-              <Ionicons name="warning-outline" size={22} color="#FACC15" />
+              <Ionicons name="warning-outline" size={32} color="#FACC15" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: text, fontSize: 18, fontWeight: "900" }}>{title}</Text>
-              <Text style={{ color: sub, marginTop: 2, fontSize: 12, fontWeight: "700" }}>
+              <Text style={{ color: text, fontSize: 24, fontWeight: "900" }}>{title}</Text>
+              <Text style={{ color: sub, marginTop: 4, fontSize: 15, fontWeight: "800" }}>
                 {targetLabel}
               </Text>
             </View>
@@ -87,7 +89,7 @@ export default function ReportReasonModal({
 
           <ScrollView
             style={{ maxHeight: reasonMaxHeight, flexGrow: 0 }}
-            contentContainerStyle={{ paddingTop: 8, paddingBottom: 4 }}
+            contentContainerStyle={{ paddingTop: 2, paddingBottom: 4 }}
             showsVerticalScrollIndicator={false}
           >
             {REPORT_REASONS.map((reason) => {
@@ -97,44 +99,42 @@ export default function ReportReasonModal({
                   key={reason}
                   onPress={() => setSelected(reason)}
                   style={({ pressed }) => ({
-                    minHeight: 54,
-                    paddingHorizontal: 6,
-                    paddingVertical: 8,
+                    minHeight: 72,
+                    paddingHorizontal: 0,
+                    paddingVertical: 10,
                     flexDirection: "row",
                     alignItems: "center",
-                    marginBottom: 10,
+                    marginBottom: 14,
                     width: "100%",
                     opacity: pressed ? 0.76 : 1,
                   })}
                 >
                   <View
                     style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 22,
+                      width: 72,
+                      height: 56,
                       alignItems: "center",
                       justifyContent: "center",
-                      marginRight: 14,
                       flexShrink: 0,
                     }}
                   >
                     <Ionicons
                       name={active ? "radio-button-on" : "radio-button-off"}
-                      size={30}
-                      color={active ? "#FACC15" : sub}
+                      size={active ? 42 : 48}
+                      color={active ? "#FACC15" : isDarkMode ? "#E5E7EB" : "#6B7280"}
                     />
                   </View>
                   <Text
                     numberOfLines={2}
                     style={{
                       color: active ? "#FFF7C2" : isDarkMode ? "#E9FFFC" : "#111827",
-                      fontSize: 16,
-                      lineHeight: 20,
+                      fontSize: 20,
+                      lineHeight: 25,
                       fontWeight: "900",
                       flex: 1,
                       flexShrink: 1,
                       minWidth: 0,
-                      paddingRight: 4,
+                      paddingRight: 8,
                       includeFontPadding: false,
                     }}
                   >
