@@ -28,7 +28,7 @@ import { StoryTextOverlay } from "../types/story";
 import StoryFilterCanvas from "./StoryFilterCanvas";
 import AnimatedStoryText from "./AnimatedStoryText";
 import { getSongById, resolveSongSourceUri } from "../utils/musicLibrary";
-import { normalizeHandle } from "../utils/handles";
+import { displayUsername, normalizeHandle } from "../utils/handles";
 import ReportReasonModal from "./ReportReasonModal";
 import { ReportReason, submitModerationReport } from "../api/moderation-reports";
 
@@ -79,6 +79,8 @@ export default function StoryViewerModal({
   onClose,
 }: StoryViewerModalProps) {
   const userEmail = useAppStore((s) => s.userEmail);
+  const displayName = useAppStore((s) => s.displayName);
+  const isDarkMode = useAppStore((s) => s.isDarkMode);
   const blockedHandles = useAppStore((s) => s.blockedHandles);
   const reportContent = useAppStore((s) => s.reportContent);
   const stories = useStoryStore((s) => s.stories);
@@ -86,7 +88,7 @@ export default function StoryViewerModal({
   const markViewed = useStoryStore((s) => s.markViewed);
   const deleteStory = useStoryStore((s) => s.deleteStory);
 
-  const currentUser = userEmail?.split("@")[0] || "anonymous";
+  const currentUser = displayUsername(displayName, userEmail, "anonymous");
 
   const visibleStories = useMemo(() => {
     const blocked = new Set((blockedHandles || []).map((item) => normalizeHandle(item, "")));
@@ -104,6 +106,7 @@ export default function StoryViewerModal({
   const [isSavingShot, setIsSavingShot] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const progress = useSharedValue(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const captureWrapRef = useRef<View>(null);
@@ -118,6 +121,10 @@ export default function StoryViewerModal({
   const storyMusic = safeStory?.music || null;
   const musicSong = storyMusic ? getSongById(storyMusic.id) : null;
   const storyVoiceover = safeStory?.voiceover || null;
+
+  useEffect(() => {
+    if (!visible) setConfirmDeleteOpen(false);
+  }, [visible]);
 
   const storyDurationMs = useMemo(() => {
     if (!safeStory) return DEFAULT_IMAGE_DURATION_MS;
@@ -368,7 +375,13 @@ export default function StoryViewerModal({
   };
 
   const handleDelete = () => {
-    if (!safeStory || !safeGroup) return;
+    if (!safeStory || !safeGroup?.isOwn) return;
+    setConfirmDeleteOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!safeStory || !safeGroup?.isOwn) return;
+    setConfirmDeleteOpen(false);
     const wasLastInGroup = safeGroup.stories.length <= 1;
     deleteStory(safeStory.id);
     if (wasLastInGroup) {
@@ -532,6 +545,102 @@ export default function StoryViewerModal({
         }}
         onSubmit={submitStoryReport}
       />
+      <Modal
+        visible={confirmDeleteOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmDeleteOpen(false)}
+      >
+        <Pressable
+          onPress={() => setConfirmDeleteOpen(false)}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.62)",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 24,
+          }}
+        >
+          <Pressable
+            onPress={() => {}}
+            style={{
+              width: "100%",
+              maxWidth: 360,
+              backgroundColor: isDarkMode ? "#111827" : "#fff",
+              borderRadius: 16,
+              padding: 20,
+            }}
+          >
+            <View style={{ alignItems: "center", marginBottom: 12 }}>
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: "rgba(255,59,48,0.14)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 8,
+                }}
+              >
+                <Ionicons name="trash" size={22} color="#FF3B30" />
+              </View>
+              <Text
+                style={{
+                  color: isDarkMode ? "#F9FAFB" : "#1F2937",
+                  fontWeight: "900",
+                  fontSize: 17,
+                }}
+              >
+                Delete Story?
+              </Text>
+              <Text
+                style={{
+                  color: isDarkMode ? "#9CA3AF" : "#6B7280",
+                  fontSize: 13,
+                  textAlign: "center",
+                  marginTop: 6,
+                }}
+              >
+                This will permanently remove this story from your profile.
+              </Text>
+            </View>
+            <View style={{ flexDirection: "row", gap: 10, marginTop: 8 }}>
+              <Pressable
+                onPress={() => setConfirmDeleteOpen(false)}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 10,
+                  backgroundColor: isDarkMode ? "#374151" : "#F3F4F6",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: isDarkMode ? "#F9FAFB" : "#1F2937",
+                    fontWeight: "800",
+                  }}
+                >
+                  Cancel
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={confirmDelete}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 10,
+                  backgroundColor: "#FF3B30",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "900" }}>Delete</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
       <View style={{ flex: 1, backgroundColor: "#000" }}>
         {/* Capture wrapper — view-shot captures only this subtree */}
         <View
