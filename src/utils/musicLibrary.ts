@@ -14,6 +14,7 @@ const COVER_2001_AMBA = require("../../assets/song-2001-amba-cover.jpg");
 const COVER_DOLOZOE = require("../../assets/song-dolozoe-cover.png");
 const COVER_RRO_DA_RONIN = require("../../assets/song-rro-da-ronin-cover.png");
 const COVER_SKYAIR = require("../../assets/song-skyair-cover.jpg");
+const COVER_ALEX_DAVID = require("../../assets/song-alex-david-cover.jpg");
 
 const SONG_IMTHEONE: LibrarySong = {
   id: "imtheone",
@@ -132,6 +133,105 @@ const SONG_SKYAIR_SILICON_VALLEY: LibrarySong = {
   durationMs: 0,
 };
 
+const SONG_ALEX_DAVID_FEVER: LibrarySong = {
+  id: "alex-david-fever",
+  title: "FEVER",
+  artist: "Alex David",
+  cover: COVER_ALEX_DAVID,
+  source: require("../../assets/song-alex-david-fever.m4a"),
+  durationMs: 0,
+};
+
+const SONG_ALEX_DAVID_GAMMA_SC_MIX: LibrarySong = {
+  id: "alex-david-gamma-sc-mix",
+  title: "GAMMA (SC MIX)",
+  artist: "Alex David",
+  cover: COVER_ALEX_DAVID,
+  source: require("../../assets/song-alex-david-gamma-sc-mix.m4a"),
+  durationMs: 0,
+};
+
+const SONG_ALEX_DAVID_GET_RIGHT_OUTTA_SIGHT_INSTRUMENTAL: LibrarySong = {
+  id: "alex-david-get-right-outta-sight-instrumental",
+  title: "Get RIGHT!Outta Sight (instrumental)",
+  artist: "Alex David",
+  cover: COVER_ALEX_DAVID,
+  source: require("../../assets/song-alex-david-get-right-outta-sight-instrumental.m4a"),
+  durationMs: 0,
+};
+
+const SONG_ALEX_DAVID_HIDING_THOUGHT_U_KNEW_BETTER: LibrarySong = {
+  id: "alex-david-hiding-thought-u-knew-better",
+  title: "Hiding (thought u knew better)",
+  artist: "Alex David",
+  cover: COVER_ALEX_DAVID,
+  source: require("../../assets/song-alex-david-hiding-thought-u-knew-better.m4a"),
+  durationMs: 0,
+};
+
+const SONG_ALEX_DAVID_LIFE_ALERT_W_MOONLEE: LibrarySong = {
+  id: "alex-david-life-alert-w-moonlee",
+  title: "Life Alert (w!MoonLee)",
+  artist: "Alex David",
+  cover: COVER_ALEX_DAVID,
+  source: require("../../assets/song-alex-david-life-alert-w-moonlee.m4a"),
+  durationMs: 0,
+};
+
+const SONG_ALEX_DAVID_MISTAKES_HAPPEN_NOT_LIKE_THIS: LibrarySong = {
+  id: "alex-david-mistakes-happen-not-like-this",
+  title: "Mistakes happen (not like this)",
+  artist: "Alex David",
+  cover: COVER_ALEX_DAVID,
+  source: require("../../assets/song-alex-david-mistakes-happen-not-like-this.m4a"),
+  durationMs: 0,
+};
+
+const SONG_ALEX_DAVID_NEW_DAYS_AHEAD: LibrarySong = {
+  id: "alex-david-new-days-ahead",
+  title: "New Days Ahead",
+  artist: "Alex David",
+  cover: COVER_ALEX_DAVID,
+  source: require("../../assets/song-alex-david-new-days-ahead.m4a"),
+  durationMs: 0,
+};
+
+const SONG_ALEX_DAVID_OHBAYBAY_ACTUP_W_RONIN: LibrarySong = {
+  id: "alex-david-ohbaybay-actup-w-ronin",
+  title: "ohbaybay!ACTUP! (w!Ronin)",
+  artist: "Alex David",
+  cover: COVER_ALEX_DAVID,
+  source: require("../../assets/song-alex-david-ohbaybay-actup-w-ronin.m4a"),
+  durationMs: 0,
+};
+
+const SONG_ALEX_DAVID_PLASTIC_SMILES: LibrarySong = {
+  id: "alex-david-plastic-smiles",
+  title: "Plastic smiles",
+  artist: "Alex David",
+  cover: COVER_ALEX_DAVID,
+  source: require("../../assets/song-alex-david-plastic-smiles.m4a"),
+  durationMs: 0,
+};
+
+const SONG_ALEX_DAVID_RUNNIN: LibrarySong = {
+  id: "alex-david-runnin",
+  title: "RUNNIN'",
+  artist: "Alex David",
+  cover: COVER_ALEX_DAVID,
+  source: require("../../assets/song-alex-david-runnin.m4a"),
+  durationMs: 0,
+};
+
+const SONG_ALEX_DAVID_WAISTLINE_W_TREVOR_QUINCY: LibrarySong = {
+  id: "alex-david-waistline-w-trevor-quincy",
+  title: "Waistline (w! Trevor Quincy)",
+  artist: "Alex David",
+  cover: COVER_ALEX_DAVID,
+  source: require("../../assets/song-alex-david-waistline-w-trevor-quincy.m4a"),
+  durationMs: 0,
+};
+
 export const MUSIC_LIBRARY: LibrarySong[] = [
   SONG_IMTHEONE,
   SONG_MESIENTO_BIEN,
@@ -146,6 +246,17 @@ export const MUSIC_LIBRARY: LibrarySong[] = [
   SONG_SKYAIR_ANTIHERO,
   SONG_SKYAIR_BUTTER,
   SONG_SKYAIR_SILICON_VALLEY,
+  SONG_ALEX_DAVID_FEVER,
+  SONG_ALEX_DAVID_GAMMA_SC_MIX,
+  SONG_ALEX_DAVID_GET_RIGHT_OUTTA_SIGHT_INSTRUMENTAL,
+  SONG_ALEX_DAVID_HIDING_THOUGHT_U_KNEW_BETTER,
+  SONG_ALEX_DAVID_LIFE_ALERT_W_MOONLEE,
+  SONG_ALEX_DAVID_MISTAKES_HAPPEN_NOT_LIKE_THIS,
+  SONG_ALEX_DAVID_NEW_DAYS_AHEAD,
+  SONG_ALEX_DAVID_OHBAYBAY_ACTUP_W_RONIN,
+  SONG_ALEX_DAVID_PLASTIC_SMILES,
+  SONG_ALEX_DAVID_RUNNIN,
+  SONG_ALEX_DAVID_WAISTLINE_W_TREVOR_QUINCY,
 ];
 
 export function getSongById(id?: string | null) {
