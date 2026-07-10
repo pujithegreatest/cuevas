@@ -6,6 +6,7 @@ import {
   Modal,
   Dimensions,
   StatusBar,
+  StyleSheet,
 } from "react-native";
 import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 import * as VideoThumbnails from "expo-video-thumbnails";
@@ -22,10 +23,13 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import { Ionicons } from "./Ionicons";
+import { LiveFilterHud } from "./StoryFilterCanvas";
+import { StoryFilter } from "../types/story";
 
 interface StoryTrimModalProps {
   visible: boolean;
   videoUri: string;
+  liveFilter?: StoryFilter | null;
   initialDurationMs?: number;
   maxClipMs?: number;
   onCancel: () => void;
@@ -47,6 +51,7 @@ const TRACK_HEIGHT = 56;
 const HANDLE_OVERHANG = 8;
 const WRAPPER_HEIGHT = TRACK_HEIGHT + HANDLE_OVERHANG * 2;
 const THUMB_COUNT = 8;
+const PREVIEW_HEIGHT = SCREEN_H * 0.6;
 
 const formatTime = (ms: number) => {
   const s = Math.max(0, Math.floor(ms / 1000));
@@ -57,6 +62,7 @@ const formatTime = (ms: number) => {
 export default function StoryTrimModal({
   visible,
   videoUri,
+  liveFilter,
   initialDurationMs,
   maxClipMs = 15000,
   onCancel,
@@ -345,18 +351,36 @@ export default function StoryTrimModal({
               justifyContent: "center",
             }}
           >
-            <Video
-              ref={videoRef}
-              source={{ uri: videoUri }}
-              style={{ width: SCREEN_W, height: SCREEN_H * 0.6 }}
-              resizeMode={ResizeMode.CONTAIN}
-              shouldPlay
-              isLooping
-              isMuted={false}
-              volume={1}
-              onLoad={onVideoLoad}
-              onPlaybackStatusUpdate={onPlaybackStatusUpdate}
-            />
+            <View
+              style={{
+                width: SCREEN_W,
+                height: PREVIEW_HEIGHT,
+                overflow: "hidden",
+              }}
+            >
+              <Video
+                ref={videoRef}
+                source={{ uri: videoUri }}
+                style={{ width: SCREEN_W, height: PREVIEW_HEIGHT }}
+                resizeMode={ResizeMode.CONTAIN}
+                shouldPlay
+                isLooping
+                isMuted={false}
+                volume={1}
+                onLoad={onVideoLoad}
+                onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+              />
+              {liveFilter && liveFilter !== "none" ? (
+                <View style={StyleSheet.absoluteFill} pointerEvents="none">
+                  <LiveFilterHud
+                    filter={liveFilter}
+                    width={SCREEN_W}
+                    height={PREVIEW_HEIGHT}
+                    showColorLayer
+                  />
+                </View>
+              ) : null}
+            </View>
           </View>
 
           {/* Bottom panel */}

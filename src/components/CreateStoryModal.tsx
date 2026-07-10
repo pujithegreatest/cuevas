@@ -2223,6 +2223,11 @@ export default function CreateStoryModal({
               <StoryTrimModal
                 visible={!!trimSourceUri}
                 videoUri={trimSourceUri}
+                liveFilter={
+                  trimSourceFilterRef.current === "none"
+                    ? null
+                    : trimSourceFilterRef.current
+                }
                 initialDurationMs={trimSourceDurationMs}
                 maxClipMs={MAX_VIDEO_MS}
                 onCancel={handleTrimCancel}
