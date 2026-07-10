@@ -29,7 +29,7 @@ export default function ReportReasonModal({
   const rowBg = isDarkMode ? "#17212C" : "#F3F4F6";
   const { height } = useWindowDimensions();
   const modalMaxHeight = Math.min(height - 48, 560);
-  const reasonMaxHeight = Math.max(150, Math.min(238, modalMaxHeight - 248));
+  const reasonMaxHeight = Math.max(172, Math.min(290, modalMaxHeight - 204));
 
   useEffect(() => {
     if (visible) setSelected("Spam or scam");
@@ -61,7 +61,7 @@ export default function ReportReasonModal({
             overflow: "hidden",
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
             <View
               style={{
                 width: 40,
@@ -81,6 +81,26 @@ export default function ReportReasonModal({
                 {targetLabel}
               </Text>
             </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Send report"
+              onPress={() => onSubmit(selected)}
+              disabled={submitting}
+              style={({ pressed }) => ({
+                minWidth: 78,
+                borderRadius: 16,
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#FACC15",
+                opacity: pressed ? 0.82 : submitting ? 0.65 : 1,
+              })}
+            >
+              <Text style={{ color: "#111827", fontWeight: "900", fontSize: 14 }}>
+                {submitting ? "..." : "Send"}
+              </Text>
+            </Pressable>
           </View>
 
           <ScrollView
@@ -95,13 +115,13 @@ export default function ReportReasonModal({
                   key={reason}
                   onPress={() => setSelected(reason)}
                   style={({ pressed }) => ({
-                    minHeight: 42,
+                    minHeight: 44,
                     borderRadius: 14,
                     borderWidth: 1,
                     borderColor: active ? "#FACC15" : isDarkMode ? "#374151" : "#E5E7EB",
                     backgroundColor: active ? "rgba(250,204,21,0.12)" : rowBg,
                     paddingHorizontal: 12,
-                    paddingVertical: 7,
+                    paddingVertical: 8,
                     flexDirection: "row",
                     alignItems: "center",
                     marginBottom: 6,
@@ -109,21 +129,32 @@ export default function ReportReasonModal({
                     opacity: pressed ? 0.76 : 1,
                   })}
                 >
-                  <View style={{ width: 26, alignItems: "center", justifyContent: "center", marginRight: 10 }}>
+                  <View
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 17,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 12,
+                      flexShrink: 0,
+                    }}
+                  >
                     <Ionicons
                       name={active ? "radio-button-on" : "radio-button-off"}
-                      size={18}
+                      size={22}
                       color={active ? "#FACC15" : sub}
                     />
                   </View>
                   <Text
-                    numberOfLines={3}
+                    numberOfLines={2}
                     style={{
                       color: active ? "#FFF7C2" : isDarkMode ? "#E9FFFC" : "#111827",
                       fontSize: 14.5,
                       lineHeight: 18,
                       fontWeight: "900",
                       flex: 1,
+                      flexShrink: 1,
                       minWidth: 0,
                       paddingRight: 4,
                       includeFontPadding: false,
