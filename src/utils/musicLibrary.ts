@@ -10,6 +10,8 @@ export interface LibrarySong {
 }
 
 const COVER_AMBA = require("../../assets/song-imtheone-cover.png");
+const COVER_AMBA_MESIENTO_BIEN = require("../../assets/song-amba-mesientobien-cover.jpg");
+const COVER_AMBA_MONSTRUOS_EN_MI_CABEZA = require("../../assets/song-amba-monstruosenmicabeza-cover.png");
 const COVER_2001_AMBA = require("../../assets/song-2001-amba-cover.jpg");
 const COVER_DOLOZOE = require("../../assets/song-dolozoe-cover.png");
 const COVER_RRO_DA_RONIN = require("../../assets/song-rro-da-ronin-cover.png");
@@ -18,7 +20,7 @@ const COVER_ALEX_DAVID = require("../../assets/song-alex-david-cover.jpg");
 
 const SONG_IMTHEONE: LibrarySong = {
   id: "imtheone",
-  title: "I'm The One (feat.)",
+  title: "I'm The One",
   artist: "Amba",
   cover: COVER_AMBA,
   source: require("../../assets/song-imtheone.m4a"),
@@ -29,7 +31,7 @@ const SONG_MESIENTO_BIEN: LibrarySong = {
   id: "amba-mesientobien",
   title: "Me Siento Bien",
   artist: "Amba",
-  cover: COVER_AMBA,
+  cover: COVER_AMBA_MESIENTO_BIEN,
   source: require("../../assets/song-amba-mesientobien.m4a"),
   durationMs: 0,
 };
@@ -38,7 +40,7 @@ const SONG_MONSTRUOS_EN_MI_CABEZA: LibrarySong = {
   id: "amba-monstruosenmicabeza",
   title: "Monstruos En Mi Cabeza",
   artist: "Amba",
-  cover: COVER_AMBA,
+  cover: COVER_AMBA_MONSTRUOS_EN_MI_CABEZA,
   source: require("../../assets/song-amba-monstruosenmicabeza.m4a"),
   durationMs: 0,
 };
@@ -46,7 +48,7 @@ const SONG_MONSTRUOS_EN_MI_CABEZA: LibrarySong = {
 const SONG_2001_AMBA_COMODOMINO: LibrarySong = {
   id: "2001-amba-comodomino",
   title: "comodominó",
-  artist: "2001 amba",
+  artist: "Amba",
   cover: COVER_2001_AMBA,
   source: require("../../assets/song-2001-amba-comodomino.m4a"),
   durationMs: 0,
@@ -55,7 +57,7 @@ const SONG_2001_AMBA_COMODOMINO: LibrarySong = {
 const SONG_2001_AMBA_DIMEBB: LibrarySong = {
   id: "2001-amba-dimebb",
   title: "dimebb",
-  artist: "2001 amba",
+  artist: "Amba",
   cover: COVER_2001_AMBA,
   source: require("../../assets/song-2001-amba-dimebb.m4a"),
   durationMs: 0,
@@ -64,7 +66,7 @@ const SONG_2001_AMBA_DIMEBB: LibrarySong = {
 const SONG_2001_AMBA_LACORRIENTE: LibrarySong = {
   id: "2001-amba-lacorriente",
   title: "lacorriente",
-  artist: "2001 amba",
+  artist: "Amba",
   cover: COVER_2001_AMBA,
   source: require("../../assets/song-2001-amba-lacorriente.m4a"),
   durationMs: 0,
@@ -73,7 +75,7 @@ const SONG_2001_AMBA_LACORRIENTE: LibrarySong = {
 const SONG_DOLOZOE_360: LibrarySong = {
   id: "dolozoe-360",
   title: "360",
-  artist: "dolozoe",
+  artist: "Dolozoe",
   cover: COVER_DOLOZOE,
   source: require("../../assets/song-dolozoe-360.m4a"),
   durationMs: 0,
@@ -82,7 +84,7 @@ const SONG_DOLOZOE_360: LibrarySong = {
 const SONG_DOLOZOE_RANK: LibrarySong = {
   id: "dolozoe-rank",
   title: "Rank",
-  artist: "dolozoe",
+  artist: "Dolozoe",
   cover: COVER_DOLOZOE,
   source: require("../../assets/song-dolozoe-rank.m4a"),
   durationMs: 0,
@@ -91,7 +93,7 @@ const SONG_DOLOZOE_RANK: LibrarySong = {
 const SONG_RRO_DA_RONIN_1234: LibrarySong = {
   id: "rro-da-ronin-1234",
   title: "1234",
-  artist: "rro da ronin",
+  artist: "Rro Da Ronin",
   cover: COVER_RRO_DA_RONIN,
   source: require("../../assets/song-rro-da-ronin-1234.mp3"),
   durationMs: 0,
@@ -100,7 +102,7 @@ const SONG_RRO_DA_RONIN_1234: LibrarySong = {
 const SONG_RRO_DA_RONIN_HOPES: LibrarySong = {
   id: "rro-da-ronin-hopes",
   title: "Hopes",
-  artist: "rro da ronin",
+  artist: "Rro Da Ronin",
   cover: COVER_RRO_DA_RONIN,
   source: require("../../assets/song-rro-da-ronin-hopes.mp3"),
   durationMs: 0,
