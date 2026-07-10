@@ -76,6 +76,14 @@ export interface MissionProof {
   submittedAt?: string;
 }
 
+export interface CuevasBusinessProfile {
+  businessName: string;
+  businessHandle: string;
+  ownerEmail?: string;
+  verified?: boolean;
+  status?: string;
+}
+
 export interface MissionProofInput {
   missionId: string;
   missionTitle?: string;
@@ -136,6 +144,16 @@ function normalizeMission(item: any): CuevasMission {
     businessHandle: item?.businessHandle || item?.BusinessHandle || "cuevas-partner",
     businessVerified: Boolean(item?.businessVerified ?? item?.BusinessVerified ?? false),
     goingCount: Number(item?.goingCount ?? item?.GoingCount ?? 0),
+    status: item?.status || item?.Status || "active",
+  };
+}
+
+function normalizeBusinessProfile(item: any): CuevasBusinessProfile {
+  return {
+    businessName: String(item?.businessName || item?.BusinessName || "Cuevas Partner"),
+    businessHandle: String(item?.businessHandle || item?.BusinessHandle || "cuevas-partner"),
+    ownerEmail: item?.ownerEmail || item?.OwnerEmail || "",
+    verified: Boolean(item?.verified ?? item?.Verified ?? true),
     status: item?.status || item?.Status || "active",
   };
 }
@@ -325,6 +343,24 @@ export async function upsertCuevasBusinessProfile(input: {
     businessName: String(json.business?.businessName || input.businessName),
     businessHandle: String(json.business?.businessHandle || input.businessHandle),
   };
+}
+
+export async function fetchCuevasBusinessProfile(input: {
+  ownerEmail?: string | null;
+  businessHandle?: string | null;
+}): Promise<CuevasBusinessProfile | null> {
+  const params = new URLSearchParams({ clientKey: CUEVAS_CLIENT_KEY });
+  if (input.ownerEmail) params.set("ownerEmail", input.ownerEmail);
+  if (input.businessHandle) params.set("businessHandle", input.businessHandle);
+  const response = await fetch(`${BASE_URL}/businessProfile?${params.toString()}`, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
+  const json = await parseApiJson(response, "Failed to load business profile");
+  if (!response.ok || !json?.success) {
+    throw new Error(json?.error || "Failed to load business profile");
+  }
+  return json.business ? normalizeBusinessProfile(json.business) : null;
 }
 
 export async function submitMissionProof(input: MissionProofInput): Promise<{ proofId: string; mediaUrl: string }> {

@@ -28,6 +28,7 @@ import {
   completeCuevasMission,
   createCuevasMission,
   deleteCuevasMission,
+  fetchCuevasBusinessProfile,
   fetchCuevasMissions,
   fetchMissionAttendees,
   fetchMissionProofs,
@@ -222,11 +223,14 @@ function OptionRow<T extends string>({
 export default function BusinessProfileModal({ visible, onClose }: Props) {
   const userEmail = useAppStore((state) => state.userEmail);
   const displayName = useAppStore((state) => state.displayName);
+  const userHandle = useAppStore((state) => state.userHandle);
   const isBusinessAccount = useAppStore((state) => state.isBusinessAccount);
   const storedBusinessName = useAppStore((state) => state.businessName);
+  const storedBusinessHandle = useAppStore((state) => state.businessHandle);
   const setBusinessProfile = useAppStore((state) => state.setBusinessProfile);
   const setRewardsBalance = useAppStore((state) => state.setRewardsBalance);
-  const handle = slugHandle(displayName || userEmail?.split("@")[0] || "cuevas-partner");
+  const fallbackHandle = slugHandle(userHandle || displayName || userEmail?.split("@")[0] || "cuevas-partner");
+  const handle = slugHandle(storedBusinessHandle || fallbackHandle);
   const [permission, requestPermission] = useCameraPermissions();
   const [activeTab, setActiveTab] = useState<BusinessTab>("profile");
   const [businessNameDraft, setBusinessNameDraft] = useState(storedBusinessName || `${handle} Lab`);
@@ -256,15 +260,24 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
   const [gearProvided, setGearProvided] = useState(true);
 
   const businessName = storedBusinessName || businessNameDraft;
+  const businessHandleCandidates = useMemo(
+    () =>
+      new Set(
+        [handle, storedBusinessHandle, fallbackHandle]
+          .map((value) => slugHandle(value || ""))
+          .filter(Boolean)
+      ),
+    [fallbackHandle, handle, storedBusinessHandle]
+  );
 
   const filteredMissions = useMemo(
     () =>
       missions.filter((mission) => {
         const businessHandle = slugHandle(mission.businessHandle || "");
         const businessTitle = String(mission.businessName || "").trim().toLowerCase();
-        return businessHandle === handle || businessTitle === businessName.trim().toLowerCase();
+        return businessHandleCandidates.has(businessHandle) || businessTitle === businessName.trim().toLowerCase();
       }),
-    [businessName, handle, missions]
+    [businessHandleCandidates, businessName, missions]
   );
   const activeMissions = useMemo(
     () => filteredMissions.filter((mission) => !["completed", "deleted"].includes(String(mission.status || "active").toLowerCase())),
@@ -287,6 +300,38 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
       cancelled = true;
     };
   }, [visible]);
+
+  useEffect(() => {
+    if (!visible || !userEmail) return;
+    let cancelled = false;
+    fetchCuevasBusinessProfile({
+      ownerEmail: userEmail,
+      businessHandle: storedBusinessHandle || fallbackHandle,
+    })
+      .then((business) => {
+        if (cancelled || !business) return;
+        setBusinessProfile(business.businessName, business.businessHandle);
+        setBusinessNameDraft(business.businessName);
+      })
+      .catch((error) => console.log("[BUSINESS] profile recovery failed", String(error)));
+    return () => {
+      cancelled = true;
+    };
+  }, [fallbackHandle, setBusinessProfile, storedBusinessHandle, userEmail, visible]);
+
+  useEffect(() => {
+    if (visible && storedBusinessName) {
+      setBusinessNameDraft(storedBusinessName);
+    }
+  }, [storedBusinessName, visible]);
+
+  useEffect(() => {
+    if (!visible || !isBusinessAccount || storedBusinessHandle || !businessName.trim()) return;
+    const recoveredHandle = filteredMissions.find((mission) => mission.businessHandle)?.businessHandle;
+    if (recoveredHandle) {
+      setBusinessProfile(businessName, recoveredHandle);
+    }
+  }, [businessName, filteredMissions, isBusinessAccount, setBusinessProfile, storedBusinessHandle, visible]);
 
   const loadAttendees = async (missionId: string) => {
     try {
@@ -341,17 +386,18 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
     setIsSavingProfile(true);
     setStatus(null);
     try {
-      await upsertCuevasBusinessProfile({
+      const saved = await upsertCuevasBusinessProfile({
         businessName: nextName,
         businessHandle: handle,
         ownerEmail: userEmail,
       });
-      setBusinessProfile(nextName);
+      setBusinessProfile(saved.businessName || nextName, saved.businessHandle || handle);
+      setBusinessNameDraft(saved.businessName || nextName);
       setActiveTab("create");
       setStatus("Business profile saved. You can publish your first event.");
     } catch (error) {
       setStatus(`Business profile saved locally. Wix sync failed: ${String((error as any)?.message || error)}`);
-      setBusinessProfile(nextName);
+      setBusinessProfile(nextName, handle);
       setActiveTab("create");
     } finally {
       setIsSavingProfile(false);
@@ -428,7 +474,7 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
         missionId: mission.id,
         userEmail: email,
         userHandle: email.split("@")[0],
-        businessHandle: handle,
+        businessHandle: mission.businessHandle || handle,
       });
       setAttendees((current) => {
         const nextAttendee: MissionAttendee = {
@@ -534,7 +580,7 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
   const completeMission = async (mission: CuevasMission) => {
     setCheckInStatus((current) => ({ ...current, [mission.id]: "Completing mission..." }));
     try {
-      const updated = await completeCuevasMission({ missionId: mission.id, businessHandle: handle });
+      const updated = await completeCuevasMission({ missionId: mission.id, businessHandle: mission.businessHandle || handle });
       setMissions((current) => current.map((item) => (item.id === mission.id ? updated : item)));
       setCheckInStatus((current) => ({ ...current, [mission.id]: "Mission completed." }));
     } catch (error) {
@@ -554,7 +600,7 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
         onPress: async () => {
           setCheckInStatus((current) => ({ ...current, [mission.id]: "Deleting mission..." }));
           try {
-            await deleteCuevasMission({ missionId: mission.id, businessHandle: handle });
+            await deleteCuevasMission({ missionId: mission.id, businessHandle: mission.businessHandle || handle });
             setMissions((current) => current.filter((item) => item.id !== mission.id));
           } catch (error) {
             setCheckInStatus((current) => ({
@@ -1278,7 +1324,7 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
         userEmail={userEmail}
         userHandle={handle}
         authorRole="vendor"
-        businessHandle={handle}
+        businessHandle={chatMission?.businessHandle || handle}
         isDarkMode
         onClose={() => setChatMission(null)}
       />

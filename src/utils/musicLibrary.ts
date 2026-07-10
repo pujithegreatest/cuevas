@@ -17,6 +17,7 @@ const COVER_DOLOZOE = require("../../assets/song-dolozoe-cover.png");
 const COVER_RRO_DA_RONIN = require("../../assets/song-rro-da-ronin-cover.png");
 const COVER_SKYAIR = require("../../assets/song-skyair-cover.jpg");
 const COVER_ALEX_DAVID = require("../../assets/song-alex-david-cover.jpg");
+const COVER_PATCHFACE = require("../../assets/song-patchface-cover.jpg");
 
 const SONG_IMTHEONE: LibrarySong = {
   id: "imtheone",
@@ -234,6 +235,87 @@ const SONG_ALEX_DAVID_WAISTLINE_W_TREVOR_QUINCY: LibrarySong = {
   durationMs: 0,
 };
 
+const SONG_PATCHFACE_ALASKA_OTISBUTBLUE: LibrarySong = {
+  id: "patchface-alaska-otisbutblue",
+  title: "Alaska @otisbutblue",
+  artist: "Patchface",
+  cover: COVER_PATCHFACE,
+  source: require("../../assets/song-patchface-alaska-otisbutblue.mp3"),
+  durationMs: 0,
+};
+
+const SONG_PATCHFACE_BADBOY_FT_28NETTIEZ: LibrarySong = {
+  id: "patchface-badboy-ft-28nettiez",
+  title: "badboy ft 28nettiez",
+  artist: "Patchface",
+  cover: COVER_PATCHFACE,
+  source: require("../../assets/song-patchface-badboy-ft-28nettiez.mp3"),
+  durationMs: 0,
+};
+
+const SONG_PATCHFACE_BRIGHT_IDEA_FT_KABEH_X_RYANBEVOLO: LibrarySong = {
+  id: "patchface-bright-idea-ft-kabeh-x-ryanbevolo",
+  title: "bright idea ft kabeh x ryanbevolo",
+  artist: "Patchface",
+  cover: COVER_PATCHFACE,
+  source: require("../../assets/song-patchface-bright-idea-ft-kabeh-x-ryanbevolo.mp3"),
+  durationMs: 0,
+};
+
+const SONG_PATCHFACE_KEEP_TO_MYSELF_PRODBYTAURS_RIPWARHEART: LibrarySong = {
+  id: "patchface-keep-to-myself-prodbytaurs-ripwarheart",
+  title: "keep to myself @prodbytaurs @ripwarheart",
+  artist: "Patchface",
+  cover: COVER_PATCHFACE,
+  source: require("../../assets/song-patchface-keep-to-myself-prodbytaurs-ripwarheart.mp3"),
+  durationMs: 0,
+};
+
+const SONG_PATCHFACE_STARDUST_RISQUEE: LibrarySong = {
+  id: "patchface-stardust-risquee",
+  title: "stardust@_risquee",
+  artist: "Patchface",
+  cover: COVER_PATCHFACE,
+  source: require("../../assets/song-patchface-stardust-risquee.mp3"),
+  durationMs: 0,
+};
+
+const SONG_PATCHFACE_VELVEETA: LibrarySong = {
+  id: "patchface-velveeta",
+  title: "velveeta",
+  artist: "Patchface",
+  cover: COVER_PATCHFACE,
+  source: require("../../assets/song-patchface-velveeta.mp3"),
+  durationMs: 0,
+};
+
+const SONG_PATCHFACE_WHIPLASH_RYANBEVOLO_1ALAWAIS: LibrarySong = {
+  id: "patchface-whiplash-ryanbevolo-1alawais",
+  title: "whiplash @ryanbevolo @1alawais",
+  artist: "Patchface",
+  cover: COVER_PATCHFACE,
+  source: require("../../assets/song-patchface-whiplash-ryanbevolo-1alawais.mp3"),
+  durationMs: 0,
+};
+
+const SONG_PATCHFACE_WORTH_IT_FT_RYAN_BEVOLO_X_DAVID_MORSE: LibrarySong = {
+  id: "patchface-worth-it-ft-ryan-bevolo-x-david-morse",
+  title: "worth it ft ryan bevolo x david morse",
+  artist: "Patchface",
+  cover: COVER_PATCHFACE,
+  source: require("../../assets/song-patchface-worth-it-ft-ryan-bevolo-x-david-morse.mp3"),
+  durationMs: 0,
+};
+
+const SONG_PATCHFACE_XD_OUT_PROD_AETHER_3KALOU: LibrarySong = {
+  id: "patchface-xd-out-prod-aether-3kalou",
+  title: "x'd out @prod.aether @3kalou",
+  artist: "Patchface",
+  cover: COVER_PATCHFACE,
+  source: require("../../assets/song-patchface-xd-out-prod-aether-3kalou.mp3"),
+  durationMs: 0,
+};
+
 export const MUSIC_LIBRARY: LibrarySong[] = [
   SONG_IMTHEONE,
   SONG_MESIENTO_BIEN,
@@ -259,6 +341,15 @@ export const MUSIC_LIBRARY: LibrarySong[] = [
   SONG_ALEX_DAVID_PLASTIC_SMILES,
   SONG_ALEX_DAVID_RUNNIN,
   SONG_ALEX_DAVID_WAISTLINE_W_TREVOR_QUINCY,
+  SONG_PATCHFACE_ALASKA_OTISBUTBLUE,
+  SONG_PATCHFACE_BADBOY_FT_28NETTIEZ,
+  SONG_PATCHFACE_BRIGHT_IDEA_FT_KABEH_X_RYANBEVOLO,
+  SONG_PATCHFACE_KEEP_TO_MYSELF_PRODBYTAURS_RIPWARHEART,
+  SONG_PATCHFACE_STARDUST_RISQUEE,
+  SONG_PATCHFACE_VELVEETA,
+  SONG_PATCHFACE_WHIPLASH_RYANBEVOLO_1ALAWAIS,
+  SONG_PATCHFACE_WORTH_IT_FT_RYAN_BEVOLO_X_DAVID_MORSE,
+  SONG_PATCHFACE_XD_OUT_PROD_AETHER_3KALOU,
 ];
 
 export function getSongById(id?: string | null) {

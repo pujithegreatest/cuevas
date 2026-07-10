@@ -31,6 +31,7 @@ interface AppState {
   userBio: string | null;
   isBusinessAccount: boolean;
   businessName: string | null;
+  businessHandle: string | null;
   businessProfileUnlocked: boolean;
 
   rewardsBalance: number;
@@ -58,7 +59,7 @@ interface AppState {
   setUserHandle: (handle: string | null) => void;
   setUserAvatar: (uri: string | null) => void;
   setUserBio: (bio: string | null) => void;
-  setBusinessProfile: (businessName: string) => void;
+  setBusinessProfile: (businessName: string, businessHandle?: string | null) => void;
   clearBusinessProfile: () => void;
   unlockBusinessProfile: () => void;
 }
@@ -75,6 +76,7 @@ export const useAppStore = create<AppState>()(
       userBio: null,
       isBusinessAccount: false,
       businessName: null,
+      businessHandle: null,
       businessProfileUnlocked: false,
       rewardsBalance: 0,
       defaultPostPrivacy: "public",
@@ -104,6 +106,7 @@ export const useAppStore = create<AppState>()(
             handleAliases: aliases,
             isBusinessAccount: isSameAccount ? state.isBusinessAccount : false,
             businessName: isSameAccount ? state.businessName : null,
+            businessHandle: isSameAccount ? state.businessHandle : null,
             businessProfileUnlocked: isSameAccount ? state.businessProfileUnlocked : false,
             rewardsBalance: isSameAccount ? state.rewardsBalance : 0,
             defaultPostPrivacy: isSameAccount ? state.defaultPostPrivacy : "public",
@@ -124,6 +127,7 @@ export const useAppStore = create<AppState>()(
           handleAliases: [],
           isBusinessAccount: false,
           businessName: null,
+          businessHandle: null,
           businessProfileUnlocked: false,
           rewardsBalance: 0,
           defaultPostPrivacy: "public",
@@ -248,15 +252,20 @@ export const useAppStore = create<AppState>()(
       setUserAvatar: (uri: string | null) => set({ userAvatar: uri }),
       setUserBio: (bio: string | null) =>
         set({ userBio: bio && bio.trim().length > 0 ? bio.trim() : null }),
-      setBusinessProfile: (businessName: string) =>
-        set({
-          isBusinessAccount: true,
-          businessName: businessName.trim(),
+      setBusinessProfile: (businessName: string, businessHandle?: string | null) =>
+        set((state) => {
+          const normalizedBusinessHandle = businessHandle ? normalizeHandle(businessHandle, "") : state.businessHandle;
+          return {
+            isBusinessAccount: true,
+            businessName: businessName.trim(),
+            businessHandle: normalizedBusinessHandle || state.businessHandle,
+          };
         }),
       clearBusinessProfile: () =>
         set({
           isBusinessAccount: false,
           businessName: null,
+          businessHandle: null,
         }),
       unlockBusinessProfile: () =>
         set({
