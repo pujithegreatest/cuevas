@@ -31,7 +31,7 @@ export default function ReportReasonModal({
   const actionText = isDarkMode ? "#FFFFFF" : "#111827";
   const { height } = useWindowDimensions();
   const modalMaxHeight = Math.min(height - 48, 560);
-  const reasonMaxHeight = Math.max(172, Math.min(290, modalMaxHeight - 204));
+  const reasonMaxHeight = Math.max(250, Math.min(430, modalMaxHeight - 176));
 
   useEffect(() => {
     if (visible) setSelected("Spam or scam");
@@ -87,7 +87,7 @@ export default function ReportReasonModal({
 
           <ScrollView
             style={{ maxHeight: reasonMaxHeight, flexGrow: 0 }}
-            contentContainerStyle={{ paddingTop: 2, paddingBottom: 2 }}
+            contentContainerStyle={{ paddingTop: 8, paddingBottom: 4 }}
             showsVerticalScrollIndicator={false}
           >
             {REPORT_REASONS.map((reason) => {
@@ -97,34 +97,30 @@ export default function ReportReasonModal({
                   key={reason}
                   onPress={() => setSelected(reason)}
                   style={({ pressed }) => ({
-                    minHeight: 44,
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: active ? "#FACC15" : isDarkMode ? "#374151" : "#E5E7EB",
-                    backgroundColor: active ? "rgba(250,204,21,0.12)" : rowBg,
-                    paddingHorizontal: 12,
+                    minHeight: 54,
+                    paddingHorizontal: 6,
                     paddingVertical: 8,
                     flexDirection: "row",
                     alignItems: "center",
-                    marginBottom: 6,
+                    marginBottom: 10,
                     width: "100%",
                     opacity: pressed ? 0.76 : 1,
                   })}
                 >
                   <View
                     style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 17,
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
                       alignItems: "center",
                       justifyContent: "center",
-                      marginRight: 12,
+                      marginRight: 14,
                       flexShrink: 0,
                     }}
                   >
                     <Ionicons
                       name={active ? "radio-button-on" : "radio-button-off"}
-                      size={22}
+                      size={30}
                       color={active ? "#FACC15" : sub}
                     />
                   </View>
@@ -132,8 +128,8 @@ export default function ReportReasonModal({
                     numberOfLines={2}
                     style={{
                       color: active ? "#FFF7C2" : isDarkMode ? "#E9FFFC" : "#111827",
-                      fontSize: 14.5,
-                      lineHeight: 18,
+                      fontSize: 16,
+                      lineHeight: 20,
                       fontWeight: "900",
                       flex: 1,
                       flexShrink: 1,
