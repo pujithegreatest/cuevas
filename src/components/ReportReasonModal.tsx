@@ -100,31 +100,29 @@ export default function ReportReasonModal({
                     minHeight: 54,
                     paddingHorizontal: 6,
                     paddingVertical: 8,
-                    flexDirection: "row",
-                    alignItems: "center",
                     marginBottom: 10,
                     width: "100%",
                     opacity: pressed ? 0.76 : 1,
                   })}
                 >
-                  <View
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 22,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginRight: 14,
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Ionicons
-                      name={active ? "radio-button-on" : "radio-button-off"}
-                      size={30}
-                      color={active ? "#FACC15" : sub}
-                    />
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0, justifyContent: "center" }}>
+                  <View style={{ width: "100%", flexDirection: "row", alignItems: "center" }}>
+                    <View
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 22,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginRight: 14,
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Ionicons
+                        name={active ? "radio-button-on" : "radio-button-off"}
+                        size={30}
+                        color={active ? "#FACC15" : sub}
+                      />
+                    </View>
                     <Text
                       numberOfLines={2}
                       style={{
@@ -132,6 +130,8 @@ export default function ReportReasonModal({
                         fontSize: 16,
                         lineHeight: 20,
                         fontWeight: "900",
+                        flex: 1,
+                        minWidth: 0,
                         paddingRight: 4,
                         includeFontPadding: false,
                       }}
