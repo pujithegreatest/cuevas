@@ -23,10 +23,12 @@ export default function ReportReasonModal({
   onSubmit,
 }: ReportReasonModalProps) {
   const [selected, setSelected] = useState<ReportReason>("Spam or scam");
-  const text = isDarkMode ? "#CFEFEC" : "#1F2937";
-  const sub = isDarkMode ? "#9CA3AF" : "#6B7280";
+  const text = isDarkMode ? "#FFFFFF" : "#1F2937";
+  const sub = isDarkMode ? "#D1D5DB" : "#6B7280";
   const surface = isDarkMode ? "#111827" : "#FFFFFF";
   const rowBg = isDarkMode ? "#17212C" : "#F3F4F6";
+  const actionBg = isDarkMode ? "rgba(250,204,21,0.14)" : "#FACC15";
+  const actionText = isDarkMode ? "#FFFFFF" : "#111827";
   const { height } = useWindowDimensions();
   const modalMaxHeight = Math.min(height - 48, 560);
   const reasonMaxHeight = Math.max(172, Math.min(290, modalMaxHeight - 204));
@@ -81,26 +83,6 @@ export default function ReportReasonModal({
                 {targetLabel}
               </Text>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Send report"
-              onPress={() => onSubmit(selected)}
-              disabled={submitting}
-              style={({ pressed }) => ({
-                minWidth: 78,
-                borderRadius: 16,
-                paddingHorizontal: 14,
-                paddingVertical: 10,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#FACC15",
-                opacity: pressed ? 0.82 : submitting ? 0.65 : 1,
-              })}
-            >
-              <Text style={{ color: "#111827", fontWeight: "900", fontSize: 14 }}>
-                {submitting ? "..." : "Send"}
-              </Text>
-            </Pressable>
           </View>
 
           <ScrollView
@@ -205,12 +187,14 @@ export default function ReportReasonModal({
                 alignItems: "center",
                 justifyContent: "center",
                 opacity: pressed ? 0.8 : submitting ? 0.65 : 1,
-                backgroundColor: "#FACC15",
+                backgroundColor: actionBg,
+                borderWidth: isDarkMode ? 1 : 0,
+                borderColor: "#FACC15",
               })}
             >
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                <Ionicons name="send" size={16} color="#111827" />
-                <Text style={{ color: "#111827", fontWeight: "900", fontSize: 15, marginLeft: 8 }}>
+                <Ionicons name="send" size={16} color={actionText} />
+                <Text style={{ color: actionText, fontWeight: "900", fontSize: 15, marginLeft: 8 }}>
                   {submitting ? "Sending..." : "Send Report"}
                 </Text>
               </View>
