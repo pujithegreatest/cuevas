@@ -1148,30 +1148,549 @@
       border: 1px solid rgba(255,255,255,.06);
     }
 
-    .profile-card {
-      padding: 16px;
-      display: grid;
-      gap: 14px;
+    .profile-topbar {
+      min-height: 132px;
+      padding: calc(44px + var(--safe-top)) 16px 28px;
+      border-bottom: 1px solid rgba(35,48,66,.9);
+      background: var(--surface);
     }
 
-    .profile-hero {
+    .profile-topbar .title {
+      font-size: 28px;
+    }
+
+    .profile-dna-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #c9f4ef;
+      font-size: 13px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .profile-dna-pill .svg-icon {
+      color: var(--accent);
+    }
+
+    .profile-ticker {
+      height: 40px;
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 18px;
+      overflow: hidden;
+      white-space: nowrap;
+      border-bottom: 1px solid rgba(6,167,161,.16);
+      background: rgba(0,70,64,.44);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .profile-ticker span {
+      flex: 0 0 auto;
+    }
+
+    .profile-page {
+      padding: 34px 16px calc(112px + var(--safe-bottom));
+      display: grid;
+      gap: 16px;
+    }
+
+    .profile-identity-card {
+      position: relative;
+      min-height: 328px;
+      padding: 38px 30px 28px;
+      border-radius: 28px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 16% 4%, rgba(17,202,194,.85), transparent 36%),
+        radial-gradient(circle at 88% 12%, rgba(31,142,202,.58), transparent 34%),
+        linear-gradient(135deg, #10aaa8 0%, #109ab2 48%, #173b51 100%);
+      box-shadow: 0 18px 42px rgba(0,0,0,.36);
+    }
+
+    .profile-identity-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.18));
+      pointer-events: none;
+    }
+
+    .profile-identity-row,
+    .profile-bio,
+    .profile-status-row,
+    .profile-progress,
+    .profile-next-tier {
+      position: relative;
+      z-index: 1;
+    }
+
+    .profile-identity-row {
+      display: grid;
+      grid-template-columns: 104px 1fr;
+      align-items: start;
+      gap: 26px;
+      min-width: 0;
     }
 
     .profile-avatar {
-      width: 72px;
-      height: 72px;
-      border-radius: 22px;
-      background: linear-gradient(135deg, rgba(6,167,161,.28), rgba(250,204,21,.2));
-      border: 1px solid rgba(255,255,255,.12);
+      width: 104px;
+      height: 104px;
+      border-radius: 999px;
+      background: rgba(207,239,236,.18);
+      border: 3px solid rgba(207,239,236,.75);
       display: grid;
       place-items: center;
-      font-size: 30px;
-      color: var(--accent-2);
+      color: #f5fffc;
+      font-size: 44px;
+      line-height: 1;
       font-weight: 950;
       text-transform: uppercase;
+      box-shadow: inset 0 0 18px rgba(255,255,255,.08);
+    }
+
+    .profile-identity-text {
+      min-width: 0;
+      padding-top: 10px;
+      padding-right: 48px;
+    }
+
+    .profile-name-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .profile-name-row h3 {
+      margin: 0;
+      min-width: 0;
+      color: #f8fffd;
+      font-size: 28px;
+      line-height: 1.05;
+      font-weight: 950;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .profile-edit-btn,
+    .profile-gear-btn {
+      border: 1px solid rgba(207,239,236,.5);
+      background: rgba(255,255,255,.14);
+      color: #f3fffc;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .profile-edit-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+
+    .profile-gear-btn {
+      position: absolute;
+      right: 24px;
+      top: 46px;
+      z-index: 2;
+      width: 52px;
+      height: 52px;
+      border-radius: 999px;
+    }
+
+    .profile-handle-line {
+      margin-top: 8px;
+      color: rgba(234,255,252,.7);
+      font-size: 14px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .profile-email-line {
+      display: none;
+    }
+
+    .profile-wallet-mini {
+      width: fit-content;
+      margin-top: 12px;
+      min-height: 30px;
+      padding: 0 14px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(207,239,236,.2);
+      color: #eafffc;
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .profile-wallet-mini .svg-icon {
+      color: #eafffc;
+    }
+
+    .profile-bio {
+      margin: 52px 0 0;
+      color: rgba(255,255,255,.76);
+      font-size: 17px;
+      font-style: italic;
+      font-weight: 500;
+    }
+
+    .profile-status-row {
+      margin-top: 34px;
+      display: grid;
+      grid-template-columns: auto auto 1fr;
+      align-items: center;
+      gap: 8px;
+      color: #f0fffb;
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .profile-status-row strong {
+      justify-self: end;
+      letter-spacing: 0;
+      font-size: 13px;
+    }
+
+    .profile-progress {
+      height: 10px;
+      margin-top: 14px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(207,239,236,.42);
+    }
+
+    .profile-progress span {
+      display: block;
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: #35f2df;
+    }
+
+    .profile-next-tier {
+      margin-top: 9px;
+      color: rgba(240,255,251,.82);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .profile-activity-card,
+    .profile-wide-card,
+    .profile-stat-tile,
+    .achievement-tile {
+      background: #292a2a;
+      border: 1px solid rgba(255,255,255,.05);
+      box-shadow: 0 12px 28px rgba(0,0,0,.22);
+    }
+
+    .profile-activity-card {
+      border-radius: 24px;
+      padding: 20px 18px 18px;
+    }
+
+    .profile-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      color: #c9f4ef;
+      font-size: 15px;
+      font-weight: 950;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .profile-card-head > span:first-child,
+    .achievements-head > span:first-child,
+    .transmissions-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .profile-card-head .muted {
+      letter-spacing: 0;
+      text-transform: none;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .activity-days {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .activity-day {
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,.42);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .activity-box {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 2px solid rgba(255,255,255,.05);
+      background: rgba(255,255,255,.02);
+    }
+
+    .profile-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .profile-stat-tile {
+      min-height: 94px;
+      border-radius: 18px;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .profile-stat-label {
+      color: rgba(255,255,255,.55);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .profile-stat-value {
+      margin-top: 12px;
+      color: #c9f4ef;
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 950;
+    }
+
+    .profile-stat-icon {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      color: var(--accent);
+      opacity: .9;
+    }
+
+    .profile-wide-card {
+      border-radius: 22px;
+      padding: 20px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .profile-wide-row {
+      display: grid;
+      grid-template-columns: 66px 1fr auto;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .profile-wide-icon {
+      width: 66px;
+      height: 66px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      border: 1px solid rgba(6,167,161,.42);
+      background: rgba(6,167,161,.12);
+    }
+
+    .profile-wide-title {
+      margin: 0;
+      color: #dffffb;
+      font-size: 20px;
+      line-height: 1.1;
+      font-weight: 950;
+    }
+
+    .profile-wide-copy {
+      margin: 6px 0 0;
+      color: rgba(255,255,255,.52);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .profile-wide-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #c9f4ef;
+      font-size: 22px;
+      font-weight: 950;
+    }
+
+    .profile-action-btn {
+      width: 100%;
+      min-height: 60px;
+      border: 2px solid rgba(53,242,223,.82);
+      border-radius: 22px;
+      background: var(--accent);
+      color: #f9fffd;
+      font-size: 17px;
+      font-weight: 950;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .achievements-head {
+      margin: 8px 4px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: #dffffb;
+      font-size: 17px;
+      font-weight: 950;
+    }
+
+    .achievements-head .svg-icon {
+      color: var(--accent-2);
+    }
+
+    .achievement-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .achievement-tile {
+      min-height: 112px;
+      border-radius: 18px;
+      padding: 14px 8px 12px;
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 7px;
+      text-align: center;
+      opacity: .48;
+    }
+
+    .achievement-lock {
+      width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,.03);
+      color: rgba(255,255,255,.38);
+    }
+
+    .achievement-title {
+      color: rgba(255,255,255,.76);
+      font-size: 11px;
+      font-weight: 950;
+      line-height: 1.1;
+    }
+
+    .achievement-copy {
+      color: rgba(255,255,255,.45);
+      font-size: 10px;
+      line-height: 1.1;
+      font-weight: 700;
+    }
+
+    .transmissions-section {
+      margin: 2px -16px 0;
+      border-top: 1px solid rgba(35,48,66,.86);
+      border-bottom: 1px solid rgba(35,48,66,.86);
+      background: #202020;
+    }
+
+    .transmissions-title {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 20px;
+      color: rgba(207,239,236,.72);
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .transmissions-title .svg-icon {
+      color: var(--accent);
+    }
+
+    .transmissions-empty {
+      min-height: 270px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: rgba(255,255,255,.48);
+      padding: 36px 24px 42px;
+    }
+
+    .transmissions-empty .svg-icon {
+      margin: 0 auto 16px;
+      color: rgba(255,255,255,.28);
+    }
+
+    .transmissions-empty strong {
+      display: block;
+      color: rgba(255,255,255,.62);
+      font-size: 17px;
+      margin-bottom: 7px;
+    }
+
+    .profile-settings-panel {
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(14,22,36,.92);
+      border: 1px solid var(--line);
+    }
+
+    .profile-settings-panel.hidden {
+      display: none;
+    }
+
+    .profile-delete-note {
+      display: grid;
+      gap: 7px;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(18,29,46,.78);
+      border: 1px solid var(--line);
+    }
+
+    body.light-mode .profile-topbar,
+    body.light-mode .profile-page {
+      background: var(--surface);
+    }
+
+    body.light-mode .profile-activity-card,
+    body.light-mode .profile-wide-card,
+    body.light-mode .profile-stat-tile,
+    body.light-mode .achievement-tile {
+      background: #ffffff;
+      border-color: var(--line);
     }
 
     .modal {
@@ -1511,36 +2030,170 @@
     </section>
 
     <section id="profileScreen" class="screen">
-      <header class="topbar">
+      <header class="topbar profile-topbar">
         <div>
           <h2 class="title">Profile</h2>
-          <p class="subtitle">Account and settings</p>
+        </div>
+        <div class="profile-dna-pill">
+          <span data-icon="zap"></span>
+          <span id="profileDnaTop">0 DNA</span>
         </div>
       </header>
 
-      <div class="card profile-card">
-        <div class="profile-hero">
-          <div id="profileAvatar" class="profile-avatar">?</div>
-          <div style="min-width:0;">
-            <h3 id="profileName" style="margin:0 0 5px; font-size:22px;">Cuevas member</h3>
-            <div id="profileHandle" class="muted tiny">@cuevas</div>
-            <div id="profileEmail" class="muted tiny"></div>
+      <div class="profile-ticker" aria-label="Profile stats">
+        <span id="profileCuevasTicker">0 ₡</span>
+        <span>★</span>
+        <span><span id="profilePostsTicker">0</span> Posts</span>
+        <span>★</span>
+        <span><span id="profileZapsTicker">0</span> Zaps</span>
+        <span>★</span>
+        <span>Streak <span id="profileStreakTicker">0</span></span>
+        <span>★</span>
+        <span id="profileBadgesTicker">0/8 Badges</span>
+      </div>
+
+      <div class="profile-page">
+        <section class="profile-identity-card" aria-label="Profile summary">
+          <button id="profileSettingsBtn" class="profile-gear-btn" type="button" aria-label="Profile settings">
+            <span data-icon="settings"></span>
+          </button>
+          <div class="profile-identity-row">
+            <div id="profileAvatar" class="profile-avatar">?</div>
+            <div class="profile-identity-text">
+              <div class="profile-name-row">
+                <h3 id="profileName">Cuevas member</h3>
+                <button id="editProfileBtn" class="profile-edit-btn" type="button" aria-label="Edit profile">
+                  <span data-icon="edit"></span>
+                </button>
+              </div>
+              <div id="profileHandle" class="profile-handle-line">@cuevas</div>
+              <div id="profileEmail" class="profile-email-line"></div>
+              <div class="profile-wallet-mini">
+                <span data-icon="wallet"></span>
+                <span id="profileCuevasPill">0 ₡</span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="field">
-          <label for="handleInput">Handle</label>
-          <input id="handleInput" class="input" placeholder="your-handle" />
-        </div>
-        <button id="saveHandleBtn" class="btn" type="button">Save handle</button>
-        <div id="profileStatus" class="status"></div>
-      </div>
 
-      <div class="panel profile-card" style="margin-top:14px;">
-        <h3 style="margin:0;">Delete account</h3>
-        <p class="muted tiny" style="margin:0;">please visit: https://ecothot.com/cuevas-delete-account to submit a request</p>
-      </div>
+          <p class="profile-bio">Tap to add a bio...</p>
+          <div class="profile-status-row">
+            <span data-icon="radio"></span>
+            <span>Offline</span>
+            <strong id="profileDnaCard">0 DNA</strong>
+          </div>
+          <div class="profile-progress" aria-label="DNA progress">
+            <span id="profileDnaProgress"></span>
+          </div>
+          <div class="profile-next-tier">Next tier at 100 DNA</div>
+        </section>
 
-      <button id="logoutProfileBtn" class="btn danger" style="width:100%; margin-top:14px;" type="button">Log out</button>
+        <section class="profile-activity-card" aria-label="Seven day activity">
+          <div class="profile-card-head">
+            <span><span data-icon="flame"></span> 7-day activity</span>
+            <span class="muted">0/7 days</span>
+          </div>
+          <div class="activity-days">
+            <div class="activity-day"><span class="activity-box"></span><span>M</span></div>
+            <div class="activity-day"><span class="activity-box"></span><span>T</span></div>
+            <div class="activity-day"><span class="activity-box"></span><span>W</span></div>
+            <div class="activity-day"><span class="activity-box"></span><span>T</span></div>
+            <div class="activity-day"><span class="activity-box"></span><span>F</span></div>
+            <div class="activity-day"><span class="activity-box"></span><span>S</span></div>
+            <div class="activity-day"><span class="activity-box"></span><span>S</span></div>
+          </div>
+        </section>
+
+        <section class="profile-stat-grid" aria-label="Profile counts">
+          <div class="profile-stat-tile">
+            <span class="profile-stat-icon" data-icon="chat"></span>
+            <div class="profile-stat-label">Posts</div>
+            <div id="profilePostCount" class="profile-stat-value">0</div>
+          </div>
+          <div class="profile-stat-tile">
+            <span class="profile-stat-icon" data-icon="zap"></span>
+            <div class="profile-stat-label">Zaps</div>
+            <div id="profileZapCount" class="profile-stat-value">0</div>
+          </div>
+          <div class="profile-stat-tile">
+            <span class="profile-stat-icon" data-icon="chat"></span>
+            <div class="profile-stat-label">Comments</div>
+            <div id="profileCommentCount" class="profile-stat-value">0</div>
+          </div>
+          <div class="profile-stat-tile">
+            <span class="profile-stat-icon" data-icon="sparkles"></span>
+            <div class="profile-stat-label">Stories</div>
+            <div id="profileStoryCount" class="profile-stat-value">0</div>
+          </div>
+        </section>
+
+        <section class="profile-wide-card">
+          <div class="profile-wide-row">
+            <div class="profile-wide-icon"><span data-icon="shield"></span></div>
+            <div>
+              <h3 class="profile-wide-title">Completed Missions</h3>
+              <p class="profile-wide-copy">Public proof of community service tasks.</p>
+            </div>
+            <div class="profile-wide-count"><span id="profileCompletedCount">0</span><span data-icon="chevron-right"></span></div>
+          </div>
+          <button class="profile-action-btn" type="button">
+            <span data-icon="shield"></span>
+            <span>View Completed Missions</span>
+          </button>
+        </section>
+
+        <section class="profile-wide-card">
+          <div class="profile-wide-row">
+            <div class="profile-wide-icon"><span data-icon="people"></span></div>
+            <div>
+              <h3 class="profile-wide-title">Research Network</h3>
+              <p class="profile-wide-copy">Private friend list only you can open.</p>
+            </div>
+            <div class="profile-wide-count"><span id="profileResearchCount">0</span><span data-icon="chevron-right"></span></div>
+          </div>
+        </section>
+
+        <section aria-label="Achievements">
+          <div class="achievements-head">
+            <span><span data-icon="trophy"></span> Achievements</span>
+            <span class="muted">0/8</span>
+          </div>
+          <div class="achievement-grid">
+            <div class="achievement-tile"><div class="achievement-lock"><span data-icon="lock"></span></div><div class="achievement-title">First Signal</div><div class="achievement-copy">Post once</div></div>
+            <div class="achievement-tile"><div class="achievement-lock"><span data-icon="lock"></span></div><div class="achievement-title">Broadcaster</div><div class="achievement-copy">5 posts</div></div>
+            <div class="achievement-tile"><div class="achievement-lock"><span data-icon="lock"></span></div><div class="achievement-title">Resonant</div><div class="achievement-copy">Get a zap</div></div>
+            <div class="achievement-tile"><div class="achievement-lock"><span data-icon="lock"></span></div><div class="achievement-title">Magnetic</div><div class="achievement-copy">10 zaps</div></div>
+            <div class="achievement-tile"><div class="achievement-lock"><span data-icon="lock"></span></div><div class="achievement-title">Story Master</div><div class="achievement-copy">3 stories</div></div>
+            <div class="achievement-tile"><div class="achievement-lock"><span data-icon="lock"></span></div><div class="achievement-title">On Fire</div><div class="achievement-copy">3 day streak</div></div>
+            <div class="achievement-tile"><div class="achievement-lock"><span data-icon="lock"></span></div><div class="achievement-title">Coin Whale</div><div class="achievement-copy">1k ₡</div></div>
+            <div class="achievement-tile"><div class="achievement-lock"><span data-icon="lock"></span></div><div class="achievement-title">Ascending</div><div class="achievement-copy">DNA 600</div></div>
+          </div>
+        </section>
+
+        <section class="transmissions-section" aria-label="Your transmissions">
+          <div class="transmissions-title"><span data-icon="eye"></span> Your transmissions · <span id="profileTransmissionsCount">0</span></div>
+          <div class="transmissions-empty">
+            <div>
+              <span data-icon="chat"></span>
+              <strong>No posts yet</strong>
+              <div>Head to the Feed and broadcast your first signal.</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="profileSettingsPanel" class="profile-settings-panel hidden" aria-label="Profile settings panel">
+          <div class="field">
+            <label for="handleInput">Handle</label>
+            <input id="handleInput" class="input" placeholder="your-handle" />
+          </div>
+          <button id="saveHandleBtn" class="btn" type="button">Save handle</button>
+          <div id="profileStatus" class="status"></div>
+          <div class="profile-delete-note">
+            <h3 style="margin:0;">Delete account</h3>
+            <p class="muted tiny" style="margin:0;">please visit: https://ecothot.com/cuevas-delete-account to submit a request</p>
+          </div>
+          <button id="logoutProfileBtn" class="btn danger" type="button">Log out</button>
+        </section>
+      </div>
     </section>
 
     <button id="mainFab" class="fab" type="button" aria-label="Create"><span data-icon="plus"></span></button>
@@ -1718,6 +2371,13 @@
       globe: '<circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path><path d="M12 2a15 15 0 0 1 0 20"></path><path d="M12 2a15 15 0 0 0 0 20"></path>',
       plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>',
       zap: '<path d="M13 2 4 14h7l-1 8 9-12h-7Z"></path>',
+      settings: '<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"></path><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 1 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 1 1 0 4H21a1.7 1.7 0 0 0-1.6 1Z"></path>',
+      edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>',
+      flame: '<path d="M8.5 14.5A4 4 0 1 0 16 17c0-2.5-2-4-3-6-1.5 1-2.5 2.3-2.5 4"></path><path d="M12 22c4.4 0 8-3 8-7.5 0-3-1.7-5.3-4.8-7.6.3 2.1-.4 3.6-1.7 4.6C14 7.5 12.7 4.8 9.5 2 9 6.4 4 8.8 4 14.5 4 19 7.6 22 12 22Z"></path>',
+      sparkles: '<path d="m12 3 1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5Z"></path><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8Z"></path><path d="m5 14 .8 2.2L8 17l-2.2.8L5 20l-.8-2.2L2 17l2.2-.8Z"></path>',
+      lock: '<rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path>',
+      eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle>',
+      "chevron-right": '<path d="m9 18 6-6-6-6"></path>',
       chat: '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.5 9.5 0 0 1-4-.9L3 20l1.4-4A8.3 8.3 0 1 1 21 11.5Z"></path>',
       share: '<circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.7 6.8-4.4"></path><path d="m8.6 13.3 6.8 4.4"></path>',
       camera: '<rect x="4" y="5" width="16" height="16" rx="4"></rect><circle cx="12" cy="13" r="4"></circle><path d="M9 5l1.4-2h3.2L15 5"></path>',
@@ -2779,13 +3439,91 @@
       alert("Mission QR scanning will use the phone camera in a later web pass.");
     }
 
+    function setText(selector, value) {
+      const node = $(selector);
+      if (node) node.textContent = value;
+    }
+
+    function currentUserAliases() {
+      const email = normalizeEmail(state.session?.email);
+      const name = text(displayName()).trim().toLowerCase();
+      const handle = handleName();
+      return new Set([
+        email,
+        email.split("@")[0],
+        name,
+        handle,
+        normalizeHandle(name || handle),
+        normalizeHandle(email || handle)
+      ].filter(Boolean));
+    }
+
+    function belongsToCurrentUser(item = {}) {
+      const email = normalizeEmail(item.authorEmail || item.AuthorEmail || item.userEmail || item.UserEmail || item.email);
+      if (email && email === normalizeEmail(state.session?.email)) return true;
+      const aliases = currentUserAliases();
+      const names = [
+        item.author,
+        item.User,
+        item.handle,
+        item.username,
+        item.displayName,
+        item.name
+      ].map(value => normalizeHandle(value || ""));
+      return names.some(name => aliases.has(name));
+    }
+
+    function profileCounts() {
+      const ownPosts = state.posts.filter(post => belongsToCurrentUser(post));
+      const ownStories = state.stories.filter(story => belongsToCurrentUser(story));
+      const commentCount = state.posts.reduce((total, post) => {
+        return total + (post.commentsList || []).filter(comment => belongsToCurrentUser(comment)).length;
+      }, 0);
+      return {
+        posts: ownPosts.length,
+        zaps: ownPosts.reduce((total, post) => total + Number(post.likes || 0), 0),
+        comments: commentCount,
+        stories: ownStories.length,
+        transmissions: ownPosts.length,
+        completed: 0,
+        research: 0,
+        streak: 0,
+        badges: 0
+      };
+    }
+
+    function toggleProfileSettings() {
+      $("#profileSettingsPanel")?.classList.toggle("hidden");
+    }
+
     function renderProfile() {
       if (!state.session) return;
+      const balance = Number(state.session?.cuevas || 0) || 0;
+      const dna = Number(state.session?.dna || state.session?.DNA || 0) || 0;
+      const counts = profileCounts();
+      const progress = Math.max(0, Math.min(100, dna));
       $("#profileAvatar").textContent = initials(displayName());
       $("#profileName").textContent = displayName();
       $("#profileHandle").textContent = `@${handleName()}`;
       $("#profileEmail").textContent = state.session.email || "";
       $("#handleInput").value = handleName();
+      setText("#profileCuevasTicker", `${balance.toLocaleString()} ₡`);
+      setText("#profileCuevasPill", `${balance.toLocaleString()} ₡`);
+      setText("#profileDnaTop", `${dna.toLocaleString()} DNA`);
+      setText("#profileDnaCard", `${dna.toLocaleString()} DNA`);
+      setText("#profilePostsTicker", counts.posts.toLocaleString());
+      setText("#profileZapsTicker", counts.zaps.toLocaleString());
+      setText("#profileStreakTicker", counts.streak.toLocaleString());
+      setText("#profileBadgesTicker", `${counts.badges}/8 Badges`);
+      setText("#profilePostCount", counts.posts.toLocaleString());
+      setText("#profileZapCount", counts.zaps.toLocaleString());
+      setText("#profileCommentCount", counts.comments.toLocaleString());
+      setText("#profileStoryCount", counts.stories.toLocaleString());
+      setText("#profileCompletedCount", counts.completed.toLocaleString());
+      setText("#profileResearchCount", counts.research.toLocaleString());
+      setText("#profileTransmissionsCount", counts.transmissions.toLocaleString());
+      const progressNode = $("#profileDnaProgress");
+      if (progressNode) progressNode.style.width = `${progress}%`;
       $$("[data-avatar]").forEach(node => node.textContent = initials(displayName()));
     }
 
@@ -2908,6 +3646,8 @@
       $("#viewLeaderboardBtn").addEventListener("click", toggleLeaderboard);
       $("#refreshMissionsBtn").addEventListener("click", refreshMissions);
       $("#scanMissionBtn").addEventListener("click", scanMissionQr);
+      $("#profileSettingsBtn").addEventListener("click", toggleProfileSettings);
+      $("#editProfileBtn").addEventListener("click", toggleProfileSettings);
       $("#saveHandleBtn").addEventListener("click", saveHandle);
       $("#sendReportBtn").addEventListener("click", sendReport);
       $("#logoutTopBtn").addEventListener("click", logout);
