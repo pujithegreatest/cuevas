@@ -40,6 +40,9 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "package": "com.ecothot.cuevas",
+      "blockedPermissions": [
+        "android.permission.ACTIVITY_RECOGNITION"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
