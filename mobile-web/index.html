@@ -10,10 +10,11 @@
     :root {
       color-scheme: dark;
       --bg: #05070b;
+      --surface: #151717;
       --panel: #0e1624;
       --panel-2: #121d2e;
       --panel-3: #18253a;
-      --line: rgba(255,255,255,.08);
+      --line: #233042;
       --text: #f7fbff;
       --muted: #a8b4c7;
       --soft: #d8e6f6;
@@ -25,6 +26,20 @@
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-top: env(safe-area-inset-top, 0px);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    }
+
+    body.light-mode {
+      color-scheme: light;
+      --bg: #f5f7f8;
+      --surface: #f9fbfc;
+      --panel: #ffffff;
+      --panel-2: #eef4f7;
+      --panel-3: #e5edf2;
+      --line: #d7e0e7;
+      --text: #172026;
+      --muted: #65717c;
+      --soft: #263743;
+      --shadow: 0 12px 28px rgba(15,23,42,.12);
     }
 
     * {
@@ -54,21 +69,19 @@
 
     .app-shell {
       width: 100%;
-      max-width: 460px;
+      max-width: 480px;
       min-height: 100dvh;
       margin: 0 auto;
-      background:
-        radial-gradient(circle at top right, rgba(6,167,161,.14), transparent 30%),
-        linear-gradient(180deg, #06080d 0%, #070a10 100%);
+      background: var(--surface);
       position: relative;
       overflow-x: hidden;
-      border-left: 1px solid rgba(255,255,255,.04);
-      border-right: 1px solid rgba(255,255,255,.04);
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
     }
 
     .screen {
       min-height: 100dvh;
-      padding: calc(18px + var(--safe-top)) 16px calc(90px + var(--safe-bottom));
+      padding: 0 0 calc(92px + var(--safe-bottom));
       display: none;
     }
 
@@ -77,20 +90,23 @@
     }
 
     .topbar {
-      min-height: 52px;
+      min-height: 104px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 16px;
+      padding: calc(34px + var(--safe-top)) 16px 18px;
+      margin-bottom: 0;
+      border-bottom: 1px solid var(--line);
     }
 
     .title {
       margin: 0;
-      font-size: 30px;
+      font-size: 28px;
       line-height: 1;
       letter-spacing: 0;
-      font-weight: 900;
+      font-weight: 950;
+      color: #c9f4ef;
     }
 
     .subtitle {
@@ -100,19 +116,23 @@
       font-weight: 700;
     }
 
+    #feedSubtitle {
+      display: none;
+    }
+
     .icon-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 16px;
     }
 
     .icon-btn {
-      width: 42px;
-      height: 42px;
+      width: 38px;
+      height: 38px;
       border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
+      border: 0;
+      background: transparent;
+      color: var(--accent);
       display: grid;
       place-items: center;
       font-weight: 900;
@@ -120,9 +140,27 @@
     }
 
     .icon-btn.accent {
-      background: rgba(6,167,161,.18);
-      color: #adfffb;
-      border-color: rgba(6,167,161,.35);
+      background: transparent;
+      color: var(--accent);
+      border-color: transparent;
+    }
+
+    .svg-icon {
+      width: var(--icon-size, 28px);
+      height: var(--icon-size, 28px);
+      display: block;
+      color: currentColor;
+    }
+
+    .svg-icon svg {
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.45;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      display: block;
     }
 
     .card {
@@ -291,7 +329,7 @@
       grid-template-columns: repeat(4, 1fr);
       gap: 4px;
       padding: 8px 10px calc(8px + var(--safe-bottom));
-      background: rgba(3,5,9,.93);
+      background: rgba(8,9,10,.96);
       border-top: 1px solid var(--line);
       backdrop-filter: blur(16px);
       z-index: 20;
@@ -308,12 +346,12 @@
       place-items: center;
       gap: 3px;
       font-weight: 850;
-      font-size: 11px;
+      font-size: 12px;
       cursor: pointer;
     }
 
     .tab .tab-icon {
-      font-size: 22px;
+      --icon-size: 32px;
       line-height: 1;
     }
 
@@ -326,8 +364,9 @@
       display: flex;
       gap: 14px;
       overflow-x: auto;
-      padding: 8px 1px 16px;
-      margin: 0 -2px 8px;
+      padding: 22px 16px 26px;
+      margin: 0;
+      border-bottom: 1px solid var(--line);
       scrollbar-width: none;
     }
 
@@ -336,8 +375,8 @@
     }
 
     .story-chip {
-      width: 78px;
-      flex: 0 0 78px;
+      width: 82px;
+      flex: 0 0 82px;
       display: grid;
       justify-items: center;
       gap: 7px;
@@ -348,28 +387,30 @@
     }
 
     .story-ring {
-      width: 68px;
-      height: 68px;
+      width: 64px;
+      height: 64px;
       border-radius: 999px;
-      padding: 3px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      padding: 0;
+      background: #262828;
+      border: 2px solid #343838;
       position: relative;
     }
 
     .story-ring.viewed {
-      background: rgba(255,255,255,.16);
+      background: #202323;
+      border-color: #2c3030;
     }
 
     .story-avatar {
       width: 100%;
       height: 100%;
       border-radius: inherit;
-      background: #02050a;
-      border: 3px solid #05070b;
+      background: #262828;
+      border: 0;
       display: grid;
       place-items: center;
       overflow: hidden;
-      color: var(--accent-2);
+      color: #d6f5ef;
       font-weight: 950;
     }
 
@@ -381,30 +422,34 @@
 
     .story-plus {
       position: absolute;
-      right: -2px;
-      bottom: -2px;
-      width: 24px;
-      height: 24px;
+      right: -7px;
+      bottom: -4px;
+      width: 30px;
+      height: 30px;
       border-radius: 999px;
       background: var(--accent);
       color: #001211;
-      border: 2px solid #05070b;
+      border: 2px solid var(--surface);
       display: grid;
       place-items: center;
       font-weight: 950;
     }
 
+    .story-plus .svg-icon {
+      --icon-size: 20px;
+    }
+
     .story-label {
-      max-width: 78px;
+      max-width: 82px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 800;
     }
 
     .composer-mini {
-      display: flex;
+      display: none;
       align-items: center;
       gap: 12px;
       padding: 12px;
@@ -412,13 +457,13 @@
     }
 
     .avatar {
-      width: 42px;
-      height: 42px;
+      width: 40px;
+      height: 40px;
       border-radius: 999px;
       flex: 0 0 auto;
-      background: linear-gradient(135deg, rgba(6,167,161,.25), rgba(250,204,21,.18));
-      border: 1px solid rgba(255,255,255,.12);
-      color: var(--accent-2);
+      background: var(--accent);
+      border: 0;
+      color: #d9fffb;
       display: grid;
       place-items: center;
       font-weight: 950;
@@ -426,32 +471,63 @@
     }
 
     .post {
-      padding: 14px;
-      margin-bottom: 14px;
+      padding: 22px 16px 18px;
+      margin-bottom: 0;
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      border-radius: 0;
+      box-shadow: none;
     }
 
     .post-head {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 11px;
+      gap: 12px;
+      margin-bottom: 12px;
     }
 
     .post-author {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 950;
+      color: #c9f4ef;
+      line-height: 1.08;
     }
 
     .post-meta {
       color: var(--muted);
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 750;
     }
 
+    .post-author-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .points-pill {
+      min-width: 38px;
+      height: 20px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      background: rgba(6,167,161,.28);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 950;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
     .post-body {
-      font-size: 15px;
+      font-size: 17px;
       line-height: 1.38;
-      margin: 0 0 12px;
+      margin: 0 0 18px;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
     }
@@ -476,40 +552,54 @@
     }
 
     .action-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
       margin-top: 12px;
     }
 
     .action {
-      min-height: 40px;
-      border: 1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.04);
-      border-radius: 8px;
-      color: var(--soft);
+      min-width: 34px;
+      min-height: 36px;
+      border: 0;
+      background: transparent;
+      border-radius: 0;
+      color: #8f9399;
       font-weight: 850;
-      font-size: 12px;
+      font-size: 14px;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0;
     }
 
     .action.active {
-      color: #001211;
-      background: var(--accent);
+      color: var(--accent);
+      background: transparent;
+    }
+
+    .action.report-btn {
+      color: var(--accent-2);
+    }
+
+    .action.delete-post-btn {
+      color: var(--danger);
     }
 
     .fab {
       position: fixed;
       right: calc(50% - min(230px, 50vw) + 16px);
-      bottom: calc(92px + var(--safe-bottom));
-      width: 62px;
-      height: 62px;
+      bottom: calc(78px + var(--safe-bottom));
+      width: 56px;
+      height: 56px;
       border-radius: 999px;
       border: 0;
       background: var(--accent);
       color: #001211;
       box-shadow: 0 18px 40px rgba(6,167,161,.32);
-      font-size: 34px;
+      font-size: 0;
       font-weight: 300;
       display: grid;
       place-items: center;
@@ -850,8 +940,8 @@
           <p class="subtitle" id="feedSubtitle">Latest from Cuevas</p>
         </div>
         <div class="icon-row">
-          <button id="refreshFeedBtn" class="icon-btn accent" type="button" aria-label="Refresh feed">R</button>
-          <button id="logoutTopBtn" class="icon-btn" type="button" aria-label="Log out">Q</button>
+          <button id="refreshFeedBtn" class="icon-btn accent" type="button" aria-label="Toggle theme"><span data-icon="sun"></span></button>
+          <button id="logoutTopBtn" class="icon-btn" type="button" aria-label="Log out"><span data-icon="logout"></span></button>
         </div>
       </header>
 
@@ -874,7 +964,7 @@
           <h2 class="title">Rewards</h2>
           <p class="subtitle">Your Cuevas balance</p>
         </div>
-        <button id="refreshRewardsBtn" class="icon-btn accent" type="button" aria-label="Refresh rewards">R</button>
+        <button id="refreshRewardsBtn" class="icon-btn accent" type="button" aria-label="Refresh rewards"><span data-icon="refresh"></span></button>
       </header>
 
       <div class="card rewards-card">
@@ -899,7 +989,7 @@
           <h2 class="title">Missions</h2>
           <p class="subtitle">Volunteer opportunities</p>
         </div>
-        <button id="refreshMissionsBtn" class="icon-btn accent" type="button" aria-label="Refresh missions">R</button>
+        <button id="refreshMissionsBtn" class="icon-btn accent" type="button" aria-label="Refresh missions"><span data-icon="refresh"></span></button>
       </header>
       <div id="missionsList" class="list"></div>
     </section>
@@ -937,13 +1027,13 @@
       <button id="logoutProfileBtn" class="btn danger" style="width:100%; margin-top:14px;" type="button">Log out</button>
     </section>
 
-    <button id="mainFab" class="fab" type="button" aria-label="Create">+</button>
+    <button id="mainFab" class="fab" type="button" aria-label="Create"><span data-icon="plus"></span></button>
 
     <nav id="tabs" class="tabs">
-      <button class="tab active" data-tab="feed" type="button"><span class="tab-icon">H</span><span>Feed</span></button>
-      <button class="tab" data-tab="rewards" type="button"><span class="tab-icon">W</span><span>Rewards</span></button>
-      <button class="tab" data-tab="missions" type="button"><span class="tab-icon">M</span><span>Missions</span></button>
-      <button class="tab" data-tab="profile" type="button"><span class="tab-icon">P</span><span>Profile</span></button>
+      <button class="tab active" data-tab="feed" type="button"><span class="tab-icon" data-icon="home"></span><span>Feed</span></button>
+      <button class="tab" data-tab="rewards" type="button"><span class="tab-icon" data-icon="wallet"></span><span>Rewards</span></button>
+      <button class="tab" data-tab="missions" type="button"><span class="tab-icon" data-icon="target"></span><span>Missions</span></button>
+      <button class="tab" data-tab="profile" type="button"><span class="tab-icon" data-icon="user"></span><span>Profile</span></button>
     </nav>
   </main>
 
@@ -1085,6 +1175,53 @@
       "False or misleading information",
       "Other"
     ];
+
+    const ICONS = {
+      sun: '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path>',
+      moon: '<path d="M20 14.7A8 8 0 0 1 9.3 4 7 7 0 1 0 20 14.7Z"></path>',
+      logout: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path>',
+      refresh: '<path d="M21 12a9 9 0 0 1-15.5 6.2"></path><path d="M3 12A9 9 0 0 1 18.5 5.8"></path><path d="M18 2v4h-4"></path><path d="M6 22v-4h4"></path>',
+      home: '<path d="m3 10.5 9-7 9 7"></path><path d="M5 10v10h5v-6h4v6h5V10"></path>',
+      wallet: '<path d="M3 7a2 2 0 0 1 2-2h14v14H5a2 2 0 0 1-2-2Z"></path><path d="M17 11h4v4h-4a2 2 0 0 1 0-4Z"></path><path d="M7 9h7"></path>',
+      target: '<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1.8"></circle>',
+      user: '<path d="M20 21a8 8 0 0 0-16 0"></path><circle cx="12" cy="7" r="4"></circle>',
+      plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>',
+      zap: '<path d="M13 2 4 14h7l-1 8 9-12h-7Z"></path>',
+      chat: '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.5 9.5 0 0 1-4-.9L3 20l1.4-4A8.3 8.3 0 1 1 21 11.5Z"></path>',
+      share: '<circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.7 6.8-4.4"></path><path d="m8.6 13.3 6.8 4.4"></path>',
+      camera: '<rect x="4" y="5" width="16" height="16" rx="4"></rect><circle cx="12" cy="13" r="4"></circle><path d="M9 5l1.4-2h3.2L15 5"></path>',
+      warning: '<path d="M10.3 3.8 2.4 17.2A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.8L13.7 3.8a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>',
+      trash: '<path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 15H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path>'
+    };
+
+    function icon(name, size = 26) {
+      const body = ICONS[name] || ICONS.warning;
+      return `<span class="svg-icon" style="--icon-size:${size}px" aria-hidden="true"><svg viewBox="0 0 24 24">${body}</svg></span>`;
+    }
+
+    function hydrateIcons(root = document) {
+      $$("[data-icon]", root).forEach((node) => {
+        const name = node.dataset.icon;
+        if (!name || node.dataset.hydrated === "true") return;
+        node.innerHTML = icon(name, node.classList.contains("tab-icon") ? 31 : 28);
+        node.dataset.hydrated = "true";
+      });
+    }
+
+    function setTheme(mode = "dark") {
+      const nextMode = mode === "light" ? "light" : "dark";
+      document.body.classList.toggle("light-mode", nextMode === "light");
+      localStorage.setItem("cuevas.web.theme", nextMode);
+      const themeButton = $("#refreshFeedBtn");
+      if (themeButton) {
+        themeButton.innerHTML = icon(nextMode === "light" ? "moon" : "sun", 30);
+        themeButton.setAttribute("aria-label", nextMode === "light" ? "Switch to dark mode" : "Switch to light mode");
+      }
+    }
+
+    function toggleTheme() {
+      setTheme(document.body.classList.contains("light-mode") ? "dark" : "light");
+    }
 
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
@@ -1411,22 +1548,28 @@
       const mediaHtml = renderPostMedia(post);
       const commentCount = post.commentsList?.length || 0;
       const owner = normalizeEmail(post.authorEmail) && normalizeEmail(post.authorEmail) === normalizeEmail(state.session?.email);
+      const points = Number(post.authorRewardPoints || 0) || 0;
       return `
-        <article class="card post" data-post-id="${escapeAttr(post.id)}">
+        <article class="post" data-post-id="${escapeAttr(post.id)}">
           <div class="post-head">
             <div class="avatar">${escapeHtml(initials(post.author))}</div>
             <div style="min-width:0; flex:1;">
-              <div class="post-author">${escapeHtml(post.author)}</div>
-              <div class="post-meta">${timeAgo(post.timestamp)} ago - ${escapeHtml(post.privacy || "public")}${owner ? " - yours" : ""}</div>
+              <div class="post-author-row">
+                <div class="post-author">${escapeHtml(post.author)}</div>
+                <span class="points-pill">${points} ¢</span>
+              </div>
+              <div class="post-meta">${timeAgo(post.timestamp)} ago${owner ? " - yours" : ""}</div>
             </div>
           </div>
           ${post.content ? `<p class="post-body">${escapeHtml(post.content)}</p>` : ""}
           ${mediaHtml}
           <div class="action-row">
-            <button class="action like-btn ${post.isLiked ? "active" : ""}" type="button">Like ${post.likes}</button>
-            <button class="action comments-btn" type="button">Comments ${commentCount}</button>
-            <button class="action report-btn" type="button">Report</button>
-            <button class="action ${owner ? "" : "hidden"} delete-post-btn" type="button">Delete</button>
+            <button class="action like-btn ${post.isLiked ? "active" : ""}" type="button" aria-label="Like">${icon("zap", 30)}<span>${post.likes}</span></button>
+            <button class="action comments-btn" type="button" aria-label="Comments">${icon("chat", 30)}<span>${commentCount}</span></button>
+            <button class="action share-btn" type="button" aria-label="Share">${icon("share", 30)}</button>
+            <button class="action camera-btn" type="button" aria-label="Story share unavailable">${icon("camera", 30)}</button>
+            <button class="action report-btn" type="button" aria-label="Report">${icon("warning", 30)}</button>
+            <button class="action ${owner ? "" : "hidden"} delete-post-btn" type="button" aria-label="Delete">${icon("trash", 28)}</button>
           </div>
         </article>`;
     }
@@ -1474,6 +1617,8 @@
         renderComments();
         showModal("commentsModal");
       }));
+      $$(".share-btn").forEach(btn => btn.addEventListener("click", () => sharePost(btn.closest("[data-post-id]").dataset.postId)));
+      $$(".camera-btn").forEach(btn => btn.addEventListener("click", () => sharePost(btn.closest("[data-post-id]").dataset.postId)));
       $$(".report-btn").forEach(btn => btn.addEventListener("click", () => {
         state.reportPostId = btn.closest("[data-post-id]").dataset.postId;
         state.selectedReportReason = REPORT_REASONS[0];
@@ -1485,6 +1630,29 @@
         state.posts = state.posts.filter(p => p.id !== id);
         renderFeed();
       }));
+    }
+
+    async function sharePost(postId) {
+      const post = state.posts.find(p => p.id === postId);
+      if (!post) return;
+      const shareText = `${post.author}: ${post.content || "Cuevas post"}`;
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "Cuevas",
+            text: shareText,
+            url: location.href
+          });
+          return;
+        } catch {
+          return;
+        }
+      }
+      try {
+        await navigator.clipboard.writeText(`${shareText}\n${location.href}`);
+      } catch {
+        // Clipboard can be blocked on some mobile browsers; visual parity matters more here.
+      }
     }
 
     function renderComments() {
@@ -1622,7 +1790,7 @@
       const groups = groupStories();
       $("#storiesRow").innerHTML = `
         <button class="story-chip" id="createStoryChip" type="button">
-          <span class="story-ring"><span class="story-avatar">${escapeHtml(initials(displayName()))}</span><span class="story-plus">+</span></span>
+          <span class="story-ring"><span class="story-avatar">${escapeHtml(initials(displayName()))}</span><span class="story-plus">${icon("plus", 20)}</span></span>
           <span class="story-label">Your Story</span>
         </button>
         ${groups.map(group => renderStoryChip(group)).join("")}
@@ -2004,7 +2172,7 @@
       $("#passwordInput").addEventListener("keydown", e => {
         if (e.key === "Enter") handleEmailAuth();
       });
-      $("#refreshFeedBtn").addEventListener("click", refreshFeed);
+      $("#refreshFeedBtn").addEventListener("click", toggleTheme);
       $("#openComposerMini").addEventListener("click", () => showModal("composerModal"));
       $("#mainFab").addEventListener("click", () => state.tab === "feed" && showModal("composerModal"));
       $("#publishPostBtn").addEventListener("click", publishPost);
@@ -2060,6 +2228,8 @@
     }
 
     function boot() {
+      hydrateIcons();
+      setTheme(localStorage.getItem("cuevas.web.theme") || "dark");
       bindEvents();
       initGoogle();
       if (state.session?.email) showApp();
