@@ -2524,18 +2524,59 @@
     }
 
     function normalizeHandle(value, fallback = "cuevas") {
-      const raw = text(value || fallback).trim().toLowerCase();
-      const base = raw.includes("@") ? raw.split("@")[0] : raw;
-      const clean = base.replace(/[^a-z0-9_.-]/g, "").slice(0, 24);
+      const clean = text(value)
+        .trim()
+        .replace(/^@+/, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]+/g, "")
+        .slice(0, 24);
       return clean || fallback;
     }
 
+    function emailLocalPart(email) {
+      return text(email).split("@")[0] || "";
+    }
+
+    function displayUsernameFrom(display, email, fallback = "Cuevas member") {
+      const trimmed = text(display).trim();
+      if (trimmed) return trimmed;
+      const local = emailLocalPart(email).trim();
+      return local || fallback;
+    }
+
+    function isEmailDomainHandle(handle, email) {
+      const normalized = normalizeHandle(handle, "");
+      if (!normalized) return false;
+      const domain = text(email).split("@")[1] || "";
+      const normalizedDomain = normalizeHandle(domain, "");
+      const normalizedLocal = normalizeHandle(emailLocalPart(email), "");
+      if (normalizedDomain && normalized.includes(normalizedDomain)) return true;
+      if (normalizedLocal && normalized === `${normalizedLocal}${normalizedDomain}`) return true;
+      return /(gmail|google|yahoo|icloud|outlook|hotmail|aol|privaterelay\.appleid)\.com/i.test(normalized);
+    }
+
+    function deriveHandle(explicitHandle, display, email) {
+      const explicit = normalizeHandle(explicitHandle, "");
+      if (explicit && !isEmailDomainHandle(explicit, email)) return explicit;
+      const displayHandle = normalizeHandle(display, "");
+      if (displayHandle && !isEmailDomainHandle(displayHandle, email)) return displayHandle;
+      return normalizeHandle(emailLocalPart(email), "cuevas");
+    }
+
+    function firstValidBackendHandle(email, ...candidates) {
+      for (const candidate of candidates) {
+        const normalized = normalizeHandle(candidate, "");
+        if (normalized && !isEmailDomainHandle(normalized, email)) return normalized;
+      }
+      return "";
+    }
+
     function displayName() {
-      return state.session?.displayName || state.session?.handle || state.session?.email?.split("@")[0] || "Cuevas member";
+      return displayUsernameFrom(state.session?.displayName, state.session?.email);
     }
 
     function handleName() {
-      return normalizeHandle(state.session?.handle || displayName());
+      return deriveHandle(state.session?.handle, state.session?.displayName, state.session?.email);
     }
 
     function initials(name) {
@@ -2632,7 +2673,7 @@
       $("#authSubmitBtn").disabled = true;
       try {
         const body = state.mode === "signup"
-          ? { clientKey: CUEVAS_CLIENT_KEY, email, password, displayName: name, handle: normalizeHandle(name || email) }
+          ? { clientKey: CUEVAS_CLIENT_KEY, email, password, displayName: name, handle: deriveHandle(null, name, email) }
           : { clientKey: CUEVAS_CLIENT_KEY, email, password };
         const endpoint = state.mode === "signup" ? "signup" : "login";
         const data = await apiJson(`${API_BASE}/${endpoint}`, {
@@ -2675,7 +2716,7 @@
             email,
             googleToken: credential,
             displayName: name,
-            handle: normalizeHandle(name)
+            handle: deriveHandle(null, name, email)
           })
         });
         finishLogin(data, email, name);
@@ -2685,11 +2726,14 @@
     }
 
     function finishLogin(data, fallbackEmail, fallbackName) {
+      const email = data.email || fallbackEmail;
+      const display = displayUsernameFrom(data.displayName || fallbackName, email);
+      const backendHandle = firstValidBackendHandle(email, data.handle, data.username);
       state.session = {
-        email: data.email || fallbackEmail,
+        email,
         cuevas: Number(data.cuevas ?? data.loyaltyPoints ?? 0) || 0,
-        displayName: data.displayName || fallbackName || fallbackEmail.split("@")[0],
-        handle: data.handle || data.username || normalizeHandle(fallbackName || fallbackEmail)
+        displayName: display,
+        handle: backendHandle || deriveHandle(null, display, email)
       };
       saveJson("cuevas.web.session", state.session);
       showApp();
@@ -3518,7 +3562,7 @@
         name,
         handle,
         normalizeHandle(name || handle),
-        normalizeHandle(email || handle)
+        normalizeHandle(emailLocalPart(email) || handle)
       ].filter(Boolean));
     }
 
@@ -3686,6 +3730,10 @@
       const handle = normalizeHandle($("#handleInput").value);
       if (handle.length < 3) {
         setStatus("profileStatus", "Handle must be at least 3 characters.", "error");
+        return;
+      }
+      if (isEmailDomainHandle(handle, state.session?.email)) {
+        setStatus("profileStatus", "Handles cannot include email domains.", "error");
         return;
       }
       setStatus("profileStatus", "Saving...");
