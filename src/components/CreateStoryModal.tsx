@@ -45,6 +45,11 @@ import DraggableSticker from "./DraggableSticker";
 import StickerPickerModal from "./StickerPickerModal";
 import { displayUsername } from "../utils/handles";
 import { getSongById, resolveSongSourceUri } from "../utils/musicLibrary";
+import {
+  ensureLocalVideoUri,
+  getRenderedStoryDurationMs,
+  renderStoryVideo,
+} from "../utils/storyVideoRenderer";
 import { Image as RNImage } from "react-native";
 
 const MAX_VIDEO_MS = 15000;
@@ -218,6 +223,12 @@ export default function CreateStoryModal({
   const musicSong = music ? getSongById(music.id) : null;
   const musicSoundRef = useRef<Audio.Sound | null>(null);
   const musicLoadIdRef = useRef(0);
+
+  const getActiveVideoFilter = () => {
+    if (mediaType !== "video") return null;
+    if (lockedLiveFilter && lockedLiveFilter !== "none") return lockedLiveFilter;
+    return filter !== "none" ? filter : null;
+  };
 
   const VO_MAX_MS = 15000;
 
@@ -878,18 +889,45 @@ export default function CreateStoryModal({
         return;
       }
       if (mediaType === "video") {
-        await MediaLibrary.saveToLibraryAsync(mediaUri);
+        const renderFilter = getActiveVideoFilter();
+        let saveUri = mediaUri;
+        let renderedWithFilter = false;
+        if (renderFilter) {
+          setStatusMsg("Baking video filter\u2026");
+          const rendered = await renderStoryVideo({
+            localVideoUri: mediaUri,
+            liveFilter: renderFilter,
+            trimStartMs: videoTrimStartMs,
+            trimEndMs: videoTrimEndMs,
+          });
+          saveUri = await ensureLocalVideoUri(
+            rendered.url,
+            "cuevas-rendered-story"
+          );
+          renderedWithFilter = true;
+        }
+        await MediaLibrary.saveToLibraryAsync(saveUri);
         if (music && musicSong) {
-          setStatusMsg("Video saved. Saving music track\u2026");
+          setStatusMsg(
+            renderedWithFilter
+              ? "Filtered video saved. Saving music track\u2026"
+              : "Video saved. Saving music track\u2026"
+          );
           const ok = await exportMusicTrack();
           setStatusMsg(
             ok
-              ? "Video + music saved. Filter/music can't bake into the video file without a native encoder, so the song is exported alongside."
+              ? renderedWithFilter
+                ? "Filtered video + music track saved. The music is exported alongside."
+                : "Video + music saved. The song is exported alongside."
+              : renderedWithFilter
+              ? "Filtered video saved (couldn't export music track)."
               : "Video saved (couldn't export music track)."
           );
         } else {
           setStatusMsg(
-            "Video saved. Heads up: filter effects aren't baked into the file (needs a native encoder)."
+            renderedWithFilter
+              ? "Filtered video saved to your photos."
+              : "Video saved to your photos."
           );
         }
       } else {
@@ -948,25 +986,56 @@ export default function CreateStoryModal({
     await unloadVoiceoverPreview();
     try {
       const cleanOverlays = overlays.filter((o) => o.text.trim().length > 0);
+      const renderFilter = getActiveVideoFilter();
+      let storyMediaUri = mediaUri;
+      let storyFilter: StoryFilter = filter;
+      let storyLiveFilter: StoryFilter | undefined =
+        lockedLiveFilter || undefined;
+      let storyTrimStartMs = videoTrimStartMs;
+      let storyTrimEndMs = videoTrimEndMs;
+      let storyDurationMs = videoDurationMs;
+
+      if (mediaType === "video" && renderFilter) {
+        setStatusMsg("Baking video filter\u2026");
+        const rendered = await renderStoryVideo({
+          localVideoUri: mediaUri,
+          liveFilter: renderFilter,
+          trimStartMs: videoTrimStartMs,
+          trimEndMs: videoTrimEndMs,
+        });
+        storyMediaUri = rendered.url;
+        storyDurationMs =
+          rendered.durationMs ||
+          getRenderedStoryDurationMs(
+            videoTrimStartMs,
+            videoTrimEndMs,
+            videoDurationMs
+          );
+        storyTrimStartMs = undefined;
+        storyTrimEndMs = undefined;
+        storyFilter = "none";
+        storyLiveFilter = undefined;
+      }
+
       const thumbnailUri =
         mediaType === "video"
           ? await makeVideoStoryThumbnail(
-              mediaUri,
-              videoTrimStartMs,
-              videoTrimEndMs
+              storyMediaUri,
+              storyTrimStartMs,
+              storyTrimEndMs
             )
           : undefined;
       addStory({
         author: storyAuthor,
         authorRewardPoints: rewardsBalance,
-        imageUri: mediaUri,
+        imageUri: storyMediaUri,
         mediaType,
-        videoDurationMs,
-        videoTrimStartMs,
-        videoTrimEndMs,
+        videoDurationMs: storyDurationMs,
+        videoTrimStartMs: storyTrimStartMs,
+        videoTrimEndMs: storyTrimEndMs,
         thumbnailUri,
-        filter,
-        liveFilter: lockedLiveFilter || undefined,
+        filter: storyFilter,
+        liveFilter: storyLiveFilter,
         textOverlays: cleanOverlays.length > 0 ? cleanOverlays : undefined,
         music: music ?? undefined,
         voiceover: voiceover ?? undefined,

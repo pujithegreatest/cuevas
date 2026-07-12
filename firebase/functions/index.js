@@ -152,6 +152,132 @@ async function composeInstagramStoryVideo({ videoUrl, overlayPngBase64 }) {
   }
 }
 
+const STORY_FILTER_TINTS = {
+  none: null,
+  heatwave: { color: "0D008C", alpha: 0.26 },
+  hologram: { color: "00C8FF", alpha: 0.25 },
+  vaporwave: { color: "FF00C8", alpha: 0.18 },
+  infrared: { color: "C80050", alpha: 0.28 },
+  matrix: { color: "00C800", alpha: 0.22 },
+  void: { color: "000000", alpha: 0.4 },
+  glitch: { color: "00DCFF", alpha: 0.18 },
+  noir: { color: "000000", alpha: 0.35 },
+  sepia: { color: "704214", alpha: 0.4 },
+  acid: { color: "96FF00", alpha: 0.28 },
+  arctic: { color: "3CA0FF", alpha: 0.32 },
+  dream: { color: "FFB4E6", alpha: 0.28 },
+  neon: { color: "FF00B4", alpha: 0.28 },
+  xray: { color: "FFFFFF", alpha: 0.5 },
+  thermal: { color: "FF5000", alpha: 0.35 },
+  predator: { color: "B4001E", alpha: 0.32 },
+  scanner: { color: "00DCB4", alpha: 0.28 },
+  chrome: { color: "B4C8DC", alpha: 0.3 },
+  radioactive: { color: "78FF00", alpha: 0.32 },
+};
+
+function toSeconds(ms) {
+  return (Math.max(0, Number(ms) || 0) / 1000).toFixed(3);
+}
+
+function normalizeStoryFilter(filter) {
+  const key = String(filter || "none").trim();
+  return Object.prototype.hasOwnProperty.call(STORY_FILTER_TINTS, key) ? key : "none";
+}
+
+async function renderStoryVideo({ videoUrl, liveFilter, trimStartMs, trimEndMs }) {
+  if (!ffmpegPath) throw new Error("ffmpeg binary not available");
+  if (!/^https?:\/\//i.test(String(videoUrl || ""))) {
+    throw new Error("videoUrl must be an http(s) URL");
+  }
+
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "cuevas-story-render-"));
+  const inputVideoPath = path.join(tmpDir, "input.mp4");
+  const outputPath = path.join(tmpDir, "output.mp4");
+
+  try {
+    const bytes = await fetchToFile(videoUrl, inputVideoPath);
+    if (bytes > 160 * 1024 * 1024) throw new Error("Source video is too large for story render");
+
+    const outputW = 720;
+    const outputH = 1280;
+    const startMs = Math.max(0, Number(trimStartMs) || 0);
+    const rawDurationMs =
+      Number(trimEndMs) > startMs
+        ? Number(trimEndMs) - startMs
+        : 15 * 1000;
+    const durationMs = Math.max(500, Math.min(15 * 1000, rawDurationMs));
+    const tint = STORY_FILTER_TINTS[normalizeStoryFilter(liveFilter)];
+    const base =
+      `[0:v]scale=${outputW}:${outputH}:force_original_aspect_ratio=decrease,` +
+      `pad=${outputW}:${outputH}:(ow-iw)/2:(oh-ih)/2:color=black,` +
+      `setsar=1,fps=30,format=rgba[base]`;
+    const filter = tint
+      ? `${base};color=c=0x${tint.color}:s=${outputW}x${outputH}:d=${toSeconds(durationMs)},` +
+        `format=rgba,colorchannelmixer=aa=${tint.alpha}[tint];` +
+        `[base][tint]overlay=0:0:format=auto,format=yuv420p[outv]`
+      : `${base};[base]format=yuv420p[outv]`;
+
+    const args = ["-y"];
+    if (startMs > 0) args.push("-ss", toSeconds(startMs));
+    args.push(
+      "-i",
+      inputVideoPath,
+      "-filter_complex",
+      filter,
+      "-map",
+      "[outv]",
+      "-map",
+      "0:a?",
+      "-t",
+      toSeconds(durationMs),
+      "-shortest",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "veryfast",
+      "-crf",
+      "23",
+      "-maxrate",
+      "3500k",
+      "-bufsize",
+      "7000k",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      "-b:a",
+      "128k",
+      "-ac",
+      "2",
+      "-ar",
+      "44100",
+      "-movflags",
+      "+faststart",
+      outputPath
+    );
+    await runFfmpeg(args);
+
+    const bucket = admin.storage().bucket();
+    const objectPath = `stories/rendered/cuevas-${Date.now()}-${crypto.randomBytes(6).toString("hex")}.mp4`;
+    const downloadToken = crypto.randomUUID();
+    await bucket.upload(outputPath, {
+      destination: objectPath,
+      metadata: {
+        contentType: "video/mp4",
+        cacheControl: "public, max-age=86400",
+        metadata: {
+          firebaseStorageDownloadTokens: downloadToken,
+        },
+      },
+    });
+    const encodedPath = encodeURIComponent(objectPath);
+    const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${downloadToken}`;
+    return { url, storagePath: objectPath, durationMs };
+  } finally {
+    await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 function base64UrlEncode(input) {
   const buf = Buffer.isBuffer(input) ? input : Buffer.from(String(input), "utf8");
   return buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
@@ -1022,6 +1148,36 @@ exports.instagramStoryVideo = onRequest(
       return json(res, 200, { success: true, ...result });
     } catch (e) {
       console.error("[instagramStoryVideo]", e);
+      return json(res, 500, { success: false, error: String(e && e.message ? e.message : e) });
+    }
+  }
+);
+
+exports.renderStoryVideo = onRequest(
+  {
+    cors: true,
+    timeoutSeconds: 540,
+    memory: "2GiB",
+    maxInstances: 2,
+  },
+  async (req, res) => {
+    try {
+      if (req.method === "OPTIONS") return res.status(204).send("");
+      if (req.method !== "POST") return json(res, 405, { success: false, error: "Use POST" });
+
+      const body = req.body || {};
+      const videoUrl = String(body.videoUrl || "").trim();
+      if (!videoUrl) return json(res, 400, { success: false, error: "Missing videoUrl" });
+
+      const result = await renderStoryVideo({
+        videoUrl,
+        liveFilter: body.liveFilter,
+        trimStartMs: body.trimStartMs,
+        trimEndMs: body.trimEndMs,
+      });
+      return json(res, 200, { success: true, ...result });
+    } catch (e) {
+      console.error("[renderStoryVideo]", e);
       return json(res, 500, { success: false, error: String(e && e.message ? e.message : e) });
     }
   }

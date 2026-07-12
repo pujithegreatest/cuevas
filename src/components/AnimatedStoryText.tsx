@@ -57,7 +57,15 @@ function staticStyle(s: StoryTextOverlay["style"], color: string) {
   }
 }
 
-function TickerText({ text, fontSize }: { text: string; fontSize: number }) {
+function TickerText({
+  text,
+  color,
+  fontSize,
+}: {
+  text: string;
+  color: string;
+  fontSize: number;
+}) {
   const x = useSharedValue(0);
   const [w, setW] = useState(220);
 
@@ -84,7 +92,7 @@ function TickerText({ text, fontSize }: { text: string; fontSize: number }) {
         backgroundColor: "rgba(0,0,0,0.85)",
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: "#06A7A1",
+        borderColor: color,
         flexDirection: "row",
         alignItems: "center",
       }}
@@ -93,7 +101,7 @@ function TickerText({ text, fontSize }: { text: string; fontSize: number }) {
         <Text
           onLayout={(e) => setW(e.nativeEvent.layout.width)}
           style={{
-            color: "#06A7A1",
+            color,
             fontSize,
             fontWeight: "800",
             paddingHorizontal: 8,
@@ -104,7 +112,7 @@ function TickerText({ text, fontSize }: { text: string; fontSize: number }) {
         </Text>
         <Text
           style={{
-            color: "#06A7A1",
+            color,
             fontSize,
             fontWeight: "800",
             paddingHorizontal: 8,
@@ -250,7 +258,9 @@ export default function AnimatedStoryText({ overlay, fontSize = 28 }: Props) {
 
   switch (overlay.style) {
     case "ticker":
-      return <TickerText text={text} fontSize={fontSize} />;
+      return (
+        <TickerText text={text} color={overlay.color} fontSize={fontSize} />
+      );
     case "wave":
       return <WaveText text={text} color={overlay.color} fontSize={fontSize} />;
     case "glitch":
