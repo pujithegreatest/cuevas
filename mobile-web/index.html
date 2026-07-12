@@ -9,6 +9,7 @@
   <style>
     :root {
       color-scheme: dark;
+      --app-font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
       --bg: #05070b;
       --surface: #151717;
       --panel: #0e1624;
@@ -25,7 +26,7 @@
       --shadow: 0 18px 45px rgba(0,0,0,.45);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-top: env(safe-area-inset-top, 0px);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      font-family: var(--app-font);
     }
 
     body.light-mode {
@@ -1174,23 +1175,36 @@
     }
 
     .profile-ticker {
-      height: 40px;
+      height: 28px;
       display: flex;
       align-items: center;
-      gap: 18px;
       overflow: hidden;
       white-space: nowrap;
       border-bottom: 1px solid rgba(6,167,161,.16);
-      background: rgba(0,70,64,.44);
+      background: #0b1c1c;
       color: var(--accent);
-      font-size: 13px;
-      font-weight: 950;
-      letter-spacing: .18em;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+
+    .profile-ticker-track {
+      display: flex;
+      align-items: center;
+      width: max-content;
+      animation: profileTickerScroll 18s linear infinite;
+      will-change: transform;
+    }
+
+    .profile-ticker-line {
+      flex: 0 0 auto;
+      padding: 0 16px;
       text-transform: uppercase;
     }
 
-    .profile-ticker span {
-      flex: 0 0 auto;
+    @keyframes profileTickerScroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
     }
 
     .profile-page {
@@ -1237,16 +1251,56 @@
       min-width: 0;
     }
 
-    .profile-avatar {
+    .profile-avatar-wrap {
+      position: relative;
       width: 104px;
       height: 104px;
+      display: grid;
+      place-items: center;
+      --profile-ring-color: #ffffff;
+    }
+
+    .profile-pulse-ring {
+      position: absolute;
+      inset: 8px;
+      border-radius: 999px;
+      border: 2px solid var(--profile-ring-color);
+      opacity: .7;
+      animation: profilePulseOne 1.6s ease-out infinite;
+      pointer-events: none;
+    }
+
+    .profile-pulse-ring.second {
+      border-width: 1.5px;
+      opacity: .45;
+      transform: scale(1.1);
+      animation-name: profilePulseTwo;
+    }
+
+    @keyframes profilePulseOne {
+      0% { opacity: .7; transform: scale(1); }
+      87.5% { opacity: 0; transform: scale(1.5); }
+      100% { opacity: 0; transform: scale(1.5); }
+    }
+
+    @keyframes profilePulseTwo {
+      0% { opacity: .45; transform: scale(1.1); }
+      87.5% { opacity: 0; transform: scale(1.8); }
+      100% { opacity: 0; transform: scale(1.8); }
+    }
+
+    .profile-avatar {
+      position: relative;
+      z-index: 1;
+      width: 88px;
+      height: 88px;
       border-radius: 999px;
       background: rgba(207,239,236,.18);
-      border: 3px solid rgba(207,239,236,.75);
+      border: 2px solid rgba(207,239,236,.75);
       display: grid;
       place-items: center;
       color: #f5fffc;
-      font-size: 44px;
+      font-size: 38px;
       line-height: 1;
       font-weight: 950;
       text-transform: uppercase;
@@ -1451,6 +1505,15 @@
       border-radius: 10px;
       border: 2px solid rgba(255,255,255,.05);
       background: rgba(255,255,255,.02);
+      display: grid;
+      place-items: center;
+      color: #fff;
+    }
+
+    .activity-box.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 16px rgba(6,167,161,.28);
     }
 
     .profile-stat-grid {
@@ -1587,6 +1650,17 @@
       gap: 7px;
       text-align: center;
       opacity: .48;
+    }
+
+    .achievement-tile.unlocked {
+      opacity: 1;
+      border-color: rgba(6,167,161,.38);
+      box-shadow: 0 12px 28px rgba(6,167,161,.08);
+    }
+
+    .achievement-tile.unlocked .achievement-lock {
+      color: var(--accent);
+      background: rgba(6,167,161,.12);
     }
 
     .achievement-lock {
@@ -2041,15 +2115,10 @@
       </header>
 
       <div class="profile-ticker" aria-label="Profile stats">
-        <span id="profileCuevasTicker">0 ₡</span>
-        <span>★</span>
-        <span><span id="profilePostsTicker">0</span> Posts</span>
-        <span>★</span>
-        <span><span id="profileZapsTicker">0</span> Zaps</span>
-        <span>★</span>
-        <span>Streak <span id="profileStreakTicker">0</span></span>
-        <span>★</span>
-        <span id="profileBadgesTicker">0/8 Badges</span>
+        <div class="profile-ticker-track">
+          <span id="profileTickerTextA" class="profile-ticker-line">Cuevas ★ Offline ★ DNA 0 ★ 0 ₡ ★ 0 Posts ★ 0 Zaps ★ Streak 0 ★ 0/8 Badges</span>
+          <span id="profileTickerTextB" class="profile-ticker-line" aria-hidden="true">Cuevas ★ Offline ★ DNA 0 ★ 0 ₡ ★ 0 Posts ★ 0 Zaps ★ Streak 0 ★ 0/8 Badges</span>
+        </div>
       </div>
 
       <div class="profile-page">
@@ -2058,7 +2127,11 @@
             <span data-icon="settings"></span>
           </button>
           <div class="profile-identity-row">
-            <div id="profileAvatar" class="profile-avatar">?</div>
+            <div id="profileAvatarWrap" class="profile-avatar-wrap">
+              <span class="profile-pulse-ring"></span>
+              <span class="profile-pulse-ring second"></span>
+              <div id="profileAvatar" class="profile-avatar">?</div>
+            </div>
             <div class="profile-identity-text">
               <div class="profile-name-row">
                 <h3 id="profileName">Cuevas member</h3>
@@ -2078,29 +2151,21 @@
           <p class="profile-bio">Tap to add a bio...</p>
           <div class="profile-status-row">
             <span data-icon="radio"></span>
-            <span>Offline</span>
+            <span id="profileVibeLevel">Offline</span>
             <strong id="profileDnaCard">0 DNA</strong>
           </div>
           <div class="profile-progress" aria-label="DNA progress">
             <span id="profileDnaProgress"></span>
           </div>
-          <div class="profile-next-tier">Next tier at 100 DNA</div>
+          <div id="profileNextTier" class="profile-next-tier">Next tier at 100 DNA</div>
         </section>
 
         <section class="profile-activity-card" aria-label="Seven day activity">
           <div class="profile-card-head">
             <span><span data-icon="flame"></span> 7-day activity</span>
-            <span class="muted">0/7 days</span>
+            <span id="profileActivityCount" class="muted">0/7 days</span>
           </div>
-          <div class="activity-days">
-            <div class="activity-day"><span class="activity-box"></span><span>M</span></div>
-            <div class="activity-day"><span class="activity-box"></span><span>T</span></div>
-            <div class="activity-day"><span class="activity-box"></span><span>W</span></div>
-            <div class="activity-day"><span class="activity-box"></span><span>T</span></div>
-            <div class="activity-day"><span class="activity-box"></span><span>F</span></div>
-            <div class="activity-day"><span class="activity-box"></span><span>S</span></div>
-            <div class="activity-day"><span class="activity-box"></span><span>S</span></div>
-          </div>
+          <div id="profileActivityDays" class="activity-days"></div>
         </section>
 
         <section class="profile-stat-grid" aria-label="Profile counts">
@@ -2155,7 +2220,7 @@
         <section aria-label="Achievements">
           <div class="achievements-head">
             <span><span data-icon="trophy"></span> Achievements</span>
-            <span class="muted">0/8</span>
+            <span id="profileAchievementsCount" class="muted">0/8</span>
           </div>
           <div class="achievement-grid">
             <div class="achievement-tile"><div class="achievement-lock"><span data-icon="lock"></span></div><div class="achievement-title">First Signal</div><div class="achievement-copy">Post once</div></div>
@@ -3469,26 +3534,87 @@
         item.username,
         item.displayName,
         item.name
-      ].map(value => normalizeHandle(value || ""));
+      ].map(value => normalizeHandle(value || "", ""));
       return names.some(name => aliases.has(name));
     }
 
-    function profileCounts() {
+    function profileStreakDays(posts) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayMs = today.getTime();
+      return Array.from({ length: 7 }, (_, index) => {
+        const offset = 6 - index;
+        const start = todayMs - offset * 24 * 60 * 60 * 1000;
+        const end = start + 24 * 60 * 60 * 1000;
+        const date = new Date(start);
+        return {
+          active: posts.some(post => post.timestamp >= start && post.timestamp < end),
+          label: ["S", "M", "T", "W", "T", "F", "S"][date.getDay()]
+        };
+      });
+    }
+
+    function profileTrailingStreak(days) {
+      let count = 0;
+      for (let i = days.length - 1; i >= 0; i -= 1) {
+        if (days[i].active) count += 1;
+        else break;
+      }
+      return count;
+    }
+
+    function profileVibeLevel(score) {
+      if (score >= 1000) return { name: "TRANSCENDED", tier: 5, next: 1000 };
+      if (score >= 600) return { name: "ASCENDING", tier: 4, next: 1000 };
+      if (score >= 300) return { name: "PULSING", tier: 3, next: 600 };
+      if (score >= 100) return { name: "AWAKENED", tier: 2, next: 300 };
+      if (score > 0) return { name: "BOOTING", tier: 1, next: 100 };
+      return { name: "OFFLINE", tier: 0, next: 100 };
+    }
+
+    function profileRingColor(tier) {
+      if (tier >= 4) return "#A065FF";
+      if (tier >= 3) return "#06A7A1";
+      if (tier >= 2) return "#70A780";
+      return "#ffffff";
+    }
+
+    function profileCounts(balance = 0) {
       const ownPosts = state.posts.filter(post => belongsToCurrentUser(post));
       const ownStories = state.stories.filter(story => belongsToCurrentUser(story));
-      const commentCount = state.posts.reduce((total, post) => {
-        return total + (post.commentsList || []).filter(comment => belongsToCurrentUser(comment)).length;
-      }, 0);
+      const comments = ownPosts.reduce((total, post) => total + (post.commentsList?.length || 0), 0);
+      const zaps = ownPosts.reduce((total, post) => total + Number(post.likes || 0), 0);
+      const days = profileStreakDays(ownPosts);
+      const streak = profileTrailingStreak(days);
+      const score = ownPosts.length * 10 + zaps * 3 + comments * 5 + ownStories.length * 8;
+      const level = profileVibeLevel(score);
+      const badges = [
+        ownPosts.length >= 1,
+        ownPosts.length >= 5,
+        zaps >= 1,
+        zaps >= 10,
+        ownStories.length >= 3,
+        streak >= 3,
+        balance >= 1000,
+        score >= 600
+      ];
       return {
         posts: ownPosts.length,
-        zaps: ownPosts.reduce((total, post) => total + Number(post.likes || 0), 0),
-        comments: commentCount,
+        zaps,
+        comments,
         stories: ownStories.length,
         transmissions: ownPosts.length,
         completed: 0,
         research: 0,
-        streak: 0,
-        badges: 0
+        streak,
+        days,
+        activeDays: days.filter(day => day.active).length,
+        score,
+        level,
+        nextThreshold: level.next,
+        progressPct: Math.min(100, Math.round((score / level.next) * 100)),
+        badges,
+        unlockedBadges: badges.filter(Boolean).length
       };
     }
 
@@ -3499,22 +3625,31 @@
     function renderProfile() {
       if (!state.session) return;
       const balance = Number(state.session?.cuevas || 0) || 0;
-      const dna = Number(state.session?.dna || state.session?.DNA || 0) || 0;
-      const counts = profileCounts();
-      const progress = Math.max(0, Math.min(100, dna));
+      const counts = profileCounts(balance);
+      const tickerText = [
+        displayName(),
+        counts.level.name,
+        `DNA ${counts.score}`,
+        `${balance.toLocaleString()} ₡`,
+        `${counts.posts.toLocaleString()} POSTS`,
+        `${counts.zaps.toLocaleString()} ZAPS`,
+        `STREAK ${counts.streak.toLocaleString()}`,
+        `${counts.unlockedBadges}/${counts.badges.length} BADGES`
+      ].join("   ★   ");
       $("#profileAvatar").textContent = initials(displayName());
       $("#profileName").textContent = displayName();
       $("#profileHandle").textContent = `@${handleName()}`;
       $("#profileEmail").textContent = state.session.email || "";
       $("#handleInput").value = handleName();
-      setText("#profileCuevasTicker", `${balance.toLocaleString()} ₡`);
+      setText("#profileTickerTextA", tickerText);
+      setText("#profileTickerTextB", tickerText);
       setText("#profileCuevasPill", `${balance.toLocaleString()} ₡`);
-      setText("#profileDnaTop", `${dna.toLocaleString()} DNA`);
-      setText("#profileDnaCard", `${dna.toLocaleString()} DNA`);
-      setText("#profilePostsTicker", counts.posts.toLocaleString());
-      setText("#profileZapsTicker", counts.zaps.toLocaleString());
-      setText("#profileStreakTicker", counts.streak.toLocaleString());
-      setText("#profileBadgesTicker", `${counts.badges}/8 Badges`);
+      setText("#profileDnaTop", `${counts.score.toLocaleString()} DNA`);
+      setText("#profileDnaCard", `${counts.score.toLocaleString()} DNA`);
+      setText("#profileVibeLevel", counts.level.name);
+      setText("#profileActivityCount", `${counts.activeDays}/7 days`);
+      setText("#profileAchievementsCount", `${counts.unlockedBadges}/${counts.badges.length}`);
+      setText("#profileNextTier", `Next tier at ${counts.nextThreshold.toLocaleString()} DNA`);
       setText("#profilePostCount", counts.posts.toLocaleString());
       setText("#profileZapCount", counts.zaps.toLocaleString());
       setText("#profileCommentCount", counts.comments.toLocaleString());
@@ -3523,7 +3658,26 @@
       setText("#profileResearchCount", counts.research.toLocaleString());
       setText("#profileTransmissionsCount", counts.transmissions.toLocaleString());
       const progressNode = $("#profileDnaProgress");
-      if (progressNode) progressNode.style.width = `${progress}%`;
+      if (progressNode) progressNode.style.width = `${counts.progressPct}%`;
+      $("#profileAvatarWrap")?.style.setProperty("--profile-ring-color", profileRingColor(counts.level.tier));
+      const activityDays = $("#profileActivityDays");
+      if (activityDays) {
+        activityDays.innerHTML = counts.days.map(day => `
+          <div class="activity-day">
+            <span class="activity-box ${day.active ? "active" : ""}">${day.active ? icon("zap", 14) : ""}</span>
+            <span>${escapeHtml(day.label)}</span>
+          </div>
+        `).join("");
+      }
+      requestAnimationFrame(() => {
+        const line = $("#profileTickerTextA");
+        const track = $(".profile-ticker-track");
+        const width = line?.offsetWidth || 0;
+        if (track && width) track.style.animationDuration = `${Math.max(8, width * 0.022).toFixed(2)}s`;
+      });
+      $$(".achievement-tile").forEach((tile, index) => {
+        tile.classList.toggle("unlocked", Boolean(counts.badges[index]));
+      });
       $$("[data-avatar]").forEach(node => node.textContent = initials(displayName()));
     }
 
