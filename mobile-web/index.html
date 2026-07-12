@@ -1159,13 +1159,14 @@
     }
 
     async function apiJson(url, options = {}) {
+      const headers = {
+        Accept: "application/json",
+        ...(options.body ? { "Content-Type": "text/plain" } : {}),
+        ...(options.headers || {})
+      };
       const res = await fetch(url, {
         ...options,
-        headers: {
-          Accept: "application/json",
-          ...(options.body ? { "Content-Type": "application/json" } : {}),
-          ...(options.headers || {})
-        }
+        headers
       });
       const raw = await res.text();
       let json = null;
