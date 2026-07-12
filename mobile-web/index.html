@@ -1732,26 +1732,10 @@
       margin-bottom: 7px;
     }
 
-    .profile-settings-panel {
+    .profile-edit-actions {
       display: grid;
       gap: 14px;
-      padding: 18px;
-      border-radius: 20px;
-      background: rgba(14,22,36,.92);
-      border: 1px solid var(--line);
-    }
-
-    .profile-settings-panel.hidden {
-      display: none;
-    }
-
-    .profile-delete-note {
-      display: grid;
-      gap: 7px;
-      padding: 16px;
-      border-radius: 16px;
-      background: rgba(18,29,46,.78);
-      border: 1px solid var(--line);
+      margin-top: 14px;
     }
 
     body.light-mode .profile-topbar,
@@ -2245,19 +2229,6 @@
           </div>
         </section>
 
-        <section id="profileSettingsPanel" class="profile-settings-panel hidden" aria-label="Profile settings panel">
-          <div class="field">
-            <label for="handleInput">Handle</label>
-            <input id="handleInput" class="input" placeholder="your-handle" />
-          </div>
-          <button id="saveHandleBtn" class="btn" type="button">Save handle</button>
-          <div id="profileStatus" class="status"></div>
-          <div class="profile-delete-note">
-            <h3 style="margin:0;">Delete account</h3>
-            <p class="muted tiny" style="margin:0;">please visit: https://ecothot.com/cuevas-delete-account to submit a request</p>
-          </div>
-          <button id="logoutProfileBtn" class="btn danger" type="button">Log out</button>
-        </section>
       </div>
     </section>
 
@@ -2270,6 +2241,34 @@
       <button class="tab" data-tab="profile" type="button"><span class="tab-icon" data-icon="user"></span><span>Profile</span></button>
     </nav>
   </main>
+
+  <div id="editProfileModal" class="modal" role="dialog" aria-modal="true">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 class="sheet-title">Edit profile</h3>
+        <button class="icon-btn" data-close="editProfileModal" type="button">X</button>
+      </div>
+      <div class="field">
+        <label for="handleInput">Handle</label>
+        <input id="handleInput" class="input" placeholder="your-handle" />
+      </div>
+      <div class="profile-edit-actions">
+        <button id="saveHandleBtn" class="btn" type="button">Save handle</button>
+        <button class="btn secondary" data-close="editProfileModal" type="button">Cancel</button>
+      </div>
+      <div id="profileStatus" class="status"></div>
+    </div>
+  </div>
+
+  <div id="profileSettingsModal" class="modal" role="dialog" aria-modal="true">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 class="sheet-title">Settings</h3>
+        <button class="icon-btn" data-close="profileSettingsModal" type="button">X</button>
+      </div>
+      <button id="logoutProfileBtn" class="btn danger" type="button">Log out</button>
+    </div>
+  </div>
 
   <div id="composerModal" class="modal" role="dialog" aria-modal="true">
     <div class="sheet">
@@ -3618,8 +3617,10 @@
       };
     }
 
-    function toggleProfileSettings() {
-      $("#profileSettingsPanel")?.classList.toggle("hidden");
+    function openEditProfile() {
+      if ($("#handleInput")) $("#handleInput").value = handleName();
+      setStatus("profileStatus", "");
+      showModal("editProfileModal");
     }
 
     function renderProfile() {
@@ -3706,6 +3707,7 @@
         saveJson("cuevas.web.session", state.session);
         renderProfile();
         setStatus("profileStatus", "Handle saved.", "good");
+        setTimeout(() => closeModal("editProfileModal"), 450);
       } catch (err) {
         setStatus("profileStatus", err.message || "Handle failed.", "error");
       }
@@ -3800,8 +3802,8 @@
       $("#viewLeaderboardBtn").addEventListener("click", toggleLeaderboard);
       $("#refreshMissionsBtn").addEventListener("click", refreshMissions);
       $("#scanMissionBtn").addEventListener("click", scanMissionQr);
-      $("#profileSettingsBtn").addEventListener("click", toggleProfileSettings);
-      $("#editProfileBtn").addEventListener("click", toggleProfileSettings);
+      $("#profileSettingsBtn").addEventListener("click", () => showModal("profileSettingsModal"));
+      $("#editProfileBtn").addEventListener("click", openEditProfile);
       $("#saveHandleBtn").addEventListener("click", saveHandle);
       $("#sendReportBtn").addEventListener("click", sendReport);
       $("#logoutTopBtn").addEventListener("click", logout);
