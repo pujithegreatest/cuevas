@@ -42,6 +42,9 @@ android/
 # Expo log
 expo.log
 
+# Local-only web endpoint test harness
+testing/
+
 # Firebase backend secrets
 firebase/keys/
 firebase/**/.runtimeconfig.json
