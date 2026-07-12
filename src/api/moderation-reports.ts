@@ -8,6 +8,7 @@ export const REPORT_REASONS = [
   "Harassment or bullying",
   "Hate or abusive content",
   "Nudity or sexual content",
+  "Child safety or exploitation",
   "Violence or dangerous content",
   "False or misleading information",
   "Other",

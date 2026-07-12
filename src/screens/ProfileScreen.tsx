@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  Alert,
   View,
   Text,
   Pressable,
@@ -270,6 +271,13 @@ export default function ProfileScreen({ navigation }: Props) {
     setBusinessPasswordOpen(false);
     setSettingsOpen(false);
     setTimeout(() => setBusinessProfileOpen(true), 250);
+  };
+
+  const showDeleteAccountRequest = () => {
+    Alert.alert(
+      "Delete account",
+      "please visit: https://ecothot.com/cuevas-delete-account to submit a request"
+    );
   };
 
   const username = useMemo(
@@ -1137,6 +1145,43 @@ export default function ProfileScreen({ navigation }: Props) {
                 Public remains the app default. Friend lists are private. Comment privacy can still be changed per thread.
               </Text>
             </View>
+
+            <Pressable
+              onPress={showDeleteAccountRequest}
+              style={{
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: isDarkMode ? "rgba(248,113,113,0.5)" : "rgba(185,28,28,0.28)",
+                backgroundColor: isDarkMode ? "rgba(127,29,29,0.18)" : "#FEF2F2",
+                padding: 16,
+                marginTop: 12,
+              }}
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center flex-1">
+                  <View
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 16,
+                      backgroundColor: isDarkMode ? "rgba(248,113,113,0.16)" : "#FEE2E2",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 12,
+                    }}
+                  >
+                    <Ionicons name="trash-outline" size={22} color="#EF4444" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className={`font-bold ${textColor}`}>Delete Account</Text>
+                    <Text className={`text-xs mt-1 ${subText}`}>
+                      Submit a request to remove your Cuevas account.
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#EF4444" />
+              </View>
+            </Pressable>
           </ScrollView>
         </View>
       </Modal>
