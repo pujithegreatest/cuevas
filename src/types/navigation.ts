@@ -1,7 +1,6 @@
 export type RootStackParamList = {
   Login: undefined;
   Main: undefined;
-  StockBalance: undefined;
 };
 
 export type MainTabParamList = {

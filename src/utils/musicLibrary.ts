@@ -13,7 +13,6 @@ const COVER_AMBA = require("../../assets/song-imtheone-cover.png");
 const COVER_AMBA_MESIENTO_BIEN = require("../../assets/song-amba-mesientobien-cover.jpg");
 const COVER_AMBA_MONSTRUOS_EN_MI_CABEZA = require("../../assets/song-amba-monstruosenmicabeza-cover.png");
 const COVER_2001_AMBA = require("../../assets/song-2001-amba-cover.jpg");
-const COVER_DOLOZOE = require("../../assets/song-dolozoe-cover.png");
 const COVER_RRO_DA_RONIN = require("../../assets/song-rro-da-ronin-cover.png");
 const COVER_SKYAIR = require("../../assets/song-skyair-cover.jpg");
 const COVER_ALEX_DAVID = require("../../assets/song-alex-david-cover.jpg");
@@ -70,24 +69,6 @@ const SONG_2001_AMBA_LACORRIENTE: LibrarySong = {
   artist: "Amba",
   cover: COVER_2001_AMBA,
   source: require("../../assets/song-2001-amba-lacorriente.m4a"),
-  durationMs: 0,
-};
-
-const SONG_DOLOZOE_360: LibrarySong = {
-  id: "dolozoe-360",
-  title: "360",
-  artist: "Dolozoe",
-  cover: COVER_DOLOZOE,
-  source: require("../../assets/song-dolozoe-360.m4a"),
-  durationMs: 0,
-};
-
-const SONG_DOLOZOE_RANK: LibrarySong = {
-  id: "dolozoe-rank",
-  title: "Rank",
-  artist: "Dolozoe",
-  cover: COVER_DOLOZOE,
-  source: require("../../assets/song-dolozoe-rank.m4a"),
   durationMs: 0,
 };
 
@@ -323,8 +304,6 @@ export const MUSIC_LIBRARY: LibrarySong[] = [
   SONG_2001_AMBA_COMODOMINO,
   SONG_2001_AMBA_DIMEBB,
   SONG_2001_AMBA_LACORRIENTE,
-  SONG_DOLOZOE_360,
-  SONG_DOLOZOE_RANK,
   SONG_RRO_DA_RONIN_1234,
   SONG_RRO_DA_RONIN_HOPES,
   SONG_SKYAIR_ANTIHERO,

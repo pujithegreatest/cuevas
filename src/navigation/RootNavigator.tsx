@@ -7,7 +7,6 @@ import { useCuevasBalanceSync } from "../hooks/useCuevasBalanceSync";
 // Screens
 import LoginScreen from "../screens/LoginScreen";
 import MainTabNavigator from "./MainTabNavigator";
-import StockBalanceScreen from "../screens/StockBalanceScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -27,11 +26,6 @@ export default function RootNavigator() {
       ) : (
         <>
           <Stack.Screen name="Main" component={MainTabNavigator} />
-          <Stack.Screen
-            name="StockBalance"
-            component={StockBalanceScreen}
-            options={{ animation: "slide_from_right" }}
-          />
         </>
       )}
     </Stack.Navigator>

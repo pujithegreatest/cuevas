@@ -290,7 +290,7 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
           </View>
         </Pressable>
 
-        {/* View Crypto Stock */}
+        {/* View Leaderboard */}
         <Pressable
           onPress={() => setLeaderboardOpen(true)}
           className={`mt-4 py-4 px-12 rounded-full ${
@@ -309,31 +309,6 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
             <Ionicons name="trophy" size={20} color="#FFD700" />
             <Text className={`ml-2 text-base font-semibold ${isDarkMode ? "text-dark-text" : "text-pixel-text"}`}>
               View Leaderboard
-            </Text>
-          </View>
-        </Pressable>
-
-        <Pressable
-          onPress={() => navigation.getParent()?.navigate("StockBalance" as never)}
-          className={`mt-4 py-4 px-12 rounded-full ${
-            isDarkMode ? "bg-dark-surface border border-dark-accent" : "bg-pixel-text"
-          }`}
-          style={({ pressed }) => ({
-            opacity: pressed ? 0.8 : 1,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 8,
-            elevation: 3,
-          })}
-        >
-          <View className="flex-row items-center justify-center">
-            <Ionicons name="trending-up" size={20} color={isDarkMode ? "#06A7A1" : "#CFEFEC"} />
-            <Text
-              className="ml-2 text-base font-semibold"
-              style={{ color: isDarkMode ? "#06A7A1" : "#CFEFEC" }}
-            >
-              View Crypto Stock
             </Text>
           </View>
         </Pressable>
