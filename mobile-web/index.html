@@ -1,0 +1,2071 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#05070b" />
+  <title>Cuevas Mobile Web</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05070b;
+      --panel: #0e1624;
+      --panel-2: #121d2e;
+      --panel-3: #18253a;
+      --line: rgba(255,255,255,.08);
+      --text: #f7fbff;
+      --muted: #a8b4c7;
+      --soft: #d8e6f6;
+      --accent: #06a7a1;
+      --accent-2: #facc15;
+      --danger: #ff5b5f;
+      --good: #54d28b;
+      --shadow: 0 18px 45px rgba(0,0,0,.45);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      overscroll-behavior-y: none;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    button, input, textarea, select {
+      font: inherit;
+    }
+
+    button {
+      touch-action: manipulation;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 460px;
+      min-height: 100dvh;
+      margin: 0 auto;
+      background:
+        radial-gradient(circle at top right, rgba(6,167,161,.14), transparent 30%),
+        linear-gradient(180deg, #06080d 0%, #070a10 100%);
+      position: relative;
+      overflow-x: hidden;
+      border-left: 1px solid rgba(255,255,255,.04);
+      border-right: 1px solid rgba(255,255,255,.04);
+    }
+
+    .screen {
+      min-height: 100dvh;
+      padding: calc(18px + var(--safe-top)) 16px calc(90px + var(--safe-bottom));
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .topbar {
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1;
+      letter-spacing: 0;
+      font-weight: 900;
+    }
+
+    .subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .icon-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .icon-btn.accent {
+      background: rgba(6,167,161,.18);
+      color: #adfffb;
+      border-color: rgba(6,167,161,.35);
+    }
+
+    .card {
+      background: rgba(14,22,36,.92);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel {
+      background: rgba(18,29,46,.78);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .login-screen {
+      min-height: 100dvh;
+      padding: calc(34px + var(--safe-top)) 18px calc(30px + var(--safe-bottom));
+      display: grid;
+      align-content: center;
+      gap: 18px;
+    }
+
+    .brand-mark {
+      width: 78px;
+      height: 78px;
+      border-radius: 22px;
+      background:
+        linear-gradient(135deg, rgba(250,204,21,.22), rgba(6,167,161,.2)),
+        #111827;
+      border: 1px solid rgba(250,204,21,.3);
+      display: grid;
+      place-items: center;
+      font-size: 36px;
+      font-weight: 950;
+      color: var(--accent-2);
+      margin-bottom: 8px;
+    }
+
+    .login-card {
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field label {
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .input, .select, textarea {
+      width: 100%;
+      min-height: 48px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: #08101d;
+      color: var(--text);
+      padding: 12px 13px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 108px;
+      resize: vertical;
+      line-height: 1.35;
+    }
+
+    .input:focus, .select:focus, textarea:focus {
+      border-color: rgba(6,167,161,.68);
+      box-shadow: 0 0 0 3px rgba(6,167,161,.12);
+    }
+
+    .btn {
+      min-height: 48px;
+      border: 0;
+      border-radius: 8px;
+      padding: 0 16px;
+      background: var(--accent);
+      color: #001211;
+      font-weight: 950;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      white-space: nowrap;
+    }
+
+    .btn.secondary {
+      background: rgba(255,255,255,.07);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+
+    .btn.warning {
+      background: var(--accent-2);
+      color: #1e1600;
+    }
+
+    .btn.danger {
+      background: rgba(255,91,95,.14);
+      color: #ffd8da;
+      border: 1px solid rgba(255,91,95,.35);
+    }
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .row.between {
+      justify-content: space-between;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .tiny {
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .status {
+      min-height: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .status.error {
+      color: #ffb4b7;
+    }
+
+    .status.good {
+      color: #baf7d1;
+    }
+
+    .tabs {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: min(460px, 100%);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      padding: 8px 10px calc(8px + var(--safe-bottom));
+      background: rgba(3,5,9,.93);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+      z-index: 20;
+    }
+
+    .tab {
+      min-width: 0;
+      min-height: 58px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: rgba(216,230,246,.45);
+      display: grid;
+      place-items: center;
+      gap: 3px;
+      font-weight: 850;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .tab .tab-icon {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .tab.active {
+      color: var(--accent);
+      background: rgba(6,167,161,.1);
+    }
+
+    .stories {
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      padding: 8px 1px 16px;
+      margin: 0 -2px 8px;
+      scrollbar-width: none;
+    }
+
+    .stories::-webkit-scrollbar {
+      display: none;
+    }
+
+    .story-chip {
+      width: 78px;
+      flex: 0 0 78px;
+      display: grid;
+      justify-items: center;
+      gap: 7px;
+      border: 0;
+      background: transparent;
+      color: var(--soft);
+      cursor: pointer;
+    }
+
+    .story-ring {
+      width: 68px;
+      height: 68px;
+      border-radius: 999px;
+      padding: 3px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      position: relative;
+    }
+
+    .story-ring.viewed {
+      background: rgba(255,255,255,.16);
+    }
+
+    .story-avatar {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: #02050a;
+      border: 3px solid #05070b;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      color: var(--accent-2);
+      font-weight: 950;
+    }
+
+    .story-avatar img, .story-avatar video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .story-plus {
+      position: absolute;
+      right: -2px;
+      bottom: -2px;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #001211;
+      border: 2px solid #05070b;
+      display: grid;
+      place-items: center;
+      font-weight: 950;
+    }
+
+    .story-label {
+      max-width: 78px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .composer-mini {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      background: linear-gradient(135deg, rgba(6,167,161,.25), rgba(250,204,21,.18));
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--accent-2);
+      display: grid;
+      place-items: center;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .post {
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .post-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 11px;
+    }
+
+    .post-author {
+      font-size: 14px;
+      font-weight: 950;
+    }
+
+    .post-meta {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .post-body {
+      font-size: 15px;
+      line-height: 1.38;
+      margin: 0 0 12px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .media-grid {
+      display: grid;
+      gap: 8px;
+      margin: 10px 0 12px;
+    }
+
+    .media-grid img, .media-grid video {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: #02050a;
+      object-fit: cover;
+      max-height: 420px;
+    }
+
+    .media-grid audio {
+      width: 100%;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .action {
+      min-height: 40px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+      border-radius: 8px;
+      color: var(--soft);
+      font-weight: 850;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .action.active {
+      color: #001211;
+      background: var(--accent);
+    }
+
+    .fab {
+      position: fixed;
+      right: calc(50% - min(230px, 50vw) + 16px);
+      bottom: calc(92px + var(--safe-bottom));
+      width: 62px;
+      height: 62px;
+      border-radius: 999px;
+      border: 0;
+      background: var(--accent);
+      color: #001211;
+      box-shadow: 0 18px 40px rgba(6,167,161,.32);
+      font-size: 34px;
+      font-weight: 300;
+      display: grid;
+      place-items: center;
+      z-index: 18;
+      cursor: pointer;
+    }
+
+    .list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .mission {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .pill {
+      min-height: 26px;
+      border-radius: 999px;
+      padding: 5px 9px;
+      background: rgba(255,255,255,.06);
+      color: var(--soft);
+      border: 1px solid rgba(255,255,255,.08);
+      font-size: 11px;
+      font-weight: 850;
+    }
+
+    .pill.gold {
+      color: var(--accent-2);
+      border-color: rgba(250,204,21,.32);
+      background: rgba(250,204,21,.09);
+    }
+
+    .rewards-card {
+      padding: 18px;
+      display: grid;
+      gap: 18px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .rewards-card:before {
+      content: "";
+      position: absolute;
+      inset: -80px -80px auto auto;
+      width: 180px;
+      height: 180px;
+      border-radius: 999px;
+      background: rgba(250,204,21,.12);
+      pointer-events: none;
+    }
+
+    .balance {
+      font-size: 56px;
+      line-height: .9;
+      font-weight: 950;
+      color: var(--accent-2);
+    }
+
+    .leaderboard-row {
+      display: grid;
+      grid-template-columns: 36px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: rgba(255,255,255,.04);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.06);
+    }
+
+    .profile-card {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .profile-hero {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .profile-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(6,167,161,.28), rgba(250,204,21,.2));
+      border: 1px solid rgba(255,255,255,.12);
+      display: grid;
+      place-items: center;
+      font-size: 30px;
+      color: var(--accent-2);
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      background: rgba(0,0,0,.72);
+      z-index: 60;
+      padding: 12px;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .sheet {
+      width: min(460px, 100%);
+      max-height: calc(100dvh - 24px - var(--safe-top));
+      overflow: auto;
+      padding: 16px;
+      border-radius: 18px 18px 8px 8px;
+      background: #0e1624;
+      border: 1px solid rgba(250,204,21,.32);
+      box-shadow: var(--shadow);
+    }
+
+    .sheet-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .sheet-title {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 950;
+    }
+
+    .file-preview {
+      min-height: 210px;
+      border-radius: 8px;
+      border: 1px dashed rgba(255,255,255,.18);
+      background: #05070b;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .file-preview img, .file-preview video {
+      width: 100%;
+      height: 100%;
+      min-height: 210px;
+      object-fit: cover;
+    }
+
+    .story-preview {
+      aspect-ratio: 9 / 16;
+      max-height: 62dvh;
+      width: min(100%, 330px);
+      margin: 0 auto;
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+      background: #02050a;
+      border: 1px solid rgba(255,255,255,.1);
+    }
+
+    .story-preview img, .story-preview video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .story-text {
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      bottom: 18%;
+      text-align: center;
+      font-size: 28px;
+      font-weight: 950;
+      line-height: 1.1;
+      text-shadow: 0 2px 12px rgba(0,0,0,.8);
+      overflow-wrap: anywhere;
+    }
+
+    .story-viewer {
+      position: fixed;
+      inset: 0;
+      display: none;
+      background: #000;
+      z-index: 80;
+      color: #fff;
+      max-width: none;
+    }
+
+    .story-viewer.active {
+      display: block;
+    }
+
+    .story-stage {
+      width: min(100vw, 460px);
+      height: 100dvh;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .story-stage img, .story-stage video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .story-top {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      padding: calc(12px + var(--safe-top)) 14px 10px;
+      background: linear-gradient(180deg, rgba(0,0,0,.72), transparent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      z-index: 2;
+    }
+
+    .report-reason {
+      min-height: 54px;
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      align-items: center;
+      gap: 10px;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font-weight: 950;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .report-reason .radio {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 5px solid #dbe4f2;
+      display: grid;
+      place-items: center;
+    }
+
+    .report-reason.selected {
+      color: #fff5b8;
+    }
+
+    .report-reason.selected .radio {
+      border-color: var(--accent-2);
+      background: radial-gradient(circle, var(--accent-2) 0 28%, transparent 32%);
+    }
+
+    .empty {
+      padding: 22px 16px;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 750;
+      border: 1px dashed rgba(255,255,255,.15);
+      border-radius: 8px;
+      background: rgba(255,255,255,.03);
+    }
+
+    .filter-none { filter: none; }
+    .filter-gold { filter: sepia(.5) saturate(1.5) brightness(1.05); }
+    .filter-cool { filter: saturate(1.3) hue-rotate(170deg) contrast(1.04); }
+    .filter-noir { filter: grayscale(1) contrast(1.25); }
+    .filter-pop { filter: saturate(1.8) contrast(1.12); }
+    .filter-dream { filter: saturate(1.25) blur(.25px) brightness(1.08); }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (min-width: 700px) {
+      body {
+        background: #020409;
+      }
+      .app-shell {
+        min-height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section id="loginScreen" class="login-screen">
+      <div>
+        <div class="brand-mark">C</div>
+        <h1 class="title">Cuevas</h1>
+        <p class="subtitle">Community feed, rewards, missions, and stories.</p>
+      </div>
+      <div class="card login-card">
+        <div class="grid-2">
+          <button id="loginModeBtn" class="btn warning" type="button">Login</button>
+          <button id="signupModeBtn" class="btn secondary" type="button">Sign up</button>
+        </div>
+        <div id="nameField" class="field hidden">
+          <label for="displayNameInput">Display name</label>
+          <input id="displayNameInput" class="input" autocomplete="name" placeholder="Your name" />
+        </div>
+        <div class="field">
+          <label for="emailInput">Email</label>
+          <input id="emailInput" class="input" autocomplete="email" inputmode="email" placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label for="passwordInput">Password</label>
+          <input id="passwordInput" class="input" type="password" autocomplete="current-password" placeholder="Password" />
+        </div>
+        <button id="authSubmitBtn" class="btn" type="button">Continue</button>
+        <div id="googleBtn"></div>
+        <p class="tiny muted">Apple Sign In is not included in this web version yet. The existing backend can still support it later after web-domain setup.</p>
+        <div id="authStatus" class="status"></div>
+      </div>
+    </section>
+
+    <section id="feedScreen" class="screen active">
+      <header class="topbar">
+        <div>
+          <h2 class="title">Feed</h2>
+          <p class="subtitle" id="feedSubtitle">Latest from Cuevas</p>
+        </div>
+        <div class="icon-row">
+          <button id="refreshFeedBtn" class="icon-btn accent" type="button" aria-label="Refresh feed">R</button>
+          <button id="logoutTopBtn" class="icon-btn" type="button" aria-label="Log out">Q</button>
+        </div>
+      </header>
+
+      <div id="storiesRow" class="stories"></div>
+
+      <button id="openComposerMini" class="composer-mini panel" type="button">
+        <div class="avatar" data-avatar>?</div>
+        <div style="text-align:left; min-width:0;">
+          <div style="font-weight:950;">Post something</div>
+          <div class="tiny muted">Text, photo, video, or audio</div>
+        </div>
+      </button>
+
+      <div id="feedList"></div>
+    </section>
+
+    <section id="rewardsScreen" class="screen">
+      <header class="topbar">
+        <div>
+          <h2 class="title">Rewards</h2>
+          <p class="subtitle">Your Cuevas balance</p>
+        </div>
+        <button id="refreshRewardsBtn" class="icon-btn accent" type="button" aria-label="Refresh rewards">R</button>
+      </header>
+
+      <div class="card rewards-card">
+        <div>
+          <div class="tiny muted">Available Cuevas</div>
+          <div id="balanceValue" class="balance">0</div>
+        </div>
+        <div class="grid-2">
+          <button id="addWalletBtn" class="btn warning" type="button">Add to Wallet</button>
+          <button id="refreshBalanceBtn" class="btn secondary" type="button">Refresh</button>
+        </div>
+        <div id="walletStatus" class="status"></div>
+      </div>
+
+      <h3 style="margin:22px 0 10px;">Leaderboard</h3>
+      <div id="leaderboardList" class="list"></div>
+    </section>
+
+    <section id="missionsScreen" class="screen">
+      <header class="topbar">
+        <div>
+          <h2 class="title">Missions</h2>
+          <p class="subtitle">Volunteer opportunities</p>
+        </div>
+        <button id="refreshMissionsBtn" class="icon-btn accent" type="button" aria-label="Refresh missions">R</button>
+      </header>
+      <div id="missionsList" class="list"></div>
+    </section>
+
+    <section id="profileScreen" class="screen">
+      <header class="topbar">
+        <div>
+          <h2 class="title">Profile</h2>
+          <p class="subtitle">Account and settings</p>
+        </div>
+      </header>
+
+      <div class="card profile-card">
+        <div class="profile-hero">
+          <div id="profileAvatar" class="profile-avatar">?</div>
+          <div style="min-width:0;">
+            <h3 id="profileName" style="margin:0 0 5px; font-size:22px;">Cuevas member</h3>
+            <div id="profileHandle" class="muted tiny">@cuevas</div>
+            <div id="profileEmail" class="muted tiny"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="handleInput">Handle</label>
+          <input id="handleInput" class="input" placeholder="your-handle" />
+        </div>
+        <button id="saveHandleBtn" class="btn" type="button">Save handle</button>
+        <div id="profileStatus" class="status"></div>
+      </div>
+
+      <div class="panel profile-card" style="margin-top:14px;">
+        <h3 style="margin:0;">Delete account</h3>
+        <p class="muted tiny" style="margin:0;">please visit: https://ecothot.com/cuevas-delete-account to submit a request</p>
+      </div>
+
+      <button id="logoutProfileBtn" class="btn danger" style="width:100%; margin-top:14px;" type="button">Log out</button>
+    </section>
+
+    <button id="mainFab" class="fab" type="button" aria-label="Create">+</button>
+
+    <nav id="tabs" class="tabs">
+      <button class="tab active" data-tab="feed" type="button"><span class="tab-icon">H</span><span>Feed</span></button>
+      <button class="tab" data-tab="rewards" type="button"><span class="tab-icon">W</span><span>Rewards</span></button>
+      <button class="tab" data-tab="missions" type="button"><span class="tab-icon">M</span><span>Missions</span></button>
+      <button class="tab" data-tab="profile" type="button"><span class="tab-icon">P</span><span>Profile</span></button>
+    </nav>
+  </main>
+
+  <div id="composerModal" class="modal" role="dialog" aria-modal="true">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 class="sheet-title">New Post</h3>
+        <button class="icon-btn" data-close="composerModal" type="button">X</button>
+      </div>
+      <div class="field">
+        <label for="postContent">Caption</label>
+        <textarea id="postContent" placeholder="Share something with Cuevas"></textarea>
+      </div>
+      <div class="grid-2" style="margin-top:10px;">
+        <div class="field">
+          <label for="postPrivacy">Privacy</label>
+          <select id="postPrivacy" class="select">
+            <option value="public">Public</option>
+            <option value="friends">Friends</option>
+            <option value="private">Private</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="postFiles">Media</label>
+          <input id="postFiles" class="input" type="file" accept="image/*,video/*,audio/*" multiple />
+        </div>
+      </div>
+      <div id="postPreview" class="media-grid"></div>
+      <button id="publishPostBtn" class="btn" style="width:100%; margin-top:12px;" type="button">Publish</button>
+      <div id="composerStatus" class="status" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <div id="storyModal" class="modal" role="dialog" aria-modal="true">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 class="sheet-title">New Story</h3>
+        <button class="icon-btn" data-close="storyModal" type="button">X</button>
+      </div>
+      <div class="story-preview" id="storyPreview">
+        <div class="empty" style="margin:14px;">Add a photo or video</div>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label for="storyFile">Photo or video</label>
+        <input id="storyFile" class="input" type="file" accept="image/*,video/*" capture="environment" />
+      </div>
+      <div class="grid-2" style="margin-top:10px;">
+        <div class="field">
+          <label for="storyFilter">Filter</label>
+          <select id="storyFilter" class="select">
+            <option value="none">None</option>
+            <option value="gold">Gold</option>
+            <option value="cool">Cool</option>
+            <option value="noir">Noir</option>
+            <option value="pop">Pop</option>
+            <option value="dream">Dream</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="storyTextColor">Text color</label>
+          <input id="storyTextColor" class="input" type="color" value="#ffffff" />
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label for="storyText">Text</label>
+        <input id="storyText" class="input" placeholder="Add story text" />
+      </div>
+      <button id="saveStoryBtn" class="btn" style="width:100%; margin-top:12px;" type="button">Post Story</button>
+      <div id="storyStatus" class="status" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <div id="commentsModal" class="modal" role="dialog" aria-modal="true">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 class="sheet-title">Comments</h3>
+        <button class="icon-btn" data-close="commentsModal" type="button">X</button>
+      </div>
+      <div id="commentsList" class="list"></div>
+      <div class="row" style="margin-top:12px;">
+        <input id="commentInput" class="input" placeholder="Add a comment" />
+        <button id="sendCommentBtn" class="btn" style="min-width:74px;" type="button">Send</button>
+      </div>
+      <div class="status tiny" style="margin-top:8px;">Comments are saved in this browser for this test client.</div>
+    </div>
+  </div>
+
+  <div id="reportModal" class="modal" role="dialog" aria-modal="true">
+    <div class="sheet">
+      <div class="sheet-head">
+        <div>
+          <h3 class="sheet-title">Report post</h3>
+          <div id="reportTarget" class="subtitle">Report for review</div>
+        </div>
+        <button class="icon-btn" data-close="reportModal" type="button">X</button>
+      </div>
+      <div id="reportReasons"></div>
+      <div class="row between" style="margin-top:14px;">
+        <button class="btn secondary" data-close="reportModal" type="button">Cancel</button>
+        <button id="sendReportBtn" class="btn warning" type="button">Send Report</button>
+      </div>
+      <div id="reportStatus" class="status" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <div id="storyViewer" class="story-viewer">
+    <div class="story-stage">
+      <div id="storyMedia"></div>
+      <div id="storyViewerText" class="story-text"></div>
+      <div class="story-top">
+        <div class="row" style="min-width:0;">
+          <div class="avatar" id="storyViewerAvatar">?</div>
+          <div style="min-width:0;">
+            <div id="storyViewerAuthor" style="font-weight:950; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Story</div>
+            <div id="storyViewerTime" class="tiny" style="color:rgba(255,255,255,.75);"></div>
+          </div>
+        </div>
+        <div class="row">
+          <button id="deleteStoryBtn" class="icon-btn danger hidden" type="button">D</button>
+          <button id="closeStoryViewer" class="icon-btn" type="button">X</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "https://www.ecothot.com/_functions";
+    const WALLET_BASE = "https://us-central1-ecothot-social-media.cloudfunctions.net";
+    const CUEVAS_CLIENT_KEY = "ecothot-super-secret-9384fjksd";
+    const GOOGLE_WEB_CLIENT_ID = "863626649134-pudh60mc0rcu9lpil92a6b6861kqaki5.apps.googleusercontent.com";
+
+    const REPORT_REASONS = [
+      "Spam or scam",
+      "Harassment or bullying",
+      "Hate or abusive content",
+      "Nudity or sexual content",
+      "Child safety or exploitation",
+      "Violence or dangerous content",
+      "False or misleading information",
+      "Other"
+    ];
+
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+    const state = {
+      mode: "login",
+      tab: "feed",
+      session: loadJson("cuevas.web.session", null),
+      posts: [],
+      stories: loadJson("cuevas.web.stories", []),
+      viewedStories: loadJson("cuevas.web.viewedStories", []),
+      comments: loadJson("cuevas.web.comments", {}),
+      missions: [],
+      leaderboard: [],
+      selectedPostId: null,
+      reportPostId: null,
+      selectedReportReason: REPORT_REASONS[0],
+      storyDraft: { file: null, url: "", type: "", filter: "none", text: "", color: "#ffffff" }
+    };
+
+    function loadJson(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function saveJson(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function text(value) {
+      return String(value == null ? "" : value);
+    }
+
+    function normalizeEmail(value) {
+      return text(value).trim().toLowerCase();
+    }
+
+    function normalizeHandle(value, fallback = "cuevas") {
+      const raw = text(value || fallback).trim().toLowerCase();
+      const base = raw.includes("@") ? raw.split("@")[0] : raw;
+      const clean = base.replace(/[^a-z0-9_.-]/g, "").slice(0, 24);
+      return clean || fallback;
+    }
+
+    function displayName() {
+      return state.session?.displayName || state.session?.handle || state.session?.email?.split("@")[0] || "Cuevas member";
+    }
+
+    function handleName() {
+      return normalizeHandle(state.session?.handle || displayName());
+    }
+
+    function initials(name) {
+      const base = text(name || "C").trim();
+      return (base[0] || "C").toUpperCase();
+    }
+
+    function timeAgo(ts) {
+      const value = Number(ts || Date.now());
+      const seconds = Math.max(1, Math.floor((Date.now() - value) / 1000));
+      if (seconds < 60) return "now";
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h`;
+      const days = Math.floor(hours / 24);
+      return `${days}d`;
+    }
+
+    async function apiJson(url, options = {}) {
+      const res = await fetch(url, {
+        ...options,
+        headers: {
+          Accept: "application/json",
+          ...(options.body ? { "Content-Type": "application/json" } : {}),
+          ...(options.headers || {})
+        }
+      });
+      const raw = await res.text();
+      let json = null;
+      try {
+        json = raw ? JSON.parse(raw) : null;
+      } catch {
+        throw new Error(`Invalid server response (${res.status}).`);
+      }
+      if (!res.ok || json?.success === false) {
+        throw new Error(json?.error || json?.message || `Server error (${res.status}).`);
+      }
+      return json || {};
+    }
+
+    function setStatus(id, message, kind = "") {
+      const node = $(`#${id}`);
+      if (!node) return;
+      node.textContent = message || "";
+      node.className = `status ${kind}`.trim();
+    }
+
+    function showModal(id) {
+      $(`#${id}`)?.classList.add("active");
+    }
+
+    function closeModal(id) {
+      $(`#${id}`)?.classList.remove("active");
+    }
+
+    function showApp() {
+      $("#loginScreen").classList.add("hidden");
+      $("#tabs").classList.remove("hidden");
+      $("#mainFab").classList.remove("hidden");
+      renderAll();
+      refreshEverything();
+    }
+
+    function showLogin() {
+      $("#loginScreen").classList.remove("hidden");
+      $("#tabs").classList.add("hidden");
+      $("#mainFab").classList.add("hidden");
+      $$(".screen").forEach(screen => screen.classList.remove("active"));
+      $("#feedScreen").classList.add("active");
+      setAuthMode("login");
+    }
+
+    function setAuthMode(mode) {
+      state.mode = mode;
+      $("#nameField").classList.toggle("hidden", mode !== "signup");
+      $("#loginModeBtn").className = mode === "login" ? "btn warning" : "btn secondary";
+      $("#signupModeBtn").className = mode === "signup" ? "btn warning" : "btn secondary";
+      $("#authSubmitBtn").textContent = mode === "signup" ? "Create account" : "Continue";
+      $("#passwordInput").autocomplete = mode === "signup" ? "new-password" : "current-password";
+      setStatus("authStatus", "");
+    }
+
+    async function handleEmailAuth() {
+      const email = normalizeEmail($("#emailInput").value);
+      const password = $("#passwordInput").value;
+      const name = $("#displayNameInput").value.trim();
+      if (!email || !password || (state.mode === "signup" && !name)) {
+        setStatus("authStatus", "Fill in the required fields.", "error");
+        return;
+      }
+      setStatus("authStatus", "Connecting...");
+      $("#authSubmitBtn").disabled = true;
+      try {
+        const body = state.mode === "signup"
+          ? { clientKey: CUEVAS_CLIENT_KEY, email, password, displayName: name, handle: normalizeHandle(name || email) }
+          : { clientKey: CUEVAS_CLIENT_KEY, email, password };
+        const endpoint = state.mode === "signup" ? "signup" : "login";
+        const data = await apiJson(`${API_BASE}/${endpoint}`, {
+          method: "POST",
+          body: JSON.stringify(body)
+        });
+        finishLogin(data, email, name);
+      } catch (err) {
+        setStatus("authStatus", err.message || "Login failed.", "error");
+      } finally {
+        $("#authSubmitBtn").disabled = false;
+      }
+    }
+
+    function decodeJwtPayload(jwt) {
+      try {
+        const payload = jwt.split(".")[1];
+        const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+        return JSON.parse(decodeURIComponent(escape(json)));
+      } catch {
+        return {};
+      }
+    }
+
+    async function handleGoogleCredential(response) {
+      const credential = response?.credential;
+      const payload = decodeJwtPayload(credential || "");
+      const email = normalizeEmail(payload.email);
+      const name = payload.name || payload.given_name || email.split("@")[0];
+      if (!credential || !email) {
+        setStatus("authStatus", "Google did not return an email.", "error");
+        return;
+      }
+      setStatus("authStatus", "Signing in with Google...");
+      try {
+        const data = await apiJson(`${API_BASE}/login`, {
+          method: "POST",
+          body: JSON.stringify({
+            clientKey: CUEVAS_CLIENT_KEY,
+            email,
+            googleToken: credential,
+            displayName: name,
+            handle: normalizeHandle(name)
+          })
+        });
+        finishLogin(data, email, name);
+      } catch (err) {
+        setStatus("authStatus", err.message || "Google login failed.", "error");
+      }
+    }
+
+    function finishLogin(data, fallbackEmail, fallbackName) {
+      state.session = {
+        email: data.email || fallbackEmail,
+        cuevas: Number(data.cuevas ?? data.loyaltyPoints ?? 0) || 0,
+        displayName: data.displayName || fallbackName || fallbackEmail.split("@")[0],
+        handle: data.handle || data.username || normalizeHandle(fallbackName || fallbackEmail)
+      };
+      saveJson("cuevas.web.session", state.session);
+      showApp();
+    }
+
+    function logout() {
+      state.session = null;
+      saveJson("cuevas.web.session", null);
+      showLogin();
+    }
+
+    function setTab(tab) {
+      state.tab = tab;
+      const map = {
+        feed: "feedScreen",
+        rewards: "rewardsScreen",
+        missions: "missionsScreen",
+        profile: "profileScreen"
+      };
+      $$(".screen").forEach(screen => screen.classList.toggle("active", screen.id === map[tab]));
+      $$(".tab").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tab));
+      $("#mainFab").classList.toggle("hidden", tab !== "feed");
+      if (tab === "rewards") refreshRewards();
+      if (tab === "missions") refreshMissions();
+      renderProfile();
+    }
+
+    async function refreshEverything() {
+      await Promise.allSettled([refreshFeed(), refreshRewards(), refreshMissions()]);
+    }
+
+    function buildPostsUrl() {
+      const session = state.session || {};
+      const aliases = [session.displayName, session.handle, session.email, session.email?.split("@")[0]].filter(Boolean);
+      const params = new URLSearchParams();
+      if (session.email) params.set("viewerEmail", session.email);
+      if (aliases.length) params.set("viewer", aliases.join(","));
+      const qs = params.toString();
+      return `${API_BASE}/posts${qs ? `?${qs}` : ""}`;
+    }
+
+    async function refreshFeed() {
+      if (!state.session) return;
+      $("#feedSubtitle").textContent = `Signed in as @${handleName()}`;
+      try {
+        const json = await apiJson(buildPostsUrl());
+        state.posts = (json.posts || []).map(mapPost).sort((a, b) => b.timestamp - a.timestamp);
+        renderFeed();
+      } catch (err) {
+        $("#feedList").innerHTML = `<div class="empty">Feed could not load: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function mapPost(item) {
+      const media = item.MediaUrls || item.mediaUrls || item.Media || item.media || [];
+      const rawAudio = parseMaybeJson(item.Audio || item.audio || item.PostAudio || item.postAudio);
+      const audioUrl = item.AudioUrl || item.audioUrl || rawAudio?.uri || "";
+      const commentsList = Array.isArray(item.commentsList) ? item.commentsList : [];
+      const localComments = state.comments[item._id || item.id] || [];
+      return {
+        id: text(item._id || item.id || `post-${Date.now()}`),
+        author: text(item.User || item.author || "cuevas"),
+        authorEmail: item.AuthorEmail || item.authorEmail || item.UserEmail || item.userEmail || "",
+        content: text(item["Plain Content"] || item.plainContent || item.content || ""),
+        images: Array.isArray(media) ? media.map(normalizeMediaUrl).filter(Boolean) : [],
+        audio: audioUrl ? {
+          uri: normalizeMediaUrl(audioUrl),
+          title: item.AudioTitle || item.audioTitle || rawAudio?.title || "Cuevas Audio Transmission",
+          artist: item.AudioArtist || item.audioArtist || rawAudio?.artist || item.User || item.author || ""
+        } : null,
+        timestamp: new Date(item["Date Published"] || item.datePublished || item._createdDate || Date.now()).getTime(),
+        likes: Number(item["Like Count"] ?? item.likeCount ?? 0) || 0,
+        commentsList: [...commentsList, ...localComments],
+        isLiked: false,
+        privacy: item.Privacy || item.privacy || item.PostPrivacy || "public",
+        authorRewardPoints: Number(item.authorRewardPoints ?? item.cuevas ?? 0) || 0
+      };
+    }
+
+    function parseMaybeJson(value) {
+      if (!value) return null;
+      if (typeof value === "object") return value;
+      try {
+        return JSON.parse(value);
+      } catch {
+        return null;
+      }
+    }
+
+    function normalizeMediaUrl(url) {
+      if (!url) return "";
+      const raw = typeof url === "string" ? url : url.url || url.src || "";
+      if (!raw) return "";
+      const fixed = raw.replace(/(~mv2\.[a-z0-9]+)\1$/i, "$1");
+      const mediaMp4 = fixed.match(/^https?:\/\/static\.wixstatic\.com\/media\/([^/?#]+)~mv2\.mp4/i);
+      if (mediaMp4?.[1]) return `https://video.wixstatic.com/video/${mediaMp4[1]}/480p/mp4/file.mp4`;
+      const videoFile = fixed.match(/^https?:\/\/video\.wixstatic\.com\/video\/([^/?#]+)\/file\.mp4/i);
+      if (videoFile?.[1]) return `https://video.wixstatic.com/video/${videoFile[1]}/480p/mp4/file.mp4`;
+      const audioAsImage = fixed.match(/^https?:\/\/static\.wixstatic\.com\/media\/([^/?#]+)\.(m4a|mp3|aac|wav)~mv2\.jpg$/i);
+      if (audioAsImage?.[1]) return `https://static.wixstatic.com/mp3/${audioAsImage[1]}.${audioAsImage[2].toLowerCase()}`;
+      return fixed;
+    }
+
+    function renderFeed() {
+      renderStories();
+      const list = $("#feedList");
+      if (!state.posts.length) {
+        list.innerHTML = `<div class="empty">No posts yet.</div>`;
+        return;
+      }
+      list.innerHTML = state.posts.map(renderPost).join("");
+      bindPostButtons();
+    }
+
+    function renderPost(post) {
+      const mediaHtml = renderPostMedia(post);
+      const commentCount = post.commentsList?.length || 0;
+      const owner = normalizeEmail(post.authorEmail) && normalizeEmail(post.authorEmail) === normalizeEmail(state.session?.email);
+      return `
+        <article class="card post" data-post-id="${escapeAttr(post.id)}">
+          <div class="post-head">
+            <div class="avatar">${escapeHtml(initials(post.author))}</div>
+            <div style="min-width:0; flex:1;">
+              <div class="post-author">${escapeHtml(post.author)}</div>
+              <div class="post-meta">${timeAgo(post.timestamp)} ago - ${escapeHtml(post.privacy || "public")}${owner ? " - yours" : ""}</div>
+            </div>
+          </div>
+          ${post.content ? `<p class="post-body">${escapeHtml(post.content)}</p>` : ""}
+          ${mediaHtml}
+          <div class="action-row">
+            <button class="action like-btn ${post.isLiked ? "active" : ""}" type="button">Like ${post.likes}</button>
+            <button class="action comments-btn" type="button">Comments ${commentCount}</button>
+            <button class="action report-btn" type="button">Report</button>
+            <button class="action ${owner ? "" : "hidden"} delete-post-btn" type="button">Delete</button>
+          </div>
+        </article>`;
+    }
+
+    function renderPostMedia(post) {
+      const parts = [];
+      for (const media of post.images || []) {
+        if (isVideo(media)) {
+          parts.push(`<video src="${escapeAttr(media)}" controls playsinline preload="metadata"></video>`);
+        } else if (isAudio(media)) {
+          parts.push(`<audio src="${escapeAttr(media)}" controls></audio>`);
+        } else {
+          parts.push(`<img src="${escapeAttr(media)}" loading="lazy" alt="" />`);
+        }
+      }
+      if (post.audio?.uri) {
+        parts.push(`
+          <div class="panel" style="padding:10px;">
+            <div style="font-weight:950; margin-bottom:6px;">${escapeHtml(post.audio.title || "Cuevas Audio")}</div>
+            <audio src="${escapeAttr(post.audio.uri)}" controls></audio>
+          </div>`);
+      }
+      return parts.length ? `<div class="media-grid">${parts.join("")}</div>` : "";
+    }
+
+    function isVideo(url) {
+      return /\.(mp4|mov|m4v)(\?|#|$)/i.test(url) || url.includes("video.wixstatic.com");
+    }
+
+    function isAudio(url) {
+      return /\.(mp3|m4a|aac|wav)(\?|#|$)/i.test(url) || url.includes("static.wixstatic.com/mp3/");
+    }
+
+    function bindPostButtons() {
+      $$(".like-btn").forEach(btn => btn.addEventListener("click", () => {
+        const id = btn.closest("[data-post-id]").dataset.postId;
+        const post = state.posts.find(p => p.id === id);
+        if (!post) return;
+        post.isLiked = !post.isLiked;
+        post.likes += post.isLiked ? 1 : -1;
+        renderFeed();
+      }));
+      $$(".comments-btn").forEach(btn => btn.addEventListener("click", () => {
+        state.selectedPostId = btn.closest("[data-post-id]").dataset.postId;
+        renderComments();
+        showModal("commentsModal");
+      }));
+      $$(".report-btn").forEach(btn => btn.addEventListener("click", () => {
+        state.reportPostId = btn.closest("[data-post-id]").dataset.postId;
+        state.selectedReportReason = REPORT_REASONS[0];
+        renderReport();
+        showModal("reportModal");
+      }));
+      $$(".delete-post-btn").forEach(btn => btn.addEventListener("click", () => {
+        const id = btn.closest("[data-post-id]").dataset.postId;
+        state.posts = state.posts.filter(p => p.id !== id);
+        renderFeed();
+      }));
+    }
+
+    function renderComments() {
+      const post = state.posts.find(p => p.id === state.selectedPostId);
+      const list = $("#commentsList");
+      const comments = post?.commentsList || [];
+      list.innerHTML = comments.length
+        ? comments.map(c => `<div class="panel" style="padding:10px;"><strong>${escapeHtml(c.author || "cuevas")}</strong><div class="tiny muted">${timeAgo(c.timestamp || Date.now())} ago</div><div style="margin-top:5px;">${escapeHtml(c.content || c.text || "")}</div></div>`).join("")
+        : `<div class="empty">No comments yet.</div>`;
+    }
+
+    function addComment() {
+      const value = $("#commentInput").value.trim();
+      if (!value || !state.selectedPostId) return;
+      const comment = {
+        id: `comment-${Date.now()}`,
+        author: displayName(),
+        authorEmail: state.session?.email || "",
+        content: value,
+        timestamp: Date.now()
+      };
+      state.comments[state.selectedPostId] = [...(state.comments[state.selectedPostId] || []), comment];
+      saveJson("cuevas.web.comments", state.comments);
+      const post = state.posts.find(p => p.id === state.selectedPostId);
+      if (post) post.commentsList = [...(post.commentsList || []), comment];
+      $("#commentInput").value = "";
+      renderComments();
+      renderFeed();
+    }
+
+    async function uploadFile(file, destination = "") {
+      const init = await apiJson(`${API_BASE}/uploadMedia`, {
+        method: "POST",
+        body: JSON.stringify({
+          fileName: file.name || `upload-${Date.now()}`,
+          mimeType: file.type || "application/octet-stream",
+          kind: file.type.startsWith("video/") ? "video" : file.type.startsWith("audio/") ? "audio" : "image",
+          destination
+        })
+      });
+      const uploadUrl = init.uploadUrl || init?.data?.uploadUrl;
+      const trackingKey = init.trackingKey || init.fileId;
+      if (!uploadUrl) throw new Error("Upload did not return an upload URL.");
+      const put = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type || "application/octet-stream" },
+        body: file
+      });
+      if (!put.ok) throw new Error(`Upload failed (${put.status}).`);
+      const fin = await apiJson(`${API_BASE}/uploadMediaFinalize`, {
+        method: "POST",
+        body: JSON.stringify({
+          fileId: init.fileId || null,
+          trackingKey,
+          fileName: file.name,
+          mimeType: file.type
+        })
+      });
+      if (!fin.url) throw new Error("Upload finalization did not return a URL.");
+      return fin.url;
+    }
+
+    async function publishPost() {
+      const content = $("#postContent").value.trim();
+      const files = Array.from($("#postFiles").files || []);
+      if (!content && files.length === 0) {
+        setStatus("composerStatus", "Add text or media first.", "error");
+        return;
+      }
+      $("#publishPostBtn").disabled = true;
+      setStatus("composerStatus", "Publishing...");
+      try {
+        const mediaUrls = [];
+        let audio = null;
+        for (const file of files) {
+          const url = await uploadFile(file, file.type.startsWith("audio/") ? "audio" : file.type.startsWith("video/") ? "video" : "image");
+          if (file.type.startsWith("audio/")) {
+            audio = { uri: url, title: file.name.replace(/\.[^.]+$/, ""), artist: displayName() };
+          } else {
+            mediaUrls.push(url);
+          }
+        }
+        const body = {
+          User: displayName(),
+          author: displayName(),
+          AuthorEmail: state.session.email,
+          authorEmail: state.session.email,
+          "Plain Content": content,
+          Media: mediaUrls,
+          MediaUrls: mediaUrls,
+          "Like Count": 0,
+          "Date Published": new Date().toISOString(),
+          authorRewardPoints: state.session.cuevas || 0,
+          Privacy: $("#postPrivacy").value,
+          privacy: $("#postPrivacy").value
+        };
+        if (audio) {
+          body.AudioUrl = audio.uri;
+          body.Audio = JSON.stringify(audio);
+          body.AudioTitle = audio.title;
+          body.AudioArtist = audio.artist;
+        }
+        const json = await apiJson(`${API_BASE}/posts`, {
+          method: "POST",
+          body: JSON.stringify(body)
+        });
+        if (json.post) state.posts.unshift(mapPost(json.post));
+        $("#postContent").value = "";
+        $("#postFiles").value = "";
+        $("#postPreview").innerHTML = "";
+        closeModal("composerModal");
+        renderFeed();
+        refreshRewards();
+      } catch (err) {
+        setStatus("composerStatus", err.message || "Publish failed.", "error");
+      } finally {
+        $("#publishPostBtn").disabled = false;
+      }
+    }
+
+    function previewPostFiles() {
+      const files = Array.from($("#postFiles").files || []);
+      $("#postPreview").innerHTML = files.map(file => {
+        const url = URL.createObjectURL(file);
+        if (file.type.startsWith("video/")) return `<video src="${escapeAttr(url)}" controls playsinline></video>`;
+        if (file.type.startsWith("audio/")) return `<audio src="${escapeAttr(url)}" controls></audio>`;
+        return `<img src="${escapeAttr(url)}" alt="" />`;
+      }).join("");
+    }
+
+    function renderStories() {
+      const now = Date.now();
+      state.stories = state.stories.filter(story => now - story.timestamp < 24 * 60 * 60 * 1000);
+      saveJson("cuevas.web.stories", state.stories);
+      const groups = groupStories();
+      $("#storiesRow").innerHTML = `
+        <button class="story-chip" id="createStoryChip" type="button">
+          <span class="story-ring"><span class="story-avatar">${escapeHtml(initials(displayName()))}</span><span class="story-plus">+</span></span>
+          <span class="story-label">Your Story</span>
+        </button>
+        ${groups.map(group => renderStoryChip(group)).join("")}
+      `;
+      $("#createStoryChip").addEventListener("click", openStoryCreator);
+      $$(".story-chip[data-story-author]").forEach(btn => btn.addEventListener("click", () => openStoryViewer(btn.dataset.storyAuthor)));
+    }
+
+    function groupStories() {
+      const map = new Map();
+      for (const story of state.stories) {
+        const key = story.author || "cuevas";
+        const list = map.get(key) || [];
+        list.push(story);
+        map.set(key, list);
+      }
+      return Array.from(map.entries()).map(([author, stories]) => {
+        stories.sort((a, b) => a.timestamp - b.timestamp);
+        return {
+          author,
+          stories,
+          latest: stories[stories.length - 1],
+          viewed: stories.every(s => state.viewedStories.includes(s.id)),
+          isOwn: author === displayName()
+        };
+      }).sort((a, b) => Number(b.isOwn) - Number(a.isOwn) || b.latest.timestamp - a.latest.timestamp);
+    }
+
+    function renderStoryChip(group) {
+      const story = group.latest;
+      const media = story.type === "video"
+        ? `<video src="${escapeAttr(story.url)}" muted playsinline></video>`
+        : `<img src="${escapeAttr(story.url)}" alt="" />`;
+      return `
+        <button class="story-chip" data-story-author="${escapeAttr(group.author)}" type="button">
+          <span class="story-ring ${group.viewed ? "viewed" : ""}">
+            <span class="story-avatar">${media}</span>
+          </span>
+          <span class="story-label">${escapeHtml(group.isOwn ? "Your Story" : group.author)}</span>
+        </button>`;
+    }
+
+    function openStoryCreator() {
+      state.storyDraft = { file: null, url: "", type: "", filter: "none", text: "", color: "#ffffff" };
+      $("#storyFile").value = "";
+      $("#storyText").value = "";
+      $("#storyTextColor").value = "#ffffff";
+      $("#storyFilter").value = "none";
+      renderStoryPreview();
+      setStatus("storyStatus", "");
+      showModal("storyModal");
+    }
+
+    function updateStoryDraftFromInputs() {
+      state.storyDraft.filter = $("#storyFilter").value;
+      state.storyDraft.text = $("#storyText").value;
+      state.storyDraft.color = $("#storyTextColor").value;
+      renderStoryPreview();
+    }
+
+    function handleStoryFile() {
+      const file = $("#storyFile").files?.[0];
+      if (!file) return;
+      state.storyDraft.file = file;
+      state.storyDraft.url = URL.createObjectURL(file);
+      state.storyDraft.type = file.type.startsWith("video/") ? "video" : "image";
+      renderStoryPreview();
+    }
+
+    function renderStoryPreview() {
+      const draft = state.storyDraft;
+      const media = draft.url
+        ? draft.type === "video"
+          ? `<video class="filter-${escapeAttr(draft.filter)}" src="${escapeAttr(draft.url)}" muted autoplay loop playsinline></video>`
+          : `<img class="filter-${escapeAttr(draft.filter)}" src="${escapeAttr(draft.url)}" alt="" />`
+        : `<div class="empty" style="margin:14px;">Add a photo or video</div>`;
+      const overlay = draft.text ? `<div class="story-text" style="color:${escapeAttr(draft.color)}">${escapeHtml(draft.text)}</div>` : "";
+      $("#storyPreview").innerHTML = `${media}${overlay}`;
+    }
+
+    async function saveStory() {
+      if (!state.storyDraft.file) {
+        setStatus("storyStatus", "Add a photo or video first.", "error");
+        return;
+      }
+      $("#saveStoryBtn").disabled = true;
+      setStatus("storyStatus", "Saving story...");
+      try {
+        const url = await uploadFile(state.storyDraft.file, "stories");
+        const story = {
+          id: `story-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          author: displayName(),
+          authorEmail: state.session.email,
+          authorRewardPoints: state.session.cuevas || 0,
+          url,
+          type: state.storyDraft.type,
+          filter: state.storyDraft.filter,
+          text: state.storyDraft.text,
+          color: state.storyDraft.color,
+          timestamp: Date.now()
+        };
+        state.stories.unshift(story);
+        saveJson("cuevas.web.stories", state.stories);
+        closeModal("storyModal");
+        renderStories();
+      } catch (err) {
+        setStatus("storyStatus", err.message || "Story failed.", "error");
+      } finally {
+        $("#saveStoryBtn").disabled = false;
+      }
+    }
+
+    function openStoryViewer(author) {
+      const group = groupStories().find(g => g.author === author);
+      const story = group?.stories?.find(s => !state.viewedStories.includes(s.id)) || group?.stories?.[0];
+      if (!story) return;
+      if (!state.viewedStories.includes(story.id)) {
+        state.viewedStories.push(story.id);
+        saveJson("cuevas.web.viewedStories", state.viewedStories);
+      }
+      const media = story.type === "video"
+        ? `<video class="filter-${escapeAttr(story.filter || "none")}" src="${escapeAttr(story.url)}" autoplay controls playsinline></video>`
+        : `<img class="filter-${escapeAttr(story.filter || "none")}" src="${escapeAttr(story.url)}" alt="" />`;
+      $("#storyMedia").innerHTML = media;
+      $("#storyViewerText").textContent = story.text || "";
+      $("#storyViewerText").style.color = story.color || "#ffffff";
+      $("#storyViewerAuthor").textContent = story.author;
+      $("#storyViewerAvatar").textContent = initials(story.author);
+      $("#storyViewerTime").textContent = `${timeAgo(story.timestamp)} ago`;
+      $("#deleteStoryBtn").classList.toggle("hidden", story.authorEmail !== state.session?.email);
+      $("#deleteStoryBtn").dataset.storyId = story.id;
+      $("#storyViewer").classList.add("active");
+      renderStories();
+    }
+
+    function deleteStory() {
+      const id = $("#deleteStoryBtn").dataset.storyId;
+      state.stories = state.stories.filter(story => story.id !== id);
+      saveJson("cuevas.web.stories", state.stories);
+      $("#storyViewer").classList.remove("active");
+      renderStories();
+    }
+
+    async function refreshRewards() {
+      if (!state.session?.email) return;
+      try {
+        const params = new URLSearchParams({ email: state.session.email, clientKey: CUEVAS_CLIENT_KEY });
+        const json = await apiJson(`${API_BASE}/cuevasBalance?${params}`);
+        state.session.cuevas = Number(json.cuevas ?? json.loyaltyPoints ?? state.session.cuevas ?? 0) || 0;
+        saveJson("cuevas.web.session", state.session);
+      } catch {
+        // Keep current balance if the refresh fails.
+      }
+      try {
+        const params = new URLSearchParams({ clientKey: CUEVAS_CLIENT_KEY, limit: "50" });
+        const json = await apiJson(`${API_BASE}/cuevasLeaderboard?${params}`);
+        state.leaderboard = json.leaderboard || [];
+      } catch {
+        state.leaderboard = [];
+      }
+      renderRewards();
+      renderProfile();
+    }
+
+    function renderRewards() {
+      $("#balanceValue").textContent = String(Number(state.session?.cuevas || 0));
+      $("#leaderboardList").innerHTML = state.leaderboard.length
+        ? state.leaderboard.map((entry, i) => `
+          <div class="leaderboard-row">
+            <strong>#${Number(entry.rank || i + 1)}</strong>
+            <div style="min-width:0;">
+              <div style="font-weight:950; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(entry.name || entry.displayName || entry.handle || "cuevas-member")}</div>
+              <div class="tiny muted">${escapeHtml(entry.badge || "Cuevas member")}</div>
+            </div>
+            <strong>${Number(entry.points ?? entry.loyaltyPoints ?? entry.cuevas ?? 0)}</strong>
+          </div>`).join("")
+        : `<div class="empty">Leaderboard unavailable right now.</div>`;
+    }
+
+    async function addToWallet() {
+      if (!state.session?.email) return;
+      $("#addWalletBtn").disabled = true;
+      setStatus("walletStatus", "Creating wallet link...");
+      try {
+        const json = await apiJson(`${WALLET_BASE}/walletLinks`, {
+          method: "POST",
+          body: JSON.stringify({
+            email: state.session.email,
+            rewardsBalance: Number(state.session.cuevas || 0),
+            memberDisplayName: `@${handleName()}`
+          })
+        });
+        const apple = json?.apple?.downloadUrl;
+        const google = json?.google?.saveUrl;
+        const ua = navigator.userAgent || "";
+        const isApple = /iPhone|iPad|iPod/i.test(ua);
+        const isAndroid = /Android/i.test(ua);
+        const target = isApple ? apple || google : isAndroid ? google || apple : google || apple;
+        if (!target) throw new Error(json?.error || "Wallet link was not returned.");
+        setStatus("walletStatus", isApple ? "Opening Apple Wallet..." : isAndroid ? "Opening Google Wallet..." : "Opening wallet link...", "good");
+        window.location.href = target;
+      } catch (err) {
+        setStatus("walletStatus", err.message || "Wallet failed.", "error");
+      } finally {
+        $("#addWalletBtn").disabled = false;
+      }
+    }
+
+    async function refreshMissions() {
+      try {
+        const json = await apiJson(`${API_BASE}/missions`);
+        state.missions = (json.missions || []).map(mapMission);
+      } catch {
+        state.missions = [];
+      }
+      renderMissions();
+    }
+
+    function mapMission(item) {
+      return {
+        id: text(item._id || item.id || item.missionId),
+        title: text(item.title || item.Title || item.EventName || "Untitled Mission"),
+        points: Number(item.points ?? item.Points ?? item.Cuevas ?? 100) || 100,
+        location: text(item.location || item.Location || "Location TBD"),
+        eventDate: text(item.eventDate || item.EventDate || item.date || "Date TBD"),
+        type: text(item.type || item.Type || "One time"),
+        difficulty: text(item.difficulty || item.Difficulty || "Easy"),
+        description: text(item.description || item.Description || "Mission details coming soon."),
+        goingCount: Number(item.goingCount ?? item.GoingCount ?? 0) || 0,
+        businessName: text(item.businessName || item.BusinessName || "Cuevas Partner")
+      };
+    }
+
+    function renderMissions() {
+      $("#missionsList").innerHTML = state.missions.length
+        ? state.missions.map(mission => `
+          <article class="card mission" data-mission-id="${escapeAttr(mission.id)}">
+            <div class="row between">
+              <h3 style="margin:0; font-size:18px;">${escapeHtml(mission.title)}</h3>
+              <span class="pill gold">${mission.points} Cuevas</span>
+            </div>
+            <div class="pill-row">
+              <span class="pill">${escapeHtml(mission.type)}</span>
+              <span class="pill">${escapeHtml(mission.difficulty)}</span>
+              <span class="pill">${escapeHtml(mission.goingCount)} going</span>
+            </div>
+            <p class="post-body" style="margin:0;">${escapeHtml(mission.description)}</p>
+            <div class="tiny muted">${escapeHtml(mission.location)} - ${escapeHtml(mission.eventDate)}</div>
+            <button class="btn join-mission-btn" type="button">I'm going</button>
+          </article>`).join("")
+        : `<div class="empty">Missions could not load yet.</div>`;
+      $$(".join-mission-btn").forEach(btn => btn.addEventListener("click", () => joinMission(btn.closest("[data-mission-id]").dataset.missionId)));
+    }
+
+    async function joinMission(missionId) {
+      const mission = state.missions.find(m => m.id === missionId);
+      if (!mission) return;
+      try {
+        const json = await apiJson(`${API_BASE}/missionSignup`, {
+          method: "POST",
+          body: JSON.stringify({
+            clientKey: CUEVAS_CLIENT_KEY,
+            missionId,
+            userEmail: state.session.email,
+            userHandle: handleName()
+          })
+        });
+        mission.goingCount = Number(json.goingCount || mission.goingCount + 1);
+        renderMissions();
+      } catch (err) {
+        alert(err.message || "Could not join mission.");
+      }
+    }
+
+    function renderProfile() {
+      if (!state.session) return;
+      $("#profileAvatar").textContent = initials(displayName());
+      $("#profileName").textContent = displayName();
+      $("#profileHandle").textContent = `@${handleName()}`;
+      $("#profileEmail").textContent = state.session.email || "";
+      $("#handleInput").value = handleName();
+      $$("[data-avatar]").forEach(node => node.textContent = initials(displayName()));
+    }
+
+    async function saveHandle() {
+      const handle = normalizeHandle($("#handleInput").value);
+      if (handle.length < 3) {
+        setStatus("profileStatus", "Handle must be at least 3 characters.", "error");
+        return;
+      }
+      setStatus("profileStatus", "Saving...");
+      try {
+        const json = await apiJson(`${API_BASE}/updateUsername`, {
+          method: "POST",
+          body: JSON.stringify({
+            clientKey: CUEVAS_CLIENT_KEY,
+            email: state.session.email,
+            username: handle,
+            handle,
+            displayName: state.session.displayName || handle,
+            previousUsername: state.session.handle,
+            aliases: [state.session.handle, state.session.displayName, state.session.email].filter(Boolean)
+          })
+        });
+        state.session.handle = json.handle || json.username || handle;
+        state.session.displayName = json.displayName || state.session.displayName || handle;
+        saveJson("cuevas.web.session", state.session);
+        renderProfile();
+        setStatus("profileStatus", "Handle saved.", "good");
+      } catch (err) {
+        setStatus("profileStatus", err.message || "Handle failed.", "error");
+      }
+    }
+
+    function renderReport() {
+      const post = state.posts.find(p => p.id === state.reportPostId);
+      $("#reportTarget").textContent = `Report @${post ? normalizeHandle(post.author) : "cuevas"} for review`;
+      $("#reportReasons").innerHTML = REPORT_REASONS.map(reason => `
+        <button class="report-reason ${reason === state.selectedReportReason ? "selected" : ""}" data-reason="${escapeAttr(reason)}" type="button">
+          <span class="radio"></span>
+          <span>${escapeHtml(reason)}</span>
+        </button>`).join("");
+      $$(".report-reason").forEach(btn => btn.addEventListener("click", () => {
+        state.selectedReportReason = btn.dataset.reason;
+        renderReport();
+      }));
+      setStatus("reportStatus", "");
+    }
+
+    async function sendReport() {
+      const post = state.posts.find(p => p.id === state.reportPostId);
+      if (!post) return;
+      setStatus("reportStatus", "Sending...");
+      try {
+        await apiJson(`${API_BASE}/contentReport`, {
+          method: "POST",
+          body: JSON.stringify({
+            clientKey: CUEVAS_CLIENT_KEY,
+            targetHandle: post.author,
+            contentType: "post",
+            contentId: post.id,
+            reason: state.selectedReportReason,
+            reporterEmail: state.session?.email || "",
+            contentPreview: post.content || ""
+          })
+        });
+        setStatus("reportStatus", "Report sent.", "good");
+        setTimeout(() => closeModal("reportModal"), 600);
+      } catch (err) {
+        setStatus("reportStatus", err.message || "Report failed.", "error");
+      }
+    }
+
+    function renderAll() {
+      renderProfile();
+      renderStories();
+      renderFeed();
+      renderRewards();
+      renderMissions();
+    }
+
+    function escapeHtml(value) {
+      return text(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value);
+    }
+
+    function bindEvents() {
+      $("#loginModeBtn").addEventListener("click", () => setAuthMode("login"));
+      $("#signupModeBtn").addEventListener("click", () => setAuthMode("signup"));
+      $("#authSubmitBtn").addEventListener("click", handleEmailAuth);
+      $("#passwordInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") handleEmailAuth();
+      });
+      $("#refreshFeedBtn").addEventListener("click", refreshFeed);
+      $("#openComposerMini").addEventListener("click", () => showModal("composerModal"));
+      $("#mainFab").addEventListener("click", () => state.tab === "feed" && showModal("composerModal"));
+      $("#publishPostBtn").addEventListener("click", publishPost);
+      $("#postFiles").addEventListener("change", previewPostFiles);
+      $("#sendCommentBtn").addEventListener("click", addComment);
+      $("#commentInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") addComment();
+      });
+      $("#storyFile").addEventListener("change", handleStoryFile);
+      $("#storyFilter").addEventListener("change", updateStoryDraftFromInputs);
+      $("#storyText").addEventListener("input", updateStoryDraftFromInputs);
+      $("#storyTextColor").addEventListener("input", updateStoryDraftFromInputs);
+      $("#saveStoryBtn").addEventListener("click", saveStory);
+      $("#closeStoryViewer").addEventListener("click", () => $("#storyViewer").classList.remove("active"));
+      $("#deleteStoryBtn").addEventListener("click", deleteStory);
+      $("#refreshRewardsBtn").addEventListener("click", refreshRewards);
+      $("#refreshBalanceBtn").addEventListener("click", refreshRewards);
+      $("#addWalletBtn").addEventListener("click", addToWallet);
+      $("#refreshMissionsBtn").addEventListener("click", refreshMissions);
+      $("#saveHandleBtn").addEventListener("click", saveHandle);
+      $("#sendReportBtn").addEventListener("click", sendReport);
+      $("#logoutTopBtn").addEventListener("click", logout);
+      $("#logoutProfileBtn").addEventListener("click", logout);
+      $$(".tab").forEach(btn => btn.addEventListener("click", () => setTab(btn.dataset.tab)));
+      $$("[data-close]").forEach(btn => btn.addEventListener("click", () => closeModal(btn.dataset.close)));
+      $$(".modal").forEach(modal => modal.addEventListener("click", e => {
+        if (e.target === modal) closeModal(modal.id);
+      }));
+    }
+
+    function initGoogle() {
+      const tryInit = () => {
+        if (!window.google?.accounts?.id) {
+          setTimeout(tryInit, 200);
+          return;
+        }
+        try {
+          google.accounts.id.initialize({
+            client_id: GOOGLE_WEB_CLIENT_ID,
+            callback: handleGoogleCredential
+          });
+          google.accounts.id.renderButton($("#googleBtn"), {
+            theme: "filled_black",
+            size: "large",
+            width: Math.min(380, window.innerWidth - 72),
+            text: "continue_with"
+          });
+        } catch {
+          $("#googleBtn").innerHTML = "";
+        }
+      };
+      tryInit();
+    }
+
+    function boot() {
+      bindEvents();
+      initGoogle();
+      if (state.session?.email) showApp();
+      else showLogin();
+    }
+
+    boot();
+  </script>
+</body>
+</html>
