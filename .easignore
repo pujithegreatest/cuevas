@@ -1,0 +1,46 @@
+# dependencies
+node_modules/
+
+# Expo/local output
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native local output and credentials
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+ios/
+android/
+
+# Metro/debug
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+expo.log
+*.tsbuildinfo
+
+# local env/secrets
+.env
+.env.*
+*.pem
+firebase/keys/
+firebase/**/.runtimeconfig.json
+firebase/**/*.local
+firebase/**/*.p12
+firebase/**/*.pem
+firebase/**/*.key
+firebase/**/*service-account*.json
+firebase/**/*wallet-signer*.json
+
+# Firebase Functions are deployed separately and are not needed in mobile EAS archives.
+firebase/
+
+# macOS
+.DS_Store
