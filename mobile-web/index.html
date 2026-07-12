@@ -618,6 +618,352 @@
       gap: 10px;
     }
 
+    .missions-topbar {
+      min-height: 150px;
+      align-items: end;
+      padding: calc(38px + var(--safe-top)) 20px 24px;
+      border-bottom: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .missions-topbar .title {
+      font-size: 38px;
+      color: #CFEFEC;
+    }
+
+    .missions-topbar .subtitle {
+      display: block;
+      margin-top: 12px;
+      font-size: 18px;
+      line-height: 1.35;
+      color: rgba(207,239,236,.68);
+      max-width: 355px;
+    }
+
+    .spinning-coin {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      animation: coinSpin 2.4s linear infinite;
+      filter: drop-shadow(0 0 14px rgba(6,167,161,.32));
+    }
+
+    .missions-topbar #refreshMissionsBtn {
+      position: absolute;
+      right: 20px;
+      top: calc(48px + var(--safe-top));
+      width: 58px;
+      height: 58px;
+    }
+
+    .missions-topbar .spinning-coin {
+      width: 52px;
+      height: 52px;
+    }
+
+    .missions-balance {
+      position: absolute;
+      right: 20px;
+      top: calc(102px + var(--safe-top));
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    @keyframes coinSpin {
+      from { transform: rotateY(0deg); }
+      to { transform: rotateY(360deg); }
+    }
+
+    .missions-page {
+      padding: 0 20px calc(112px + var(--safe-bottom));
+      display: grid;
+      gap: 28px;
+    }
+
+    .mission-hero {
+      margin-top: 4px;
+      border: 1px solid rgba(6,167,161,.32);
+      border-radius: 28px;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(6,167,161,.2), transparent 36%),
+        linear-gradient(155deg, rgba(8,58,61,.92), rgba(20,24,30,.94) 58%, rgba(53,20,30,.74));
+      box-shadow: 0 18px 42px rgba(0,0,0,.28);
+    }
+
+    .mission-hero-inner {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .mission-hero-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 22px;
+      background: var(--accent);
+      color: #fff;
+      display: grid;
+      place-items: center;
+    }
+
+    .mission-hero-title {
+      margin: 0;
+      font-size: 24px;
+      color: #e7fffb;
+      font-weight: 950;
+      line-height: 1.05;
+    }
+
+    .mission-hero-copy {
+      margin: 10px 0 0;
+      color: rgba(207,239,236,.72);
+      font-size: 15px;
+      line-height: 1.45;
+      font-weight: 650;
+    }
+
+    .scan-mission-btn {
+      margin-top: 16px;
+      min-height: 48px;
+      border-radius: 999px;
+      border: 2px solid rgba(6,167,161,.56);
+      background: rgba(6,167,161,.16);
+      color: var(--accent);
+      padding: 0 20px;
+      font-weight: 950;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .mission-section-head {
+      display: grid;
+      grid-template-columns: 1fr 58px;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: -10px;
+    }
+
+    .mission-section-title {
+      margin: 0;
+      color: #CFEFEC;
+      font-size: 26px;
+      line-height: 1.05;
+      font-weight: 950;
+    }
+
+    .mission-section-subtitle {
+      margin: 6px 0 0;
+      color: rgba(207,239,236,.66);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .mission-section-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 999px;
+      border: 1px solid rgba(6,167,161,.34);
+      background: rgba(6,167,161,.16);
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+      box-shadow: inset 0 0 0 1px rgba(6,167,161,.18);
+    }
+
+    .mission-queue-empty {
+      border-radius: 24px;
+      padding: 22px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      color: rgba(207,239,236,.66);
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .mission-list {
+      display: grid;
+      gap: 18px;
+    }
+
+    .mission-native-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 26px;
+      padding: 18px;
+      background: rgba(15,28,34,.94);
+      border: 1px solid rgba(6,167,161,.28);
+      box-shadow: 0 18px 38px rgba(0,0,0,.22);
+    }
+
+    .mission-native-card.queued {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(6,167,161,.22), 0 18px 38px rgba(0,0,0,.24);
+    }
+
+    .mission-native-card:before {
+      content: "";
+      position: absolute;
+      right: -44px;
+      top: -44px;
+      width: 145px;
+      height: 145px;
+      border-radius: 999px;
+      background: rgba(6,167,161,.10);
+      pointer-events: none;
+    }
+
+    .mission-card-head {
+      position: relative;
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .mission-card-avatar {
+      width: 76px;
+      height: 76px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #063237, #06a7a1);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .mission-card-avatar img {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .mission-host {
+      color: var(--accent);
+      font-size: 13px;
+      line-height: 1;
+      font-weight: 950;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      max-width: 100%;
+    }
+
+    .mission-card-title-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+      margin-top: 8px;
+    }
+
+    .mission-card-title {
+      margin: 0;
+      color: #f6fbff;
+      font-size: 24px;
+      line-height: 1.08;
+      font-weight: 950;
+    }
+
+    .mission-points {
+      border: 1px solid var(--accent);
+      background: rgba(6,167,161,.16);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 9px 12px;
+      font-size: 16px;
+      line-height: 1;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .mission-description {
+      margin: 18px 0 0;
+      color: rgba(207,239,236,.72);
+      font-size: 17px;
+      line-height: 1.42;
+    }
+
+    .mission-chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .mission-chip {
+      min-height: 38px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,.06);
+      color: rgba(207,239,236,.74);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      max-width: 100%;
+    }
+
+    .mission-chip .svg-icon {
+      color: var(--accent);
+      flex: 0 0 auto;
+    }
+
+    .mission-materials {
+      margin: 12px 0 0;
+      color: rgba(207,239,236,.66);
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 650;
+    }
+
+    .mission-action-list {
+      display: grid;
+      gap: 9px;
+      margin-top: 16px;
+      align-items: start;
+    }
+
+    .mission-action {
+      min-height: 30px;
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 950;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .mission-action.primary {
+      color: #f7fbff;
+    }
+
+    .mission-action .svg-icon {
+      color: var(--accent);
+      flex: 0 0 auto;
+    }
+
+    .mission-action-status {
+      min-height: 17px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
     .pill-row {
       display: flex;
       flex-wrap: wrap;
@@ -1115,14 +1461,51 @@
     </section>
 
     <section id="missionsScreen" class="screen">
-      <header class="topbar">
+      <header class="topbar missions-topbar">
         <div>
           <h2 class="title">Missions</h2>
-          <p class="subtitle">Volunteer opportunities</p>
+          <p class="subtitle">Dynamic partner events from the Cuevas civic grid.</p>
         </div>
-        <button id="refreshMissionsBtn" class="icon-btn accent" type="button" aria-label="Refresh missions"><span data-icon="refresh"></span></button>
+        <button id="refreshMissionsBtn" class="icon-btn accent" type="button" aria-label="Refresh missions">
+          <img class="spinning-coin" src="coin.gif" alt="" />
+        </button>
+        <div id="missionsBalance" class="missions-balance">0 ₡</div>
       </header>
-      <div id="missionsList" class="list"></div>
+
+      <div class="missions-page">
+        <section class="mission-hero" aria-label="Cuevas Civic Grid">
+          <div class="mission-hero-inner">
+            <div class="mission-hero-icon"><span data-icon="target"></span></div>
+            <div>
+              <h3 class="mission-hero-title">Cuevas Civic Grid</h3>
+              <p class="mission-hero-copy">Businesses publish missions, users join, calendars sync, and attendance counts update live.</p>
+              <button id="scanMissionBtn" class="scan-mission-btn" type="button"><span data-icon="qr"></span><span>Scan Mission QR</span></button>
+            </div>
+          </div>
+        </section>
+
+        <section aria-label="My Mission Queue">
+          <div class="mission-section-head">
+            <div>
+              <h3 class="mission-section-title">My Mission Queue</h3>
+              <p id="missionQueueSubtitle" class="mission-section-subtitle">0 selected for your custom list</p>
+            </div>
+            <div class="mission-section-icon"><span data-icon="list-checks"></span></div>
+          </div>
+          <div id="missionQueueList" class="mission-list"></div>
+        </section>
+
+        <section aria-label="Available Missions">
+          <div class="mission-section-head">
+            <div>
+              <h3 class="mission-section-title">Available Missions</h3>
+              <p class="mission-section-subtitle">Live partner missions</p>
+            </div>
+            <div class="mission-section-icon"><span data-icon="target"></span></div>
+          </div>
+          <div id="missionsList" class="mission-list"></div>
+        </section>
+      </div>
     </section>
 
     <section id="profileScreen" class="screen">
@@ -1318,6 +1701,19 @@
       target: '<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1.8"></circle>',
       user: '<path d="M20 21a8 8 0 0 0-16 0"></path><circle cx="12" cy="7" r="4"></circle>',
       trophy: '<path d="M8 21h8"></path><path d="M12 17v4"></path><path d="M7 4h10v5a5 5 0 0 1-10 0Z"></path><path d="M5 5H3v3a4 4 0 0 0 4 4"></path><path d="M19 5h2v3a4 4 0 0 1-4 4"></path>',
+      qr: '<rect x="3" y="3" width="6" height="6"></rect><rect x="15" y="3" width="6" height="6"></rect><rect x="3" y="15" width="6" height="6"></rect><path d="M15 15h2v2h-2z"></path><path d="M19 15h2v6h-6v-2"></path><path d="M13 3v4"></path><path d="M7 13H3"></path>',
+      "list-checks": '<path d="M10 6h10"></path><path d="M10 12h10"></path><path d="M10 18h10"></path><path d="m3 6 1 1 2-2"></path><path d="m3 12 1 1 2-2"></path><path d="m3 18 1 1 2-2"></path>',
+      location: '<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle>',
+      calendar: '<path d="M8 2v4"></path><path d="M16 2v4"></path><rect x="3" y="4" width="18" height="18" rx="3"></rect><path d="M3 10h18"></path>',
+      hourglass: '<path d="M6 2h12"></path><path d="M6 22h12"></path><path d="M8 2v6l4 4-4 4v6"></path><path d="M16 2v6l-4 4 4 4v6"></path>',
+      radio: '<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4"></circle>',
+      shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path><path d="m9 12 2 2 4-5"></path>',
+      people: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.8"></path><path d="M16 3.1a4 4 0 0 1 0 7.8"></path>',
+      "user-plus": '<path d="M15 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8" cy="7" r="4"></circle><path d="M19 8v6"></path><path d="M22 11h-6"></path>',
+      "check-circle": '<circle cx="12" cy="12" r="9"></circle><path d="m8 12 2.5 2.5L16 9"></path>',
+      briefcase: '<rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M3 13h18"></path>',
+      repeat: '<path d="m17 2 4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path>',
+      globe: '<circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path><path d="M12 2a15 15 0 0 1 0 20"></path><path d="M12 2a15 15 0 0 0 0 20"></path>',
       plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>',
       zap: '<path d="M13 2 4 14h7l-1 8 9-12h-7Z"></path>',
       chat: '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.5 9.5 0 0 1-4-.9L3 20l1.4-4A8.3 8.3 0 1 1 21 11.5Z"></path>',
@@ -1370,6 +1766,8 @@
       viewedStories: loadJson("cuevas.web.viewedStories", []),
       comments: loadJson("cuevas.web.comments", {}),
       missions: [],
+      missionQueueIds: loadJson("cuevas.web.missionQueueIds", []),
+      missionStatuses: {},
       leaderboard: [],
       leaderboardOpen: false,
       selectedPostId: null,
@@ -2171,44 +2569,120 @@
     }
 
     function mapMission(item) {
+      const eventDate = item.eventDate || item.EventDate || item.date || item.Date || "Date TBD";
+      const rawPeopleNeeded = item.peopleNeeded ?? item.PeopleNeeded ?? "";
+      const peopleNeededCount = Number(rawPeopleNeeded);
       return {
         id: text(item._id || item.id || item.missionId),
         title: text(item.title || item.Title || item.EventName || "Untitled Mission"),
         points: Number(item.points ?? item.Points ?? item.Cuevas ?? 100) || 100,
         location: text(item.location || item.Location || "Location TBD"),
-        eventDate: text(item.eventDate || item.EventDate || item.date || "Date TBD"),
+        eventDate: text(eventDate),
+        eventDateISO: text(item.eventDateISO || item.EventDateISO || ""),
+        durationHours: Number(item.durationHours ?? item.DurationHours ?? 1) || 1,
         type: text(item.type || item.Type || "One time"),
         difficulty: text(item.difficulty || item.Difficulty || "Easy"),
         description: text(item.description || item.Description || "Mission details coming soon."),
+        peopleNeeded: Number.isFinite(peopleNeededCount) && peopleNeededCount > 0 ? peopleNeededCount : text(rawPeopleNeeded || ""),
+        gearProvided: Boolean(item.gearProvided ?? item.GearProvided ?? false),
+        materialsNote: text(item.materialsNote || item.MaterialsNote || ""),
+        eventUrl: text(item.eventUrl || item.EventUrl || ""),
         goingCount: Number(item.goingCount ?? item.GoingCount ?? 0) || 0,
-        businessName: text(item.businessName || item.BusinessName || "Cuevas Partner")
+        businessName: text(item.businessName || item.BusinessName || "Cuevas Partner"),
+        businessHandle: normalizeHandle(item.businessHandle || item.BusinessHandle || item.businessName || item.BusinessName || "cuevas-partner"),
+        businessVerified: Boolean(item.businessVerified ?? item.BusinessVerified ?? true),
+        status: text(item.status || item.Status || "active")
       };
     }
 
     function renderMissions() {
-      $("#missionsList").innerHTML = state.missions.length
-        ? state.missions.map(mission => `
-          <article class="card mission" data-mission-id="${escapeAttr(mission.id)}">
-            <div class="row between">
-              <h3 style="margin:0; font-size:18px;">${escapeHtml(mission.title)}</h3>
-              <span class="pill gold">${mission.points} Cuevas</span>
-            </div>
-            <div class="pill-row">
-              <span class="pill">${escapeHtml(mission.type)}</span>
-              <span class="pill">${escapeHtml(mission.difficulty)}</span>
-              <span class="pill">${escapeHtml(mission.goingCount)} going</span>
-            </div>
-            <p class="post-body" style="margin:0;">${escapeHtml(mission.description)}</p>
-            <div class="tiny muted">${escapeHtml(mission.location)} - ${escapeHtml(mission.eventDate)}</div>
-            <button class="btn join-mission-btn" type="button">I'm going</button>
-          </article>`).join("")
-        : `<div class="empty">Missions could not load yet.</div>`;
-      $$(".join-mission-btn").forEach(btn => btn.addEventListener("click", () => joinMission(btn.closest("[data-mission-id]").dataset.missionId)));
+      const activeMissions = state.missions.filter(mission => !["completed", "archived", "deleted"].includes(text(mission.status || "active").toLowerCase()));
+      const queueSet = new Set(state.missionQueueIds);
+      const queuedMissions = activeMissions.filter(mission => queueSet.has(mission.id));
+      $("#missionsBalance").textContent = `${Number(state.session?.cuevas || 0).toLocaleString()} ₡`;
+      $("#missionQueueSubtitle").textContent = `${queuedMissions.length} selected for your custom list`;
+      $("#missionQueueList").innerHTML = queuedMissions.length
+        ? queuedMissions.map(mission => renderMissionCard(mission, true)).join("")
+        : `<div class="mission-queue-empty">Add missions below to build your custom service list.</div>`;
+      $("#missionsList").innerHTML = activeMissions.length
+        ? activeMissions.map(mission => renderMissionCard(mission, queueSet.has(mission.id))).join("")
+        : `<div class="empty">No active missions yet. Business-created events will appear here after publishing.</div>`;
+      bindMissionButtons();
+      hydrateIcons($("#missionsScreen"));
     }
 
-    async function joinMission(missionId) {
+    function renderMissionCard(mission, isQueued = false) {
+      const duration = Math.max(1, Number(mission.durationHours || mission.points / 100 || 1));
+      const peopleNeeded = formatPeopleNeeded(mission.peopleNeeded);
+      const status = state.missionStatuses[mission.id] || "";
+      const chipData = [
+        ["location", mission.location],
+        ["calendar", mission.eventDate],
+        ["hourglass", `${duration} hr`],
+        [mission.type === "Recurring" ? "repeat" : "radio", mission.type],
+        ["shield", mission.difficulty],
+        ["people", `${mission.goingCount || 0} going`],
+        ["user-plus", peopleNeeded],
+        [mission.gearProvided ? "check-circle" : "briefcase", mission.gearProvided ? "Gear provided" : "Bring gear"]
+      ];
+      return `
+        <article class="mission-native-card ${isQueued ? "queued" : ""}" data-mission-id="${escapeAttr(mission.id)}">
+          <div class="mission-card-head">
+            <div class="mission-card-avatar"><img src="coin.gif" alt="" /></div>
+            <div style="min-width:0;">
+              <div class="mission-host">
+                <span>@${escapeHtml(mission.businessHandle || "cuevas-partner")}</span>
+                ${mission.businessVerified ? icon("check-circle", 17) : ""}
+              </div>
+              <div class="mission-card-title-row">
+                <h3 class="mission-card-title">${escapeHtml(mission.title)}</h3>
+                <div class="mission-points">+${Number(mission.points || 0).toLocaleString()} ₡</div>
+              </div>
+              <p class="mission-description">${escapeHtml(mission.description)}</p>
+            </div>
+          </div>
+          <div class="mission-chip-grid">
+            ${chipData.map(([iconName, label]) => `<span class="mission-chip">${icon(iconName, 17)}<span>${escapeHtml(label)}</span></span>`).join("")}
+          </div>
+          ${mission.materialsNote ? `<p class="mission-materials">Materials: ${escapeHtml(mission.materialsNote)}</p>` : ""}
+          <div class="mission-action-list">
+            <button class="mission-action mission-share-btn" type="button">${icon("repeat", 24)}<span>Reshare Mission</span></button>
+            <button class="mission-action primary mission-toggle-btn" type="button">${icon(isQueued ? "check-circle" : "plus", 24)}<span>${isQueued ? "Added to My Missions" : "Add to My Missions"}</span></button>
+            <button class="mission-action mission-calendar-btn" type="button">${icon("calendar", 24)}<span>Add to Calendar</span></button>
+            ${mission.eventUrl ? `<button class="mission-action mission-event-btn" type="button">${icon("globe", 24)}<span>Open Event Page</span></button>` : ""}
+            <div class="mission-action-status">${escapeHtml(status)}</div>
+          </div>
+        </article>`;
+    }
+
+    function bindMissionButtons() {
+      $$(".mission-toggle-btn").forEach(btn => btn.addEventListener("click", () => toggleMissionQueue(btn.closest("[data-mission-id]").dataset.missionId)));
+      $$(".mission-calendar-btn").forEach(btn => btn.addEventListener("click", () => addMissionToCalendar(btn.closest("[data-mission-id]").dataset.missionId)));
+      $$(".mission-share-btn").forEach(btn => btn.addEventListener("click", () => shareMission(btn.closest("[data-mission-id]").dataset.missionId)));
+      $$(".mission-event-btn").forEach(btn => btn.addEventListener("click", () => openMissionEvent(btn.closest("[data-mission-id]").dataset.missionId)));
+    }
+
+    function formatPeopleNeeded(value) {
+      const count = Number(value);
+      if (Number.isFinite(count) && count > 0) return `${count} ppl`;
+      return value || "Open crew";
+    }
+
+    async function toggleMissionQueue(missionId) {
       const mission = state.missions.find(m => m.id === missionId);
       if (!mission) return;
+      const isQueued = state.missionQueueIds.includes(missionId);
+      if (isQueued) {
+        state.missionQueueIds = state.missionQueueIds.filter(id => id !== missionId);
+        state.missionStatuses[missionId] = "Removed from your mission queue.";
+        saveJson("cuevas.web.missionQueueIds", state.missionQueueIds);
+        renderMissions();
+        return;
+      }
+      state.missionQueueIds = Array.from(new Set([...state.missionQueueIds, missionId]));
+      state.missionStatuses[missionId] = "Adding you to this mission...";
+      saveJson("cuevas.web.missionQueueIds", state.missionQueueIds);
+      renderMissions();
       try {
         const json = await apiJson(`${API_BASE}/missionSignup`, {
           method: "POST",
@@ -2220,10 +2694,87 @@
           })
         });
         mission.goingCount = Number(json.goingCount || mission.goingCount + 1);
+        state.missionStatuses[missionId] = "Added to My Missions.";
         renderMissions();
       } catch (err) {
-        alert(err.message || "Could not join mission.");
+        state.missionStatuses[missionId] = err.message || "Could not join mission.";
+        renderMissions();
       }
+    }
+
+    function missionDateForCalendar(mission) {
+      const parsed = new Date(mission.eventDateISO || mission.eventDate);
+      if (!Number.isNaN(parsed.getTime())) return parsed;
+      const fallback = new Date();
+      fallback.setHours(fallback.getHours() + 2, 0, 0, 0);
+      return fallback;
+    }
+
+    function icsDate(date) {
+      return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+    }
+
+    function addMissionToCalendar(missionId) {
+      const mission = state.missions.find(m => m.id === missionId);
+      if (!mission) return;
+      const start = missionDateForCalendar(mission);
+      const end = new Date(start.getTime() + Math.max(1, Number(mission.durationHours || mission.points / 100 || 1)) * 60 * 60 * 1000);
+      const lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//Cuevas//Missions//EN",
+        "BEGIN:VEVENT",
+        `UID:${mission.id}@cuevas`,
+        `DTSTAMP:${icsDate(new Date())}`,
+        `DTSTART:${icsDate(start)}`,
+        `DTEND:${icsDate(end)}`,
+        `SUMMARY:Cuevas Mission: ${mission.title}`,
+        `LOCATION:${mission.location}`,
+        `DESCRIPTION:${mission.description} Host: ${mission.businessName || "Cuevas Partner"} Points: ${mission.points} Cuevas`,
+        "END:VEVENT",
+        "END:VCALENDAR"
+      ];
+      const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${normalizeHandle(mission.title, "cuevas-mission")}.ics`;
+      a.click();
+      URL.revokeObjectURL(url);
+      state.missionStatuses[missionId] = "Calendar file created.";
+      renderMissions();
+    }
+
+    async function shareMission(missionId) {
+      const mission = state.missions.find(m => m.id === missionId);
+      if (!mission) return;
+      const shareText = `Cuevas Mission: ${mission.title}\n${mission.description}\n${mission.location} - ${mission.eventDate}`;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: mission.title, text: shareText, url: location.href });
+          state.missionStatuses[missionId] = "Mission share opened.";
+          renderMissions();
+          return;
+        } catch {
+          return;
+        }
+      }
+      try {
+        await navigator.clipboard.writeText(`${shareText}\n${location.href}`);
+        state.missionStatuses[missionId] = "Mission copied.";
+      } catch {
+        state.missionStatuses[missionId] = "Share unavailable in this browser.";
+      }
+      renderMissions();
+    }
+
+    function openMissionEvent(missionId) {
+      const mission = state.missions.find(m => m.id === missionId);
+      if (mission?.eventUrl) window.open(mission.eventUrl, "_blank", "noopener,noreferrer");
+    }
+
+    function scanMissionQr() {
+      alert("Mission QR scanning will use the phone camera in a later web pass.");
     }
 
     function renderProfile() {
@@ -2354,6 +2905,7 @@
       $("#addWalletBtn").addEventListener("click", addToWallet);
       $("#viewLeaderboardBtn").addEventListener("click", toggleLeaderboard);
       $("#refreshMissionsBtn").addEventListener("click", refreshMissions);
+      $("#scanMissionBtn").addEventListener("click", scanMissionQr);
       $("#saveHandleBtn").addEventListener("click", saveHandle);
       $("#sendReportBtn").addEventListener("click", sendReport);
       $("#logoutTopBtn").addEventListener("click", logout);
