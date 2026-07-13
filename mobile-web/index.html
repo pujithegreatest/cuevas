@@ -1809,24 +1809,6 @@
       object-fit: cover;
     }
 
-    .story-preview {
-      aspect-ratio: 9 / 16;
-      max-height: 62dvh;
-      width: min(100%, 330px);
-      margin: 0 auto;
-      border-radius: 14px;
-      overflow: hidden;
-      position: relative;
-      background: #02050a;
-      border: 1px solid rgba(255,255,255,.1);
-    }
-
-    .story-preview img, .story-preview video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
     .story-text {
       position: absolute;
       left: 8%;
@@ -1838,6 +1820,402 @@
       line-height: 1.1;
       text-shadow: 0 2px 12px rgba(0,0,0,.8);
       overflow-wrap: anywhere;
+    }
+
+    .story-camera-modal {
+      align-items: stretch;
+      padding: 0;
+      background: #000;
+    }
+
+    .story-camera-sheet {
+      width: min(100vw, 480px);
+      height: 100dvh;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      background: #020409;
+      color: #fff;
+    }
+
+    .story-camera-stage {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #03050a;
+    }
+
+    .story-camera-video,
+    .story-captured-media img,
+    .story-captured-media video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #03050a;
+    }
+
+    .story-captured-media {
+      position: absolute;
+      inset: 0;
+      display: none;
+      z-index: 2;
+    }
+
+    .story-captured-media.active {
+      display: block;
+    }
+
+    .story-camera-vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,.42), transparent 20%, transparent 64%, rgba(0,0,0,.72)),
+        radial-gradient(circle at 50% 35%, transparent 0 36%, rgba(0,0,0,.18) 78%, rgba(0,0,0,.46));
+    }
+
+    .story-camera-text {
+      z-index: 8;
+      bottom: 25%;
+    }
+
+    .story-corner {
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      z-index: 6;
+      border-color: var(--accent);
+      pointer-events: none;
+    }
+
+    .story-corner.tl {
+      top: calc(104px + var(--safe-top));
+      left: 26px;
+      border-top: 3px solid;
+      border-left: 3px solid;
+    }
+
+    .story-corner.tr {
+      top: calc(104px + var(--safe-top));
+      right: 26px;
+      border-top: 3px solid;
+      border-right: 3px solid;
+    }
+
+    .story-corner.bl {
+      bottom: calc(150px + var(--safe-bottom));
+      left: 26px;
+      border-bottom: 3px solid;
+      border-left: 3px solid;
+    }
+
+    .story-corner.br {
+      bottom: calc(150px + var(--safe-bottom));
+      right: 26px;
+      border-bottom: 3px solid;
+      border-right: 3px solid;
+    }
+
+    .story-close-camera {
+      position: absolute;
+      top: calc(48px + var(--safe-top));
+      left: 28px;
+      z-index: 9;
+      width: 52px;
+      height: 52px;
+      color: #fff;
+      background: rgba(0,0,0,.34);
+      backdrop-filter: blur(14px);
+    }
+
+    .story-camera-pill {
+      position: absolute;
+      z-index: 9;
+      top: calc(56px + var(--safe-top));
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 158px;
+      height: 36px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,174,164,.82);
+      background: rgba(2,8,12,.64);
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 11px;
+      padding: 0 18px;
+      font-size: 12px;
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: .26em;
+      text-transform: uppercase;
+      box-shadow: 0 0 22px rgba(0,174,164,.22);
+      backdrop-filter: blur(14px);
+      white-space: nowrap;
+    }
+
+    .story-camera-pill.recording {
+      color: #ff4d55;
+      border-color: rgba(255,77,85,.78);
+      box-shadow: 0 0 22px rgba(255,77,85,.24);
+    }
+
+    .story-camera-actions {
+      position: absolute;
+      z-index: 9;
+      top: calc(48px + var(--safe-top));
+      right: 24px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .story-camera-action {
+      width: 54px;
+      height: 54px;
+      border-radius: 999px;
+      border: 0;
+      color: #fff;
+      background: rgba(18,18,18,.62);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 12px 24px rgba(0,0,0,.24);
+      backdrop-filter: blur(14px);
+      cursor: pointer;
+    }
+
+    .story-filter-rail {
+      position: absolute;
+      z-index: 9;
+      left: 0;
+      right: 0;
+      bottom: calc(230px + var(--safe-bottom));
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      padding: 0 34px 8px;
+      scrollbar-width: none;
+    }
+
+    .story-filter-rail::-webkit-scrollbar {
+      display: none;
+    }
+
+    .story-filter-btn {
+      flex: 0 0 auto;
+      min-width: 60px;
+      border: 0;
+      background: transparent;
+      color: #e7fbf7;
+      display: grid;
+      justify-items: center;
+      gap: 5px;
+      padding: 0;
+      font-size: 12px;
+      font-weight: 950;
+      line-height: 1.05;
+      letter-spacing: .02em;
+      cursor: pointer;
+      text-shadow: 0 1px 8px rgba(0,0,0,.72);
+    }
+
+    .story-filter-btn .svg-icon {
+      color: #e7fbf7;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,.55));
+    }
+
+    .story-filter-btn.active {
+      color: var(--accent);
+    }
+
+    .story-filter-btn.active .svg-icon {
+      color: var(--accent);
+    }
+
+    .story-caption-control {
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      bottom: calc(192px + var(--safe-bottom));
+      z-index: 9;
+      display: none;
+      grid-template-columns: 1fr 36px;
+      gap: 9px;
+      align-items: center;
+    }
+
+    .story-caption-control.active {
+      display: grid;
+    }
+
+    .story-caption-control input[type="text"] {
+      min-height: 40px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.42);
+      color: #fff;
+      padding: 0 16px;
+      outline: none;
+      font-size: 15px;
+      font-weight: 800;
+      backdrop-filter: blur(12px);
+    }
+
+    .story-caption-control input[type="text"]::placeholder {
+      color: rgba(255,255,255,.58);
+    }
+
+    .story-color-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,.72);
+      background: #fff;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .story-color-dot input {
+      position: absolute;
+      inset: -8px;
+      width: 52px;
+      height: 52px;
+      border: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .story-mode-switch {
+      position: absolute;
+      z-index: 9;
+      left: 50%;
+      bottom: calc(134px + var(--safe-bottom));
+      transform: translateX(-50%);
+      width: 220px;
+      height: 54px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(0,0,0,.55);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 5px;
+      backdrop-filter: blur(16px);
+    }
+
+    .story-mode-btn {
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: rgba(255,255,255,.74);
+      font-size: 14px;
+      font-weight: 950;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .story-mode-btn.active {
+      background: rgba(0,174,164,.82);
+      color: #04201f;
+      box-shadow: 0 10px 22px rgba(0,174,164,.2);
+    }
+
+    .story-shutter-row {
+      position: absolute;
+      z-index: 9;
+      left: 0;
+      right: 0;
+      bottom: calc(32px + var(--safe-bottom));
+      display: grid;
+      grid-template-columns: 1fr 104px 1fr;
+      align-items: center;
+      padding: 0 30px;
+      gap: 16px;
+    }
+
+    .story-shutter {
+      width: 96px;
+      height: 96px;
+      border-radius: 999px;
+      border: 6px solid #fff;
+      background: transparent;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      justify-self: center;
+    }
+
+    .story-shutter span {
+      width: 68px;
+      height: 68px;
+      border-radius: 999px;
+      background: #fff;
+      display: block;
+      transition: transform .18s ease, border-radius .18s ease, background .18s ease;
+    }
+
+    .story-shutter.recording span {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: #ff3b47;
+    }
+
+    .story-side-action {
+      min-height: 44px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.44);
+      color: #fff;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 950;
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      justify-self: stretch;
+    }
+
+    .story-post-btn {
+      color: #051b1a;
+      border-color: rgba(0,174,164,.45);
+      background: var(--accent);
+      opacity: .35;
+      pointer-events: none;
+    }
+
+    .story-post-btn.ready {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .story-file-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .story-camera-status {
+      position: absolute;
+      left: 24px;
+      right: 24px;
+      bottom: calc(112px + var(--safe-bottom));
+      z-index: 10;
+      min-height: 18px;
+      text-align: center;
+      color: rgba(255,255,255,.72);
+      font-size: 12px;
+      font-weight: 850;
+      text-shadow: 0 1px 8px rgba(0,0,0,.78);
+    }
+
+    .story-camera-status.error {
+      color: #ffb4bd;
     }
 
     .story-viewer {
@@ -1933,6 +2311,15 @@
     .filter-noir { filter: grayscale(1) contrast(1.25); }
     .filter-pop { filter: saturate(1.8) contrast(1.12); }
     .filter-dream { filter: saturate(1.25) blur(.25px) brightness(1.08); }
+    .filter-heatwave { filter: sepia(.42) saturate(1.85) contrast(1.08) brightness(1.06) hue-rotate(-12deg); }
+    .filter-hologram { filter: saturate(1.7) contrast(1.16) brightness(1.08) hue-rotate(148deg); }
+    .filter-glitch { filter: saturate(2.2) contrast(1.2) brightness(1.03) hue-rotate(292deg); }
+    .filter-matrix { filter: sepia(.34) saturate(2.1) contrast(1.18) brightness(.95) hue-rotate(62deg); }
+    .filter-scanner { filter: grayscale(.18) sepia(.3) saturate(1.8) contrast(1.22) hue-rotate(122deg); }
+    .filter-xray { filter: invert(.86) grayscale(.55) contrast(1.3) brightness(1.08); }
+    .filter-infrared { filter: sepia(.66) saturate(2.6) contrast(1.16) brightness(1.02) hue-rotate(300deg); }
+    .filter-neon { filter: saturate(2.35) contrast(1.24) brightness(1.07) hue-rotate(186deg); }
+    .filter-vaporwave { filter: saturate(2) contrast(1.12) brightness(1.07) hue-rotate(268deg); }
 
     .hidden {
       display: none !important;
@@ -2300,42 +2687,48 @@
     </div>
   </div>
 
-  <div id="storyModal" class="modal" role="dialog" aria-modal="true">
-    <div class="sheet">
-      <div class="sheet-head">
-        <h3 class="sheet-title">New Story</h3>
-        <button class="icon-btn" data-close="storyModal" type="button">X</button>
-      </div>
-      <div class="story-preview" id="storyPreview">
-        <div class="empty" style="margin:14px;">Add a photo or video</div>
-      </div>
-      <div class="field" style="margin-top:12px;">
-        <label for="storyFile">Photo or video</label>
-        <input id="storyFile" class="input" type="file" accept="image/*,video/*" capture="environment" />
-      </div>
-      <div class="grid-2" style="margin-top:10px;">
-        <div class="field">
-          <label for="storyFilter">Filter</label>
-          <select id="storyFilter" class="select">
-            <option value="none">None</option>
-            <option value="gold">Gold</option>
-            <option value="cool">Cool</option>
-            <option value="noir">Noir</option>
-            <option value="pop">Pop</option>
-            <option value="dream">Dream</option>
-          </select>
+  <div id="storyModal" class="modal story-camera-modal" role="dialog" aria-modal="true">
+    <div class="story-camera-sheet">
+      <div class="story-camera-stage" id="storyPreview">
+        <video id="storyCameraVideo" class="story-camera-video filter-heatwave" autoplay muted playsinline></video>
+        <div id="storyCapturedMedia" class="story-captured-media"></div>
+        <div class="story-camera-vignette"></div>
+        <div id="storyTextOverlay" class="story-text story-camera-text hidden"></div>
+        <span class="story-corner tl"></span>
+        <span class="story-corner tr"></span>
+        <span class="story-corner bl"></span>
+        <span class="story-corner br"></span>
+        <button class="icon-btn story-close-camera" data-close="storyModal" type="button" aria-label="Close story camera">
+          <span data-icon="x"></span>
+        </button>
+        <div id="storyCameraStatusPill" class="story-camera-pill">PHOTO <span>•</span> READY</div>
+        <div class="story-camera-actions">
+          <button id="storyGalleryBtn" class="story-camera-action" type="button" aria-label="Choose photo or video">
+            <span data-icon="image"></span>
+          </button>
+          <button id="storyFlipBtn" class="story-camera-action" type="button" aria-label="Flip camera">
+            <span data-icon="repeat"></span>
+          </button>
         </div>
-        <div class="field">
-          <label for="storyTextColor">Text color</label>
-          <input id="storyTextColor" class="input" type="color" value="#ffffff" />
+        <input id="storyFile" class="story-file-input" type="file" accept="image/*,video/*" />
+        <div id="storyFilterRail" class="story-filter-rail" aria-label="Story filters"></div>
+        <div class="story-caption-control">
+          <input id="storyText" type="text" placeholder="Add story text" maxlength="80" />
+          <label class="story-color-dot" aria-label="Text color">
+            <input id="storyTextColor" type="color" value="#ffffff" />
+          </label>
+        </div>
+        <div class="story-mode-switch" role="group" aria-label="Story capture mode">
+          <button id="storyPhotoModeBtn" class="story-mode-btn active" type="button">Photo</button>
+          <button id="storyVideoModeBtn" class="story-mode-btn" type="button">Video</button>
+        </div>
+        <div id="storyStatus" class="story-camera-status"></div>
+        <div class="story-shutter-row">
+          <button id="storyRetakeBtn" class="story-side-action hidden" type="button">Retake</button>
+          <button id="storyShutterBtn" class="story-shutter" type="button" aria-label="Capture story"><span></span></button>
+          <button id="saveStoryBtn" class="story-side-action story-post-btn" type="button" disabled>Post</button>
         </div>
       </div>
-      <div class="field" style="margin-top:10px;">
-        <label for="storyText">Text</label>
-        <input id="storyText" class="input" placeholder="Add story text" />
-      </div>
-      <button id="saveStoryBtn" class="btn" style="width:100%; margin-top:12px;" type="button">Post Story</button>
-      <div id="storyStatus" class="status" style="margin-top:10px;"></div>
     </div>
   </div>
 
@@ -2410,6 +2803,18 @@
       "Other"
     ];
 
+    const STORY_FILTERS = [
+      { id: "heatwave", label: "Heatwave", icon: "flame" },
+      { id: "hologram", label: "Holo ID", icon: "sparkles" },
+      { id: "glitch", label: "Signal", icon: "zap" },
+      { id: "matrix", label: "Code ID", icon: "pulse" },
+      { id: "scanner", label: "Sweep", icon: "qr" },
+      { id: "xray", label: "Bone", icon: "eye" },
+      { id: "infrared", label: "IR Lock", icon: "target" },
+      { id: "neon", label: "Circuit", icon: "zap" },
+      { id: "vaporwave", label: "Synth", icon: "wand" }
+    ];
+
     const ICONS = {
       sun: '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path>',
       moon: '<path d="M20 14.7A8 8 0 0 1 9.3 4 7 7 0 1 0 20 14.7Z"></path>',
@@ -2434,7 +2839,9 @@
       repeat: '<path d="m17 2 4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path>',
       globe: '<circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path><path d="M12 2a15 15 0 0 1 0 20"></path><path d="M12 2a15 15 0 0 0 0 20"></path>',
       plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>',
+      x: '<path d="M18 6 6 18"></path><path d="m6 6 12 12"></path>',
       zap: '<path d="M13 2 4 14h7l-1 8 9-12h-7Z"></path>',
+      pulse: '<path d="M3 12h4l2-6 4 12 2-6h6"></path>',
       settings: '<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"></path><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 1 1 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 1 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 1 1 0 4H21a1.7 1.7 0 0 0-1.6 1Z"></path>',
       edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>',
       flame: '<path d="M8.5 14.5A4 4 0 1 0 16 17c0-2.5-2-4-3-6-1.5 1-2.5 2.3-2.5 4"></path><path d="M12 22c4.4 0 8-3 8-7.5 0-3-1.7-5.3-4.8-7.6.3 2.1-.4 3.6-1.7 4.6C14 7.5 12.7 4.8 9.5 2 9 6.4 4 8.8 4 14.5 4 19 7.6 22 12 22Z"></path>',
@@ -2444,7 +2851,9 @@
       "chevron-right": '<path d="m9 18 6-6-6-6"></path>',
       chat: '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.5 9.5 0 0 1-4-.9L3 20l1.4-4A8.3 8.3 0 1 1 21 11.5Z"></path>',
       share: '<circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.7 6.8-4.4"></path><path d="m8.6 13.3 6.8 4.4"></path>',
+      image: '<rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="8.5" cy="9.5" r="1.5"></circle><path d="m21 15-4.5-4.5L6 21"></path>',
       camera: '<rect x="4" y="5" width="16" height="16" rx="4"></rect><circle cx="12" cy="13" r="4"></circle><path d="M9 5l1.4-2h3.2L15 5"></path>',
+      wand: '<path d="M15 4V2"></path><path d="M15 16v-2"></path><path d="M8 9H6"></path><path d="M22 9h-2"></path><path d="m19.1 4.9-1.4 1.4"></path><path d="m10.3 11.7-1.4 1.4"></path><path d="m10.3 6.3-1.4-1.4"></path><path d="m19.1 13.1-1.4-1.4"></path><path d="m3 21 9-9"></path><path d="m12 12 3-3"></path>',
       warning: '<path d="M10.3 3.8 2.4 17.2A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.8L13.7 3.8a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>',
       trash: '<path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 15H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path>'
     };
@@ -2483,6 +2892,10 @@
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
+    function createStoryDraft() {
+      return { file: null, url: "", type: "", filter: STORY_FILTERS[0].id, text: "", color: "#ffffff" };
+    }
+
     const state = {
       mode: "login",
       tab: "feed",
@@ -2499,7 +2912,16 @@
       selectedPostId: null,
       reportPostId: null,
       selectedReportReason: REPORT_REASONS[0],
-      storyDraft: { file: null, url: "", type: "", filter: "none", text: "", color: "#ffffff" }
+      storyDraft: createStoryDraft(),
+      storyCamera: {
+        stream: null,
+        facingMode: "environment",
+        mode: "photo",
+        recorder: null,
+        chunks: [],
+        recordTimer: null,
+        isRecording: false
+      }
     };
 
     function loadJson(key, fallback) {
@@ -2623,7 +3045,8 @@
       const node = $(`#${id}`);
       if (!node) return;
       node.textContent = message || "";
-      node.className = `status ${kind}`.trim();
+      const baseClass = id === "storyStatus" ? "story-camera-status" : "status";
+      node.className = `${baseClass} ${kind}`.trim();
     }
 
     function showModal(id) {
@@ -2631,6 +3054,7 @@
     }
 
     function closeModal(id) {
+      if (id === "storyModal") stopStoryCamera();
       $(`#${id}`)?.classList.remove("active");
     }
 
@@ -3135,42 +3559,308 @@
         </button>`;
     }
 
+    function renderStoryFilterRail() {
+      const rail = $("#storyFilterRail");
+      if (!rail) return;
+      rail.innerHTML = STORY_FILTERS.map(filter => `
+        <button class="story-filter-btn" data-story-filter="${escapeAttr(filter.id)}" type="button">
+          ${icon(filter.icon, 30)}
+          <span>${escapeHtml(filter.label)}</span>
+        </button>
+      `).join("");
+      $$(".story-filter-btn", rail).forEach(btn => {
+        btn.addEventListener("click", () => setStoryFilter(btn.dataset.storyFilter));
+      });
+    }
+
+    function setElementFilterClass(element, filterId) {
+      if (!element) return;
+      Array.from(element.classList)
+        .filter(className => className.startsWith("filter-"))
+        .forEach(className => element.classList.remove(className));
+      element.classList.add(`filter-${filterId || STORY_FILTERS[0].id}`);
+    }
+
+    function canvasFilterForStoryFilter(filterId) {
+      const filters = {
+        heatwave: "sepia(.42) saturate(1.85) contrast(1.08) brightness(1.06) hue-rotate(-12deg)",
+        hologram: "saturate(1.7) contrast(1.16) brightness(1.08) hue-rotate(148deg)",
+        glitch: "saturate(2.2) contrast(1.2) brightness(1.03) hue-rotate(292deg)",
+        matrix: "sepia(.34) saturate(2.1) contrast(1.18) brightness(.95) hue-rotate(62deg)",
+        scanner: "grayscale(.18) sepia(.3) saturate(1.8) contrast(1.22) hue-rotate(122deg)",
+        xray: "invert(.86) grayscale(.55) contrast(1.3) brightness(1.08)",
+        infrared: "sepia(.66) saturate(2.6) contrast(1.16) brightness(1.02) hue-rotate(300deg)",
+        neon: "saturate(2.35) contrast(1.24) brightness(1.07) hue-rotate(186deg)",
+        vaporwave: "saturate(2) contrast(1.12) brightness(1.07) hue-rotate(268deg)"
+      };
+      return filters[filterId] || "none";
+    }
+
+    function namedBlob(blob, name) {
+      try {
+        return new File([blob], name, { type: blob.type || "application/octet-stream" });
+      } catch {
+        blob.name = name;
+        return blob;
+      }
+    }
+
+    function updateStoryStatusPill(label = "READY") {
+      const pill = $("#storyCameraStatusPill");
+      if (!pill) return;
+      const mode = state.storyCamera.mode === "video" ? "VIDEO" : "PHOTO";
+      pill.innerHTML = `${mode} <span>•</span> ${label}`;
+      pill.classList.toggle("recording", label === "REC");
+      $("#storyShutterBtn")?.classList.toggle("recording", label === "REC");
+    }
+
+    function clearStoryMedia() {
+      if (state.storyDraft?.url?.startsWith("blob:")) URL.revokeObjectURL(state.storyDraft.url);
+      state.storyDraft.file = null;
+      state.storyDraft.url = "";
+      state.storyDraft.type = "";
+      const fileInput = $("#storyFile");
+      if (fileInput) fileInput.value = "";
+    }
+
+    function setStoryDraftMedia(file, type) {
+      clearStoryMedia();
+      state.storyDraft.file = file;
+      state.storyDraft.type = type;
+      state.storyDraft.url = URL.createObjectURL(file);
+      renderStoryPreview();
+      updateStoryStatusPill("READY");
+      setStatus("storyStatus", "");
+    }
+
+    function setStoryFilter(filterId) {
+      const nextFilter = STORY_FILTERS.some(filter => filter.id === filterId) ? filterId : STORY_FILTERS[0].id;
+      state.storyDraft.filter = nextFilter;
+      $$(".story-filter-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.storyFilter === nextFilter);
+      });
+      setElementFilterClass($("#storyCameraVideo"), nextFilter);
+      renderStoryPreview();
+    }
+
+    function setStoryMode(mode, restartCamera = true) {
+      const nextMode = mode === "video" ? "video" : "photo";
+      const changed = state.storyCamera.mode !== nextMode;
+      state.storyCamera.mode = nextMode;
+      $("#storyPhotoModeBtn")?.classList.toggle("active", nextMode === "photo");
+      $("#storyVideoModeBtn")?.classList.toggle("active", nextMode === "video");
+      updateStoryStatusPill(state.storyCamera.isRecording ? "REC" : "READY");
+      if (changed && restartCamera && $("#storyModal")?.classList.contains("active")) startStoryCamera();
+    }
+
+    async function startStoryCamera() {
+      stopStoryCamera();
+      const video = $("#storyCameraVideo");
+      if (!video || !navigator.mediaDevices?.getUserMedia) {
+        setStatus("storyStatus", "Camera unavailable. Use the gallery button.", "error");
+        return;
+      }
+      const videoConstraint = { facingMode: { ideal: state.storyCamera.facingMode } };
+      const wantsAudio = state.storyCamera.mode === "video";
+      try {
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraint, audio: wantsAudio });
+        } catch (err) {
+          if (!wantsAudio) throw err;
+          stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraint, audio: false });
+        }
+        if (!$("#storyModal")?.classList.contains("active")) {
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+        state.storyCamera.stream = stream;
+        video.srcObject = stream;
+        setElementFilterClass(video, state.storyDraft.filter);
+        await video.play().catch(() => {});
+        updateStoryStatusPill("READY");
+        setStatus("storyStatus", "");
+      } catch (err) {
+        setStatus("storyStatus", "Camera permission is blocked. Tap the gallery icon to pick media.", "error");
+        updateStoryStatusPill("READY");
+      }
+    }
+
+    function stopStoryCamera() {
+      if (state.storyCamera.recordTimer) {
+        clearTimeout(state.storyCamera.recordTimer);
+        state.storyCamera.recordTimer = null;
+      }
+      if (state.storyCamera.recorder?.state === "recording") {
+        try { state.storyCamera.recorder.stop(); } catch {}
+      }
+      state.storyCamera.recorder = null;
+      state.storyCamera.chunks = [];
+      state.storyCamera.isRecording = false;
+      state.storyCamera.stream?.getTracks?.().forEach(track => track.stop());
+      state.storyCamera.stream = null;
+      const video = $("#storyCameraVideo");
+      if (video) {
+        video.pause();
+        video.srcObject = null;
+      }
+      updateStoryStatusPill("READY");
+    }
+
+    function flipStoryCamera() {
+      state.storyCamera.facingMode = state.storyCamera.facingMode === "environment" ? "user" : "environment";
+      if ($("#storyModal")?.classList.contains("active")) startStoryCamera();
+    }
+
     function openStoryCreator() {
-      state.storyDraft = { file: null, url: "", type: "", filter: "none", text: "", color: "#ffffff" };
+      clearStoryMedia();
+      state.storyDraft = createStoryDraft();
+      state.storyCamera.mode = "photo";
+      state.storyCamera.isRecording = false;
       $("#storyFile").value = "";
       $("#storyText").value = "";
       $("#storyTextColor").value = "#ffffff";
-      $("#storyFilter").value = "none";
+      setStoryMode("photo", false);
+      setStoryFilter(state.storyDraft.filter);
       renderStoryPreview();
       setStatus("storyStatus", "");
       showModal("storyModal");
+      startStoryCamera();
     }
 
     function updateStoryDraftFromInputs() {
-      state.storyDraft.filter = $("#storyFilter").value;
-      state.storyDraft.text = $("#storyText").value;
-      state.storyDraft.color = $("#storyTextColor").value;
+      state.storyDraft.text = $("#storyText")?.value || "";
+      state.storyDraft.color = $("#storyTextColor")?.value || "#ffffff";
       renderStoryPreview();
     }
 
     function handleStoryFile() {
       const file = $("#storyFile").files?.[0];
       if (!file) return;
-      state.storyDraft.file = file;
-      state.storyDraft.url = URL.createObjectURL(file);
-      state.storyDraft.type = file.type.startsWith("video/") ? "video" : "image";
+      setStoryDraftMedia(file, file.type.startsWith("video/") ? "video" : "image");
+    }
+
+    async function captureStoryPhoto() {
+      const video = $("#storyCameraVideo");
+      if (!video?.srcObject || !video.videoWidth || !video.videoHeight) {
+        $("#storyFile")?.click();
+        return;
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.filter = canvasFilterForStoryFilter(state.storyDraft.filter);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => {
+        if (!blob) {
+          setStatus("storyStatus", "Could not capture photo.", "error");
+          return;
+        }
+        setStoryDraftMedia(namedBlob(blob, `cuevas-story-${Date.now()}.jpg`), "image");
+      }, "image/jpeg", 0.92);
+    }
+
+    function preferredStoryVideoMime() {
+      if (!window.MediaRecorder?.isTypeSupported) return "";
+      return ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm", "video/mp4"]
+        .find(type => MediaRecorder.isTypeSupported(type)) || "";
+    }
+
+    async function startStoryRecording() {
+      if (!window.MediaRecorder) {
+        setStatus("storyStatus", "Video recording is not supported here. Use the gallery icon.", "error");
+        $("#storyFile")?.click();
+        return;
+      }
+      if (!state.storyCamera.stream) await startStoryCamera();
+      const stream = state.storyCamera.stream;
+      if (!stream) {
+        $("#storyFile")?.click();
+        return;
+      }
+      clearStoryMedia();
       renderStoryPreview();
+      const mimeType = preferredStoryVideoMime();
+      const options = mimeType ? { mimeType } : undefined;
+      const recorder = new MediaRecorder(stream, options);
+      state.storyCamera.chunks = [];
+      recorder.ondataavailable = event => {
+        if (event.data?.size) state.storyCamera.chunks.push(event.data);
+      };
+      recorder.onstop = () => {
+        const type = recorder.mimeType || mimeType || "video/webm";
+        const ext = type.includes("mp4") ? "mp4" : "webm";
+        const blob = new Blob(state.storyCamera.chunks, { type });
+        state.storyCamera.recorder = null;
+        state.storyCamera.chunks = [];
+        state.storyCamera.isRecording = false;
+        if (state.storyCamera.recordTimer) {
+          clearTimeout(state.storyCamera.recordTimer);
+          state.storyCamera.recordTimer = null;
+        }
+        updateStoryStatusPill("READY");
+        if (blob.size) setStoryDraftMedia(namedBlob(blob, `cuevas-story-${Date.now()}.${ext}`), "video");
+      };
+      state.storyCamera.recorder = recorder;
+      state.storyCamera.isRecording = true;
+      recorder.start(250);
+      updateStoryStatusPill("REC");
+      setStatus("storyStatus", "Recording...");
+      state.storyCamera.recordTimer = setTimeout(stopStoryRecording, 15000);
+    }
+
+    function stopStoryRecording() {
+      if (state.storyCamera.recorder?.state === "recording") {
+        state.storyCamera.recorder.stop();
+      }
+    }
+
+    function handleStoryShutter() {
+      if (state.storyCamera.mode === "video") {
+        if (state.storyCamera.isRecording) stopStoryRecording();
+        else startStoryRecording();
+        return;
+      }
+      captureStoryPhoto();
+    }
+
+    function retakeStoryMedia() {
+      clearStoryMedia();
+      renderStoryPreview();
+      updateStoryStatusPill("READY");
+      setStatus("storyStatus", "");
     }
 
     function renderStoryPreview() {
       const draft = state.storyDraft;
-      const media = draft.url
-        ? draft.type === "video"
-          ? `<video class="filter-${escapeAttr(draft.filter)}" src="${escapeAttr(draft.url)}" muted autoplay loop playsinline></video>`
-          : `<img class="filter-${escapeAttr(draft.filter)}" src="${escapeAttr(draft.url)}" alt="" />`
-        : `<div class="empty" style="margin:14px;">Add a photo or video</div>`;
-      const overlay = draft.text ? `<div class="story-text" style="color:${escapeAttr(draft.color)}">${escapeHtml(draft.text)}</div>` : "";
-      $("#storyPreview").innerHTML = `${media}${overlay}`;
+      setElementFilterClass($("#storyCameraVideo"), draft.filter);
+      const captured = $("#storyCapturedMedia");
+      if (captured) {
+        if (draft.url) {
+          captured.classList.add("active");
+          captured.innerHTML = draft.type === "video"
+            ? `<video src="${escapeAttr(draft.url)}" muted autoplay loop playsinline></video>`
+            : `<img src="${escapeAttr(draft.url)}" alt="" />`;
+          setElementFilterClass(captured.querySelector("video, img"), draft.filter);
+        } else {
+          captured.classList.remove("active");
+          captured.innerHTML = "";
+        }
+      }
+      const overlay = $("#storyTextOverlay");
+      if (overlay) {
+        overlay.textContent = draft.text || "";
+        overlay.style.color = draft.color || "#ffffff";
+        overlay.classList.toggle("hidden", !draft.text);
+      }
+      const colorDot = $(".story-color-dot");
+      if (colorDot) colorDot.style.backgroundColor = draft.color || "#ffffff";
+      const hasMedia = Boolean(draft.file);
+      $(".story-caption-control")?.classList.toggle("active", hasMedia);
+      $("#saveStoryBtn")?.classList.toggle("ready", hasMedia);
+      if ($("#saveStoryBtn")) $("#saveStoryBtn").disabled = !hasMedia;
+      $("#storyRetakeBtn")?.classList.toggle("hidden", !hasMedia);
     }
 
     async function saveStory() {
@@ -3837,8 +4527,14 @@
       $("#commentInput").addEventListener("keydown", e => {
         if (e.key === "Enter") addComment();
       });
+      renderStoryFilterRail();
       $("#storyFile").addEventListener("change", handleStoryFile);
-      $("#storyFilter").addEventListener("change", updateStoryDraftFromInputs);
+      $("#storyGalleryBtn").addEventListener("click", () => $("#storyFile").click());
+      $("#storyFlipBtn").addEventListener("click", flipStoryCamera);
+      $("#storyPhotoModeBtn").addEventListener("click", () => setStoryMode("photo"));
+      $("#storyVideoModeBtn").addEventListener("click", () => setStoryMode("video"));
+      $("#storyShutterBtn").addEventListener("click", handleStoryShutter);
+      $("#storyRetakeBtn").addEventListener("click", retakeStoryMedia);
       $("#storyText").addEventListener("input", updateStoryDraftFromInputs);
       $("#storyTextColor").addEventListener("input", updateStoryDraftFromInputs);
       $("#saveStoryBtn").addEventListener("click", saveStory);
