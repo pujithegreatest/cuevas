@@ -1115,7 +1115,7 @@ export default function ProfileScreen({ navigation }: Props) {
                     </Text>
                   </View>
                 </View>
-                <Ionicons name="log-out-outline" size={22} color="#06A7A1" />
+                <Ionicons name="chevron-forward" size={20} color="#06A7A1" />
               </View>
             </Pressable>
 
@@ -1168,36 +1168,41 @@ export default function ProfileScreen({ navigation }: Props) {
               style={({ pressed }) => ({
                 borderRadius: 20,
                 borderWidth: 1,
-                borderColor: isDarkMode ? "rgba(6,167,161,0.42)" : "rgba(6,167,161,0.32)",
-                backgroundColor: isDarkMode ? "rgba(6,167,161,0.10)" : "#F0FFFD",
-                padding: 16,
-                marginTop: 12,
+                borderColor: isDarkMode ? "rgba(6,167,161,0.62)" : "rgba(6,167,161,0.38)",
+                backgroundColor: isDarkMode ? "rgba(6,167,161,0.14)" : "#E8FFFC",
+                paddingVertical: 16,
+                paddingHorizontal: 18,
+                marginTop: 16,
+                minHeight: 92,
+                justifyContent: "center",
                 opacity: pressed ? 0.78 : 1,
               })}
             >
               <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center flex-1">
+                <View className="flex-row items-center flex-1" style={{ minWidth: 0 }}>
                   <View
                     style={{
                       width: 42,
                       height: 42,
                       borderRadius: 16,
-                      backgroundColor: isDarkMode ? "rgba(6,167,161,0.16)" : "#DFFFFB",
+                      backgroundColor: "#06A7A1",
                       alignItems: "center",
                       justifyContent: "center",
                       marginRight: 12,
                     }}
                   >
-                    <Ionicons name="log-out-outline" size={22} color="#06A7A1" />
+                    <Ionicons name="log-out-outline" size={22} color="#FFFFFF" />
                   </View>
-                  <View className="flex-1">
-                    <Text className={`font-bold ${textColor}`}>Log Out</Text>
-                    <Text className={`text-xs mt-1 ${subText}`}>
+                  <View className="flex-1" style={{ minWidth: 0 }}>
+                    <Text className={`font-bold ${textColor}`} numberOfLines={1}>
+                      Log Out
+                    </Text>
+                    <Text className={`text-xs mt-1 ${subText}`} numberOfLines={2}>
                       Sign out of this account and return to the login screen.
                     </Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#06A7A1" />
+                <Ionicons name="chevron-forward" size={20} color="#06A7A1" style={{ marginLeft: 12 }} />
               </View>
             </Pressable>
 
