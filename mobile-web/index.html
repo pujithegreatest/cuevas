@@ -723,6 +723,115 @@
       width: 100%;
     }
 
+    .mission-share-card {
+      margin: 10px 0 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(6,167,161,.38);
+      background: rgba(6,43,49,.72);
+      overflow: hidden;
+    }
+
+    .mission-share-card:before {
+      content: "";
+      display: block;
+      height: 6px;
+      background: var(--accent);
+      opacity: .9;
+    }
+
+    .mission-share-inner {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .mission-share-head {
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .mission-share-coin {
+      width: 44px;
+      height: 44px;
+      border-radius: 15px;
+      background: #062b31;
+      display: grid;
+      place-items: center;
+    }
+
+    .mission-share-coin img {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .mission-share-host {
+      color: var(--accent);
+      font-size: 11px;
+      line-height: 1;
+      font-weight: 950;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mission-share-title {
+      margin-top: 3px;
+      color: #CFEFEC;
+      font-size: 16px;
+      line-height: 1.12;
+      font-weight: 950;
+      overflow-wrap: anywhere;
+    }
+
+    .mission-share-points {
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: rgba(6,167,161,.18);
+      color: var(--accent);
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .mission-share-copy {
+      margin: 0;
+      color: rgba(207,239,236,.72);
+      font-size: 12px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .mission-share-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .mission-share-chip {
+      min-height: 28px;
+      border-radius: 999px;
+      padding: 5px 8px;
+      background: rgba(255,255,255,.07);
+      color: rgba(207,239,236,.72);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 850;
+      max-width: 100%;
+    }
+
+    .mission-share-chip .svg-icon {
+      color: var(--accent);
+      flex: 0 0 auto;
+    }
+
     .action-row {
       display: flex;
       align-items: center;
@@ -1136,6 +1245,138 @@
       color: var(--accent);
       font-size: 12px;
       font-weight: 850;
+    }
+
+    .mission-chat-sheet {
+      width: min(460px, 100%);
+      max-height: calc(100dvh - 24px - var(--safe-top));
+      border-radius: 22px 22px 8px 8px;
+      border: 1px solid rgba(6,167,161,.32);
+      background: #101923;
+      box-shadow: 0 24px 70px rgba(0,0,0,.44);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    .mission-chat-head {
+      min-height: 76px;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 1fr 44px;
+      gap: 12px;
+      align-items: center;
+      border-bottom: 1px solid rgba(6,167,161,.18);
+    }
+
+    .mission-chat-title {
+      margin: 0;
+      color: #CFEFEC;
+      font-size: 20px;
+      line-height: 1.1;
+      font-weight: 950;
+    }
+
+    .mission-chat-subtitle {
+      margin-top: 4px;
+      color: rgba(207,239,236,.62);
+      font-size: 12px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+
+    .mission-chat-list {
+      min-height: 260px;
+      max-height: min(52dvh, 520px);
+      overflow-y: auto;
+      padding: 14px;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      background:
+        radial-gradient(circle at 18% 6%, rgba(6,167,161,.12), transparent 32%),
+        #071019;
+    }
+
+    .mission-chat-message {
+      width: fit-content;
+      max-width: 84%;
+      border-radius: 16px 16px 16px 6px;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.07);
+      color: #E9FFFC;
+      display: grid;
+      gap: 4px;
+    }
+
+    .mission-chat-message.mine {
+      justify-self: end;
+      border-radius: 16px 16px 6px 16px;
+      background: rgba(6,167,161,.25);
+      border-color: rgba(6,167,161,.42);
+    }
+
+    .mission-chat-author {
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 950;
+    }
+
+    .mission-chat-text {
+      font-size: 14px;
+      line-height: 1.35;
+      font-weight: 750;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .mission-chat-meta {
+      color: rgba(207,239,236,.52);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .mission-chat-compose {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr 58px;
+      gap: 10px;
+      align-items: end;
+      border-top: 1px solid rgba(6,167,161,.18);
+      background: #101923;
+    }
+
+    .mission-chat-compose textarea {
+      min-height: 48px;
+      max-height: 120px;
+      resize: vertical;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: #070d17;
+      color: #f7fbff;
+      padding: 12px;
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .mission-chat-send {
+      height: 48px;
+      border-radius: 16px;
+      border: 0;
+      background: var(--accent);
+      color: #001211;
+      font-weight: 950;
+    }
+
+    .mission-chat-status {
+      min-height: 18px;
+      padding: 0 14px 10px;
+      background: #101923;
+      color: rgba(207,239,236,.62);
+      font-size: 12px;
+      font-weight: 800;
     }
 
     .pill-row {
@@ -3553,6 +3794,7 @@
           </div>
         </div>
         <textarea id="postContent" class="composer-textarea" placeholder="What's happening?" rows="8"></textarea>
+        <div id="composerMissionShare"></div>
         <select id="postPrivacy" class="hidden-native-input" aria-hidden="true" tabindex="-1">
           <option value="public">Public</option>
           <option value="friends">Friends</option>
@@ -3676,6 +3918,26 @@
     </div>
   </div>
 
+  <div id="missionChatModal" class="modal" role="dialog" aria-modal="true">
+    <div class="mission-chat-sheet">
+      <div class="mission-chat-head">
+        <div style="min-width:0;">
+          <h3 id="missionChatTitle" class="mission-chat-title">Mission Chat</h3>
+          <div id="missionChatSubtitle" class="mission-chat-subtitle">Unlocked after adding a mission.</div>
+        </div>
+        <button class="icon-btn" data-close="missionChatModal" type="button" aria-label="Close mission chat">
+          <span data-icon="x"></span>
+        </button>
+      </div>
+      <div id="missionChatList" class="mission-chat-list"></div>
+      <div class="mission-chat-compose">
+        <textarea id="missionChatInput" placeholder="Message the mission thread" maxlength="600"></textarea>
+        <button id="sendMissionChatBtn" class="mission-chat-send" type="button">Send</button>
+      </div>
+      <div id="missionChatStatus" class="mission-chat-status"></div>
+    </div>
+  </div>
+
   <div id="reportModal" class="modal" role="dialog" aria-modal="true">
     <div class="sheet">
       <div class="sheet-head">
@@ -3722,6 +3984,7 @@
     const WALLET_BASE = "https://us-central1-ecothot-social-media.cloudfunctions.net";
     const CUEVAS_CLIENT_KEY = "ecothot-super-secret-9384fjksd";
     const GOOGLE_WEB_CLIENT_ID = "863626649134-vun8tehljbs51ih61ccomheqhhjmtfnf.apps.googleusercontent.com";
+    const MISSION_CHAT_ENDPOINTS = ["missionChatMessages", "missionchatmessages"];
 
     const REPORT_REASONS = [
       "Spam or scam",
@@ -3883,6 +4146,11 @@
       missions: [],
       missionQueueIds: loadJson("cuevas.web.missionQueueIds", []),
       missionStatuses: {},
+      composerMissionShare: null,
+      chatMissionId: null,
+      chatMessages: [],
+      chatStatus: "",
+      chatLoading: false,
       leaderboard: [],
       leaderboardOpen: false,
       selectedPostId: null,
@@ -4277,7 +4545,8 @@
         commentsList: [...commentsList, ...localComments],
         isLiked: false,
         privacy: item.Privacy || item.privacy || item.PostPrivacy || "public",
-        authorRewardPoints: Number(item.authorRewardPoints ?? item.cuevas ?? 0) || 0
+        authorRewardPoints: Number(item.authorRewardPoints ?? item.cuevas ?? 0) || 0,
+        missionShare: normalizeMissionShare(item.MissionShare || item.missionShare || item["Mission Share"] || item.mission_share)
       };
     }
 
@@ -4289,6 +4558,39 @@
       } catch {
         return null;
       }
+    }
+
+    function normalizeMissionShare(raw) {
+      const parsed = parseMaybeJson(raw);
+      if (!parsed || typeof parsed !== "object") return null;
+      const id = text(parsed.id || "").trim();
+      const title = text(parsed.title || "").trim();
+      if (!id || !title) return null;
+      const points = Number(parsed.points || 0);
+      const durationHours = Number(parsed.durationHours || 0);
+      const goingCount = Number(parsed.goingCount || 0);
+      return {
+        ...parsed,
+        id,
+        title,
+        description: text(parsed.description || ""),
+        points: Number.isFinite(points) && points > 0 ? points : undefined,
+        durationHours: Number.isFinite(durationHours) && durationHours > 0 ? durationHours : undefined,
+        goingCount: Number.isFinite(goingCount) && goingCount >= 0 ? goingCount : undefined,
+        location: text(parsed.location || ""),
+        eventDate: text(parsed.eventDate || ""),
+        eventDateISO: text(parsed.eventDateISO || ""),
+        type: text(parsed.type || ""),
+        difficulty: text(parsed.difficulty || ""),
+        peopleNeeded: parsed.peopleNeeded ?? "",
+        gearProvided: Boolean(parsed.gearProvided),
+        materialsNote: text(parsed.materialsNote || ""),
+        eventUrl: text(parsed.eventUrl || ""),
+        businessName: text(parsed.businessName || ""),
+        businessHandle: normalizeHandle(parsed.businessHandle || parsed.businessName || "cuevas-partner"),
+        businessVerified: Boolean(parsed.businessVerified),
+        status: text(parsed.status || "")
+      };
     }
 
     function normalizeMediaUrl(url) {
@@ -4334,6 +4636,7 @@
             </div>
           </div>
           ${post.content ? `<p class="post-body">${escapeHtml(post.content)}</p>` : ""}
+          ${post.missionShare ? renderMissionShareCard(post.missionShare) : ""}
           ${mediaHtml}
           <div class="action-row">
             <button class="action like-btn ${post.isLiked ? "active" : ""}" type="button" aria-label="Like">${icon("zap", 30)}<span>${post.likes}</span></button>
@@ -4343,6 +4646,37 @@
             <button class="action ${owner ? "" : "hidden"} delete-post-btn" type="button" aria-label="Delete">${icon("trash", 28)}</button>
           </div>
         </article>`;
+    }
+
+    function renderMissionShareCard(mission, extraClass = "") {
+      const points = Number(mission.points || 0);
+      const details = [
+        ["location", mission.location],
+        ["calendar", mission.eventDate],
+        ["hourglass", mission.durationHours ? `${mission.durationHours} hr` : ""],
+        ["shield", mission.difficulty]
+      ].filter(([, label]) => text(label));
+      return `
+        <div class="mission-share-card ${escapeAttr(extraClass)}">
+          <div class="mission-share-inner">
+            <div class="mission-share-head">
+              <div class="mission-share-coin"><img src="coin.gif" alt="" /></div>
+              <div style="min-width:0;">
+                <div class="mission-share-host">
+                  <span>@${escapeHtml(mission.businessHandle || "cuevas-partner")}</span>
+                  ${mission.businessVerified ? icon("check-circle", 13) : ""}
+                </div>
+                <div class="mission-share-title">${escapeHtml(mission.title || "Cuevas Mission")}</div>
+              </div>
+              ${points > 0 ? `<div class="mission-share-points">+${points.toLocaleString()} ₡</div>` : ""}
+            </div>
+            ${mission.description ? `<p class="mission-share-copy">${escapeHtml(mission.description)}</p>` : ""}
+            ${details.length ? `
+              <div class="mission-share-chip-row">
+                ${details.map(([iconName, label]) => `<span class="mission-share-chip">${icon(iconName, 12)}<span>${escapeHtml(label)}</span></span>`).join("")}
+              </div>` : ""}
+          </div>
+        </div>`;
     }
 
     function renderPostMedia(post) {
@@ -4502,16 +4836,17 @@
     function updateComposerState() {
       const content = $("#postContent")?.value.trim() || "";
       const files = Array.from($("#postFiles")?.files || []);
-      const hasPostBody = Boolean(content || files.length);
+      const hasPostBody = Boolean(content || files.length || state.composerMissionShare);
       $("#publishPostBtn").disabled = !hasPostBody;
       $("#publishPostBtn").classList.toggle("ready", hasPostBody);
       const label = $("#composerAttachLabel");
       if (label) {
         const hasAudio = files.some(file => file.type.startsWith("audio/"));
         const mediaCount = files.filter(file => !file.type.startsWith("audio/")).length;
-        label.textContent = hasAudio ? "Audio attached" : mediaCount ? `Change media (${mediaCount})` : "Add media/audio";
+        label.textContent = hasAudio ? "Audio attached" : mediaCount ? `Change media (${mediaCount})` : state.composerMissionShare ? "Mission attached" : "Add media/audio";
       }
       updateComposerIdentity();
+      renderComposerMissionShare();
     }
 
     function cyclePostPrivacy() {
@@ -4538,7 +4873,24 @@
       input.click();
     }
 
-    function openComposer() {
+    function renderComposerMissionShare() {
+      const node = $("#composerMissionShare");
+      if (!node) return;
+      if (!state.composerMissionShare) {
+        node.innerHTML = "";
+        return;
+      }
+      node.innerHTML = `
+        ${renderMissionShareCard(state.composerMissionShare, "composer-attached-mission")}
+        <button id="removeComposerMissionBtn" class="mission-action" type="button" style="font-size:13px; margin: -6px 0 8px;">${icon("x", 16)}<span>Remove attached mission</span></button>`;
+      $("#removeComposerMissionBtn")?.addEventListener("click", () => {
+        state.composerMissionShare = null;
+        updateComposerState();
+      });
+    }
+
+    function openComposer(missionShare = null) {
+      state.composerMissionShare = normalizeMissionShare(missionShare);
       setStatus("composerStatus", "");
       updateComposerState();
       showModal("composerModal");
@@ -4548,7 +4900,7 @@
     async function publishPost() {
       const content = $("#postContent").value.trim();
       const files = Array.from($("#postFiles").files || []);
-      if (!content && files.length === 0) {
+      if (!content && files.length === 0 && !state.composerMissionShare) {
         setStatus("composerStatus", "Add text or media first.", "error");
         updateComposerState();
         return;
@@ -4581,6 +4933,11 @@
           Privacy: $("#postPrivacy").value,
           privacy: $("#postPrivacy").value
         };
+        if (state.composerMissionShare) {
+          const serializedMission = JSON.stringify(state.composerMissionShare);
+          body.MissionShare = serializedMission;
+          body.missionShare = serializedMission;
+        }
         if (audio) {
           body.AudioUrl = audio.uri;
           body.Audio = JSON.stringify(audio);
@@ -4596,6 +4953,7 @@
         $("#postFiles").value = "";
         $("#postPreview").innerHTML = "";
         $("#postPrivacy").value = "public";
+        state.composerMissionShare = null;
         updateComposerState();
         closeModal("composerModal");
         renderFeed();
@@ -5809,6 +6167,30 @@
       };
     }
 
+    function toMissionShare(mission) {
+      return normalizeMissionShare({
+        id: mission.id,
+        title: mission.title,
+        description: mission.description,
+        points: mission.points,
+        durationHours: mission.durationHours,
+        location: mission.location,
+        eventDate: mission.eventDate,
+        eventDateISO: mission.eventDateISO,
+        type: mission.type,
+        difficulty: mission.difficulty,
+        peopleNeeded: mission.peopleNeeded,
+        gearProvided: mission.gearProvided,
+        materialsNote: mission.materialsNote,
+        eventUrl: mission.eventUrl,
+        businessName: mission.businessName,
+        businessHandle: mission.businessHandle,
+        businessVerified: mission.businessVerified,
+        goingCount: mission.goingCount,
+        status: mission.status
+      });
+    }
+
     function renderMissions() {
       const activeMissions = state.missions.filter(mission => !["completed", "archived", "deleted"].includes(text(mission.status || "active").toLowerCase()));
       const queueSet = new Set(state.missionQueueIds);
@@ -5862,6 +6244,7 @@
           <div class="mission-action-list">
             <button class="mission-action mission-share-btn" type="button">${icon("repeat", 24)}<span>Reshare Mission</span></button>
             <button class="mission-action primary mission-toggle-btn" type="button">${icon(isQueued ? "check-circle" : "plus", 24)}<span>${isQueued ? "Added to My Missions" : "Add to My Missions"}</span></button>
+            ${isQueued ? `<button class="mission-action mission-chat-btn" type="button">${icon("chat", 24)}<span>Mission Chat</span></button>` : ""}
             <button class="mission-action mission-calendar-btn" type="button">${icon("calendar", 24)}<span>Add to Calendar</span></button>
             ${mission.eventUrl ? `<button class="mission-action mission-event-btn" type="button">${icon("globe", 24)}<span>Open Event Page</span></button>` : ""}
             <div class="mission-action-status">${escapeHtml(status)}</div>
@@ -5873,6 +6256,7 @@
       $$(".mission-toggle-btn").forEach(btn => btn.addEventListener("click", () => toggleMissionQueue(btn.closest("[data-mission-id]").dataset.missionId)));
       $$(".mission-calendar-btn").forEach(btn => btn.addEventListener("click", () => addMissionToCalendar(btn.closest("[data-mission-id]").dataset.missionId)));
       $$(".mission-share-btn").forEach(btn => btn.addEventListener("click", () => shareMission(btn.closest("[data-mission-id]").dataset.missionId)));
+      $$(".mission-chat-btn").forEach(btn => btn.addEventListener("click", () => openMissionChat(btn.closest("[data-mission-id]").dataset.missionId)));
       $$(".mission-event-btn").forEach(btn => btn.addEventListener("click", () => openMissionEvent(btn.closest("[data-mission-id]").dataset.missionId)));
     }
 
@@ -5908,7 +6292,7 @@
           })
         });
         mission.goingCount = Number(json.goingCount || mission.goingCount + 1);
-        state.missionStatuses[missionId] = "Added to My Missions.";
+        state.missionStatuses[missionId] = "Added to My Missions. Mission chat unlocked.";
         renderMissions();
       } catch (err) {
         state.missionStatuses[missionId] = err.message || "Could not join mission.";
@@ -5962,24 +6346,162 @@
     async function shareMission(missionId) {
       const mission = state.missions.find(m => m.id === missionId);
       if (!mission) return;
-      const shareText = `Cuevas Mission: ${mission.title}\n${mission.description}\n${mission.location} - ${mission.eventDate}`;
-      if (navigator.share) {
+      openComposer(toMissionShare(mission));
+      state.missionStatuses[missionId] = "Mission attached to your post.";
+      renderMissions();
+    }
+
+    function selectedChatMission() {
+      return state.missions.find(mission => mission.id === state.chatMissionId) || null;
+    }
+
+    function normalizeMissionChatMessage(item) {
+      return {
+        id: text(item?.id || item?._id || `chat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`),
+        missionId: text(item?.missionId || item?.MissionId || ""),
+        text: text(item?.text || item?.Text || ""),
+        authorEmail: item?.authorEmail || item?.AuthorEmail || "",
+        authorHandle: text(item?.authorHandle || item?.AuthorHandle || "cuevas"),
+        authorRole: item?.authorRole === "vendor" || item?.AuthorRole === "vendor" ? "vendor" : "volunteer",
+        businessHandle: item?.businessHandle || item?.BusinessHandle || "",
+        createdAt: text(item?.createdAt || item?.CreatedAt || new Date().toISOString())
+      };
+    }
+
+    function renderMissionChat() {
+      const mission = selectedChatMission();
+      $("#missionChatTitle").textContent = mission?.title || "Mission Chat";
+      $("#missionChatSubtitle").textContent = mission
+        ? `@${mission.businessHandle || "cuevas-partner"} - ${mission.location || "Mission thread"}`
+        : "Unlocked after adding a mission.";
+      $("#missionChatStatus").textContent = state.chatStatus || "";
+      const list = $("#missionChatList");
+      if (!state.chatMessages.length) {
+        list.innerHTML = `<div class="empty">No mission messages yet.</div>`;
+        return;
+      }
+      list.innerHTML = state.chatMessages.map(message => {
+        const mine = normalizeEmail(message.authorEmail) === normalizeEmail(state.session?.email) || normalizeHandle(message.authorHandle) === handleName();
+        return `
+          <div class="mission-chat-message ${mine ? "mine" : ""}">
+            <div class="mission-chat-author">@${escapeHtml(message.authorHandle || "cuevas")}${message.authorRole === "vendor" ? " · partner" : ""}</div>
+            <div class="mission-chat-text">${escapeHtml(message.text)}</div>
+            <div class="mission-chat-meta">${timeAgo(new Date(message.createdAt).getTime() || Date.now())} ago</div>
+          </div>`;
+      }).join("");
+      list.scrollTop = list.scrollHeight;
+    }
+
+    async function fetchMissionChatMessages(mission) {
+      const params = new URLSearchParams({
+        missionId: mission.id,
+        clientKey: CUEVAS_CLIENT_KEY,
+        authorRole: "volunteer"
+      });
+      if (state.session?.email) params.set("userEmail", state.session.email);
+      if (mission.businessHandle) params.set("businessHandle", mission.businessHandle);
+      let lastError = null;
+      for (const endpoint of MISSION_CHAT_ENDPOINTS) {
         try {
-          await navigator.share({ title: mission.title, text: shareText, url: location.href });
-          state.missionStatuses[missionId] = "Mission share opened.";
-          renderMissions();
-          return;
-        } catch {
-          return;
+          const json = await apiJson(`${API_BASE}/${endpoint}?${params}`);
+          return (json.messages || []).map(normalizeMissionChatMessage);
+        } catch (err) {
+          lastError = err;
         }
       }
-      try {
-        await navigator.clipboard.writeText(`${shareText}\n${location.href}`);
-        state.missionStatuses[missionId] = "Mission copied.";
-      } catch {
-        state.missionStatuses[missionId] = "Share unavailable in this browser.";
+      throw lastError || new Error("Mission chat endpoint is not live yet.");
+    }
+
+    async function sendMissionChatMessage(mission, textValue) {
+      let lastError = null;
+      for (const endpoint of MISSION_CHAT_ENDPOINTS) {
+        try {
+          const json = await apiJson(`${API_BASE}/${endpoint}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              clientKey: CUEVAS_CLIENT_KEY,
+              missionId: mission.id,
+              text: textValue,
+              userEmail: state.session?.email || "",
+              userHandle: handleName(),
+              authorRole: "volunteer",
+              businessHandle: mission.businessHandle || ""
+            })
+          });
+          return normalizeMissionChatMessage(json.message || {
+            missionId: mission.id,
+            text: textValue,
+            authorEmail: state.session?.email || "",
+            authorHandle: handleName(),
+            authorRole: "volunteer",
+            businessHandle: mission.businessHandle || "",
+            createdAt: new Date().toISOString()
+          });
+        } catch (err) {
+          lastError = err;
+        }
       }
-      renderMissions();
+      throw lastError || new Error("Mission chat endpoint is not live yet.");
+    }
+
+    async function openMissionChat(missionId) {
+      const mission = state.missions.find(m => m.id === missionId);
+      if (!mission) return;
+      if (!state.missionQueueIds.includes(missionId)) {
+        state.missionStatuses[missionId] = "Add this mission before opening chat.";
+        renderMissions();
+        return;
+      }
+      state.chatMissionId = missionId;
+      state.chatMessages = [];
+      state.chatStatus = "Loading mission chat...";
+      renderMissionChat();
+      showModal("missionChatModal");
+      try {
+        state.chatMessages = await fetchMissionChatMessages(mission);
+        state.chatStatus = "";
+      } catch (err) {
+        state.chatStatus = err.message || "Mission chat failed to load.";
+      }
+      renderMissionChat();
+    }
+
+    async function refreshMissionChat() {
+      const mission = selectedChatMission();
+      if (!mission || state.chatLoading) return;
+      state.chatLoading = true;
+      try {
+        state.chatMessages = await fetchMissionChatMessages(mission);
+        state.chatStatus = "";
+      } catch (err) {
+        state.chatStatus = err.message || "Mission chat failed to refresh.";
+      } finally {
+        state.chatLoading = false;
+        renderMissionChat();
+      }
+    }
+
+    async function sendMissionChat() {
+      const mission = selectedChatMission();
+      const input = $("#missionChatInput");
+      const value = input?.value.trim() || "";
+      if (!mission || !value || state.chatLoading) return;
+      state.chatLoading = true;
+      state.chatStatus = "Sending...";
+      renderMissionChat();
+      try {
+        const message = await sendMissionChatMessage(mission, value);
+        state.chatMessages = [...state.chatMessages, message];
+        input.value = "";
+        state.chatStatus = "";
+        await refreshMissionChat();
+      } catch (err) {
+        state.chatStatus = err.message || "Mission chat failed to send.";
+      } finally {
+        state.chatLoading = false;
+        renderMissionChat();
+      }
     }
 
     function openMissionEvent(missionId) {
@@ -6337,6 +6859,10 @@
         if (activeStory && $("#storyViewer")?.classList.contains("active")) renderStoryViewerDecorations(activeStory);
       });
       $("#sendReportBtn").addEventListener("click", sendReport);
+      $("#sendMissionChatBtn").addEventListener("click", sendMissionChat);
+      $("#missionChatInput").addEventListener("keydown", e => {
+        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") sendMissionChat();
+      });
       $("#logoutTopBtn").addEventListener("click", logout);
       $("#logoutProfileBtn").addEventListener("click", logout);
       $$(".tab").forEach(btn => btn.addEventListener("click", () => setTab(btn.dataset.tab)));
