@@ -1946,6 +1946,248 @@
       font-weight: 950;
     }
 
+    .composer-modal {
+      padding: calc(34px + var(--safe-top)) 0 0;
+      align-items: flex-end;
+      background: rgba(0,0,0,.72);
+    }
+
+    .composer-sheet {
+      width: min(470px, 100vw);
+      height: calc(100dvh - 34px - var(--safe-top));
+      max-height: calc(100dvh - 34px - var(--safe-top));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 16px 16px 0 0;
+      background: #181818;
+      border: 0;
+      box-shadow: 0 -12px 40px rgba(0,0,0,.5);
+    }
+
+    .composer-head {
+      min-height: 66px;
+      display: grid;
+      grid-template-columns: 76px 1fr 92px;
+      align-items: center;
+      padding: 0 15px 0 18px;
+      border-bottom: 1px solid rgba(207,239,236,.18);
+      background: #181818;
+      flex: 0 0 auto;
+    }
+
+    .composer-title {
+      margin: 0;
+      text-align: center;
+      color: #CFEFEC;
+      font-size: 21px;
+      font-weight: 950;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+
+    .composer-close {
+      width: 48px;
+      height: 48px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: #CFEFEC;
+      display: grid;
+      place-items: center;
+      justify-self: start;
+    }
+
+    .composer-close .svg-icon {
+      --icon-size: 34px;
+    }
+
+    .composer-post-btn {
+      min-width: 74px;
+      height: 42px;
+      border: 0;
+      border-radius: 999px;
+      background: #d7dce6;
+      color: #6f7480;
+      font-weight: 950;
+      font-size: 16px;
+      justify-self: end;
+      opacity: 1;
+    }
+
+    .composer-post-btn.ready {
+      background: var(--accent);
+      color: #071314;
+      box-shadow: 0 8px 18px rgba(6,167,161,.18);
+    }
+
+    .composer-post-btn:disabled {
+      cursor: default;
+    }
+
+    .composer-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 30px 30px 18px;
+      background: #181818;
+      overflow-y: auto;
+    }
+
+    .composer-author {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex: 0 0 auto;
+    }
+
+    .composer-privacy-chip {
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      border: 1px solid rgba(6,167,161,.5);
+      background: rgba(6,167,161,.13);
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      box-shadow: inset 0 0 14px rgba(6,167,161,.08);
+    }
+
+    .composer-privacy-chip .svg-icon {
+      --icon-size: 31px;
+    }
+
+    .composer-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #d9fffb;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      font-weight: 950;
+      text-transform: uppercase;
+      flex: 0 0 auto;
+    }
+
+    .composer-author-meta {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      min-width: 0;
+      color: #CFEFEC;
+      font-size: 17px;
+      font-weight: 950;
+    }
+
+    .composer-author-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 48vw;
+    }
+
+    .composer-privacy-label {
+      color: #a5a5b2;
+      font-size: 15px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .composer-textarea {
+      flex: 1 1 auto;
+      min-height: 46dvh;
+      width: 100%;
+      margin: 26px 0 12px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      color: #CFEFEC;
+      font-family: var(--app-font);
+      font-size: 19px;
+      line-height: 1.35;
+      resize: none;
+    }
+
+    .composer-textarea::placeholder {
+      color: #56585d;
+    }
+
+    .composer-textarea:focus {
+      border: 0;
+      box-shadow: none;
+      outline: none;
+    }
+
+    .hidden-native-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .composer-preview {
+      margin-top: 4px;
+      flex: 0 0 auto;
+    }
+
+    .composer-preview:empty {
+      display: none;
+    }
+
+    .composer-status {
+      flex: 0 0 auto;
+      min-height: 20px;
+      margin-top: 8px;
+    }
+
+    .composer-media-rail {
+      min-height: 76px;
+      padding: 14px 30px calc(14px + var(--safe-bottom));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-top: 1px solid rgba(6,167,161,.18);
+      background: #181818;
+      flex: 0 0 auto;
+    }
+
+    .composer-media-actions {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+    }
+
+    .composer-media-btn {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+      padding: 0;
+    }
+
+    .composer-media-btn .svg-icon {
+      --icon-size: 34px;
+    }
+
+    .composer-attach-label {
+      color: #a5a5b2;
+      font-size: 13px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
     .file-preview {
       min-height: 210px;
       border-radius: 8px;
@@ -3274,33 +3516,50 @@
     </div>
   </div>
 
-  <div id="composerModal" class="modal" role="dialog" aria-modal="true">
-    <div class="sheet">
-      <div class="sheet-head">
-        <h3 class="sheet-title">New Post</h3>
-        <button class="icon-btn" data-close="composerModal" type="button">X</button>
+  <div id="composerModal" class="modal composer-modal" role="dialog" aria-modal="true">
+    <div class="composer-sheet">
+      <div class="composer-head">
+        <button class="composer-close" data-close="composerModal" type="button" aria-label="Close create post">
+          <span data-icon="x"></span>
+        </button>
+        <h3 class="composer-title">Create Post</h3>
+        <button id="publishPostBtn" class="composer-post-btn" type="button" disabled>Post</button>
       </div>
-      <div class="field">
-        <label for="postContent">Caption</label>
-        <textarea id="postContent" placeholder="Share something with Cuevas"></textarea>
-      </div>
-      <div class="grid-2" style="margin-top:10px;">
-        <div class="field">
-          <label for="postPrivacy">Privacy</label>
-          <select id="postPrivacy" class="select">
-            <option value="public">Public</option>
-            <option value="friends">Friends</option>
-            <option value="private">Private</option>
-          </select>
+      <div class="composer-body">
+        <div class="composer-author">
+          <button id="postPrivacyTrigger" class="composer-privacy-chip" type="button" aria-label="Change post privacy">
+            <span data-icon="globe"></span>
+          </button>
+          <div id="composerAuthorAvatar" class="composer-avatar">C</div>
+          <div class="composer-author-meta">
+            <span id="composerAuthorName" class="composer-author-name">Cuevas</span>
+            <span id="composerPrivacyLabel" class="composer-privacy-label">Everyone</span>
+          </div>
         </div>
-        <div class="field">
-          <label for="postFiles">Media</label>
-          <input id="postFiles" class="input" type="file" accept="image/*,video/*,audio/*" multiple />
-        </div>
+        <textarea id="postContent" class="composer-textarea" placeholder="What's happening?" rows="8"></textarea>
+        <select id="postPrivacy" class="hidden-native-input" aria-hidden="true" tabindex="-1">
+          <option value="public">Public</option>
+          <option value="friends">Friends</option>
+          <option value="private">Private</option>
+        </select>
+        <input id="postFiles" class="hidden-native-input" type="file" accept="image/*,video/*,audio/*" multiple />
+        <div id="postPreview" class="media-grid composer-preview"></div>
+        <div id="composerStatus" class="status composer-status"></div>
       </div>
-      <div id="postPreview" class="media-grid"></div>
-      <button id="publishPostBtn" class="btn" style="width:100%; margin-top:12px;" type="button">Publish</button>
-      <div id="composerStatus" class="status" style="margin-top:10px;"></div>
+      <div class="composer-media-rail">
+        <div class="composer-media-actions">
+          <button id="postMediaBtn" class="composer-media-btn" type="button" aria-label="Add photo or video">
+            <span data-icon="image"></span>
+          </button>
+          <button id="postCameraBtn" class="composer-media-btn" type="button" aria-label="Open camera">
+            <span data-icon="camera"></span>
+          </button>
+          <button id="postAudioBtn" class="composer-media-btn" type="button" aria-label="Add audio">
+            <span data-icon="music"></span>
+          </button>
+        </div>
+        <span id="composerAttachLabel" class="composer-attach-label">Add media/audio</span>
+      </div>
     </div>
   </div>
 
@@ -3486,6 +3745,11 @@
         ["Skull", "💀"], ["Star", "⭐"], ["Alien", "👽"], ["Robot", "🤖"], ["Moon", "🌙"]
       ]
     };
+    const POST_PRIVACY_OPTIONS = [
+      { value: "public", label: "Everyone", icon: "globe" },
+      { value: "friends", label: "Friends", icon: "people" },
+      { value: "private", label: "Only me", icon: "lock" }
+    ];
 
     const ICONS = {
       sun: '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path>',
@@ -3529,6 +3793,7 @@
       share: '<circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.7 6.8-4.4"></path><path d="m8.6 13.3 6.8 4.4"></path>',
       image: '<rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="8.5" cy="9.5" r="1.5"></circle><path d="m21 15-4.5-4.5L6 21"></path>',
       camera: '<rect x="4" y="5" width="16" height="16" rx="4"></rect><circle cx="12" cy="13" r="4"></circle><path d="M9 5l1.4-2h3.2L15 5"></path>',
+      music: '<path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>',
       wand: '<path d="M15 4V2"></path><path d="M15 16v-2"></path><path d="M8 9H6"></path><path d="M22 9h-2"></path><path d="m19.1 4.9-1.4 1.4"></path><path d="m10.3 11.7-1.4 1.4"></path><path d="m10.3 6.3-1.4-1.4"></path><path d="m19.1 13.1-1.4-1.4"></path><path d="m3 21 9-9"></path><path d="m12 12 3-3"></path>',
       warning: '<path d="M10.3 3.8 2.4 17.2A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.8L13.7 3.8a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>',
       trash: '<path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 15H6L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path>'
@@ -4202,14 +4467,76 @@
       return fin.url;
     }
 
+    function composerPrivacyOption() {
+      const selected = $("#postPrivacy")?.value || "public";
+      return POST_PRIVACY_OPTIONS.find(option => option.value === selected) || POST_PRIVACY_OPTIONS[0];
+    }
+
+    function updateComposerIdentity() {
+      const name = displayName();
+      const privacy = composerPrivacyOption();
+      $("#composerAuthorName").textContent = name;
+      $("#composerAuthorAvatar").textContent = initials(name);
+      $("#composerPrivacyLabel").textContent = privacy.label;
+      $("#postPrivacyTrigger").innerHTML = icon(privacy.icon, 31);
+    }
+
+    function updateComposerState() {
+      const content = $("#postContent")?.value.trim() || "";
+      const files = Array.from($("#postFiles")?.files || []);
+      const hasPostBody = Boolean(content || files.length);
+      $("#publishPostBtn").disabled = !hasPostBody;
+      $("#publishPostBtn").classList.toggle("ready", hasPostBody);
+      const label = $("#composerAttachLabel");
+      if (label) {
+        const hasAudio = files.some(file => file.type.startsWith("audio/"));
+        const mediaCount = files.filter(file => !file.type.startsWith("audio/")).length;
+        label.textContent = hasAudio ? "Audio attached" : mediaCount ? `Change media (${mediaCount})` : "Add media/audio";
+      }
+      updateComposerIdentity();
+    }
+
+    function cyclePostPrivacy() {
+      const select = $("#postPrivacy");
+      const currentIndex = POST_PRIVACY_OPTIONS.findIndex(option => option.value === select.value);
+      const next = POST_PRIVACY_OPTIONS[(currentIndex + 1) % POST_PRIVACY_OPTIONS.length];
+      select.value = next.value;
+      updateComposerState();
+    }
+
+    function openPostFilePicker(kind) {
+      const input = $("#postFiles");
+      input.removeAttribute("capture");
+      input.multiple = true;
+      if (kind === "audio") {
+        input.accept = "audio/*";
+      } else if (kind === "camera") {
+        input.accept = "image/*,video/*";
+        input.multiple = false;
+        input.setAttribute("capture", "environment");
+      } else {
+        input.accept = "image/*,video/*";
+      }
+      input.click();
+    }
+
+    function openComposer() {
+      setStatus("composerStatus", "");
+      updateComposerState();
+      showModal("composerModal");
+      setTimeout(() => $("#postContent")?.focus(), 120);
+    }
+
     async function publishPost() {
       const content = $("#postContent").value.trim();
       const files = Array.from($("#postFiles").files || []);
       if (!content && files.length === 0) {
         setStatus("composerStatus", "Add text or media first.", "error");
+        updateComposerState();
         return;
       }
       $("#publishPostBtn").disabled = true;
+      $("#publishPostBtn").classList.remove("ready");
       setStatus("composerStatus", "Publishing...");
       try {
         const mediaUrls = [];
@@ -4250,13 +4577,15 @@
         $("#postContent").value = "";
         $("#postFiles").value = "";
         $("#postPreview").innerHTML = "";
+        $("#postPrivacy").value = "public";
+        updateComposerState();
         closeModal("composerModal");
         renderFeed();
         refreshRewards();
       } catch (err) {
         setStatus("composerStatus", err.message || "Publish failed.", "error");
       } finally {
-        $("#publishPostBtn").disabled = false;
+        updateComposerState();
       }
     }
 
@@ -4268,6 +4597,7 @@
         if (file.type.startsWith("audio/")) return `<audio src="${escapeAttr(url)}" controls></audio>`;
         return `<img src="${escapeAttr(url)}" alt="" />`;
       }).join("");
+      updateComposerState();
     }
 
     function renderStories() {
@@ -5926,9 +6256,14 @@
         if (e.key === "Enter") handleEmailAuth();
       });
       $("#refreshFeedBtn").addEventListener("click", toggleTheme);
-      $("#openComposerMini").addEventListener("click", () => showModal("composerModal"));
-      $("#mainFab").addEventListener("click", () => state.tab === "feed" && showModal("composerModal"));
+      $("#openComposerMini").addEventListener("click", openComposer);
+      $("#mainFab").addEventListener("click", () => state.tab === "feed" && openComposer());
       $("#publishPostBtn").addEventListener("click", publishPost);
+      $("#postContent").addEventListener("input", updateComposerState);
+      $("#postPrivacyTrigger").addEventListener("click", cyclePostPrivacy);
+      $("#postMediaBtn").addEventListener("click", () => openPostFilePicker("media"));
+      $("#postCameraBtn").addEventListener("click", () => openPostFilePicker("camera"));
+      $("#postAudioBtn").addEventListener("click", () => openPostFilePicker("audio"));
       $("#postFiles").addEventListener("change", previewPostFiles);
       $("#sendCommentBtn").addEventListener("click", addComment);
       $("#commentInput").addEventListener("keydown", e => {
