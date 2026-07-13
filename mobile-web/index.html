@@ -1921,24 +1921,24 @@
 
     .story-close-camera {
       position: absolute;
-      top: calc(48px + var(--safe-top));
-      left: 28px;
+      top: calc(45px + var(--safe-top));
+      left: 25px;
       z-index: 9;
-      width: 52px;
-      height: 52px;
+      width: 42px;
+      height: 42px;
       color: #fff;
-      background: rgba(0,0,0,.34);
+      background: transparent;
       backdrop-filter: blur(14px);
     }
 
     .story-camera-pill {
       position: absolute;
       z-index: 9;
-      top: calc(56px + var(--safe-top));
+      top: calc(52px + var(--safe-top));
       left: 50%;
       transform: translateX(-50%);
-      min-width: 158px;
-      height: 36px;
+      width: 154px;
+      height: 29px;
       border-radius: 999px;
       border: 1px solid rgba(0,174,164,.82);
       background: rgba(2,8,12,.64);
@@ -1946,12 +1946,12 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 11px;
-      padding: 0 18px;
-      font-size: 12px;
+      gap: 8px;
+      padding: 0 11px;
+      font-size: 10px;
       line-height: 1;
       font-weight: 950;
-      letter-spacing: .26em;
+      letter-spacing: .24em;
       text-transform: uppercase;
       box-shadow: 0 0 22px rgba(0,174,164,.22);
       backdrop-filter: blur(14px);
@@ -1967,22 +1967,22 @@
     .story-camera-actions {
       position: absolute;
       z-index: 9;
-      top: calc(48px + var(--safe-top));
-      right: 24px;
+      top: calc(43px + var(--safe-top));
+      right: 20px;
       display: flex;
-      gap: 12px;
+      gap: 10px;
     }
 
     .story-camera-action {
-      width: 54px;
-      height: 54px;
+      width: 42px;
+      height: 42px;
       border-radius: 999px;
       border: 0;
       color: #fff;
-      background: rgba(18,18,18,.62);
+      background: rgba(18,18,18,.42);
       display: grid;
       place-items: center;
-      box-shadow: 0 12px 24px rgba(0,0,0,.24);
+      box-shadow: 0 10px 20px rgba(0,0,0,.2);
       backdrop-filter: blur(14px);
       cursor: pointer;
     }
@@ -1992,12 +1992,12 @@
       z-index: 9;
       left: 0;
       right: 0;
-      bottom: calc(230px + var(--safe-bottom));
+      bottom: calc(214px + var(--safe-bottom));
       display: flex;
-      gap: 20px;
+      gap: 16px;
       overflow-x: auto;
       overscroll-behavior-x: contain;
-      padding: 0 34px 8px;
+      padding: 0 34px 7px;
       scrollbar-width: none;
     }
 
@@ -2007,15 +2007,15 @@
 
     .story-filter-btn {
       flex: 0 0 auto;
-      min-width: 60px;
+      min-width: 54px;
       border: 0;
       background: transparent;
       color: #e7fbf7;
       display: grid;
       justify-items: center;
-      gap: 5px;
+      gap: 4px;
       padding: 0;
-      font-size: 12px;
+      font-size: 10.5px;
       font-weight: 950;
       line-height: 1.05;
       letter-spacing: .02em;
@@ -2038,9 +2038,9 @@
 
     .story-caption-control {
       position: absolute;
-      left: 22px;
-      right: 22px;
-      bottom: calc(192px + var(--safe-bottom));
+      left: 48px;
+      right: 48px;
+      bottom: calc(118px + var(--safe-bottom));
       z-index: 9;
       display: none;
       grid-template-columns: 1fr 36px;
@@ -2053,14 +2053,14 @@
     }
 
     .story-caption-control input[type="text"] {
-      min-height: 40px;
+      min-height: 36px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.42);
+      background: rgba(0,0,0,.58);
       color: #fff;
-      padding: 0 16px;
+      padding: 0 14px;
       outline: none;
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 800;
       backdrop-filter: blur(12px);
     }
@@ -2070,8 +2070,8 @@
     }
 
     .story-color-dot {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       border-radius: 999px;
       border: 2px solid rgba(255,255,255,.72);
       background: #fff;
@@ -2093,10 +2093,10 @@
       position: absolute;
       z-index: 9;
       left: 50%;
-      bottom: calc(134px + var(--safe-bottom));
+      bottom: calc(126px + var(--safe-bottom));
       transform: translateX(-50%);
-      width: 220px;
-      height: 54px;
+      width: 208px;
+      height: 48px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,.22);
       background: rgba(0,0,0,.55);
@@ -2111,7 +2111,7 @@
       border-radius: 999px;
       background: transparent;
       color: rgba(255,255,255,.74);
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 950;
       letter-spacing: .18em;
       text-transform: uppercase;
@@ -2131,17 +2131,17 @@
       right: 0;
       bottom: calc(32px + var(--safe-bottom));
       display: grid;
-      grid-template-columns: 1fr 104px 1fr;
+      grid-template-columns: 1fr 96px 1fr;
       align-items: center;
-      padding: 0 30px;
-      gap: 16px;
+      padding: 0 28px;
+      gap: 14px;
     }
 
     .story-shutter {
-      width: 96px;
-      height: 96px;
+      width: 88px;
+      height: 88px;
       border-radius: 999px;
-      border: 6px solid #fff;
+      border: 5px solid #fff;
       background: transparent;
       display: grid;
       place-items: center;
@@ -2150,8 +2150,9 @@
     }
 
     .story-shutter span {
-      width: 68px;
-      height: 68px;
+      position: relative;
+      width: 62px;
+      height: 62px;
       border-radius: 999px;
       background: #fff;
       display: block;
@@ -2163,6 +2164,27 @@
       height: 42px;
       border-radius: 10px;
       background: #ff3b47;
+    }
+
+    .story-shutter.ready-to-post {
+      border-color: var(--accent);
+      box-shadow: 0 0 24px rgba(0,174,164,.26);
+    }
+
+    .story-shutter.ready-to-post span {
+      background: var(--accent);
+    }
+
+    .story-shutter.ready-to-post span:after {
+      content: "";
+      position: absolute;
+      left: 19px;
+      top: 17px;
+      width: 20px;
+      height: 12px;
+      border-left: 4px solid #041816;
+      border-bottom: 4px solid #041816;
+      transform: rotate(-45deg);
     }
 
     .story-side-action {
@@ -2180,6 +2202,7 @@
     }
 
     .story-post-btn {
+      display: none !important;
       color: #051b1a;
       border-color: rgba(0,174,164,.45);
       background: var(--accent);
@@ -2190,6 +2213,12 @@
     .story-post-btn.ready {
       opacity: 1;
       pointer-events: auto;
+    }
+
+    .story-camera-stage.has-capture .story-filter-rail,
+    .story-camera-stage.has-capture .story-mode-switch {
+      opacity: 0;
+      pointer-events: none;
     }
 
     .story-file-input {
@@ -2216,6 +2245,10 @@
 
     .story-camera-status.error {
       color: #ffb4bd;
+    }
+
+    .story-camera-stage.has-capture .story-camera-status {
+      bottom: calc(166px + var(--safe-bottom));
     }
 
     .story-viewer {
@@ -2920,7 +2953,8 @@
         recorder: null,
         chunks: [],
         recordTimer: null,
-        isRecording: false
+        isRecording: false,
+        isSaving: false
       }
     };
 
@@ -3564,7 +3598,7 @@
       if (!rail) return;
       rail.innerHTML = STORY_FILTERS.map(filter => `
         <button class="story-filter-btn" data-story-filter="${escapeAttr(filter.id)}" type="button">
-          ${icon(filter.icon, 30)}
+          ${icon(filter.icon, 26)}
           <span>${escapeHtml(filter.label)}</span>
         </button>
       `).join("");
@@ -3717,6 +3751,7 @@
       state.storyDraft = createStoryDraft();
       state.storyCamera.mode = "photo";
       state.storyCamera.isRecording = false;
+      state.storyCamera.isSaving = false;
       $("#storyFile").value = "";
       $("#storyText").value = "";
       $("#storyTextColor").value = "#ffffff";
@@ -3817,6 +3852,11 @@
     }
 
     function handleStoryShutter() {
+      if (state.storyCamera.isSaving) return;
+      if (state.storyDraft.file && !state.storyCamera.isRecording) {
+        saveStory();
+        return;
+      }
       if (state.storyCamera.mode === "video") {
         if (state.storyCamera.isRecording) stopStoryRecording();
         else startStoryRecording();
@@ -3827,14 +3867,21 @@
 
     function retakeStoryMedia() {
       clearStoryMedia();
+      state.storyDraft.text = "";
+      state.storyDraft.color = "#ffffff";
+      $("#storyText").value = "";
+      $("#storyTextColor").value = "#ffffff";
       renderStoryPreview();
       updateStoryStatusPill("READY");
       setStatus("storyStatus", "");
+      if (!state.storyCamera.stream && $("#storyModal")?.classList.contains("active")) startStoryCamera();
     }
 
     function renderStoryPreview() {
       const draft = state.storyDraft;
       setElementFilterClass($("#storyCameraVideo"), draft.filter);
+      const hasMedia = Boolean(draft.file);
+      $("#storyPreview")?.classList.toggle("has-capture", hasMedia);
       const captured = $("#storyCapturedMedia");
       if (captured) {
         if (draft.url) {
@@ -3856,18 +3903,22 @@
       }
       const colorDot = $(".story-color-dot");
       if (colorDot) colorDot.style.backgroundColor = draft.color || "#ffffff";
-      const hasMedia = Boolean(draft.file);
       $(".story-caption-control")?.classList.toggle("active", hasMedia);
+      $("#storyShutterBtn")?.classList.toggle("ready-to-post", hasMedia);
+      $("#storyShutterBtn")?.setAttribute("aria-label", hasMedia ? "Post story" : "Capture story");
       $("#saveStoryBtn")?.classList.toggle("ready", hasMedia);
       if ($("#saveStoryBtn")) $("#saveStoryBtn").disabled = !hasMedia;
       $("#storyRetakeBtn")?.classList.toggle("hidden", !hasMedia);
     }
 
     async function saveStory() {
+      if (state.storyCamera.isSaving) return;
       if (!state.storyDraft.file) {
         setStatus("storyStatus", "Add a photo or video first.", "error");
         return;
       }
+      state.storyCamera.isSaving = true;
+      $("#storyShutterBtn").disabled = true;
       $("#saveStoryBtn").disabled = true;
       setStatus("storyStatus", "Saving story...");
       try {
@@ -3891,6 +3942,8 @@
       } catch (err) {
         setStatus("storyStatus", err.message || "Story failed.", "error");
       } finally {
+        state.storyCamera.isSaving = false;
+        $("#storyShutterBtn").disabled = false;
         $("#saveStoryBtn").disabled = false;
       }
     }
