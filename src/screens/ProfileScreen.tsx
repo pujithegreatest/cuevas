@@ -227,6 +227,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const blockedHandles = useAppStore((s) => s.blockedHandles);
   const businessProfileUnlocked = useAppStore((s) => s.businessProfileUnlocked);
   const unlockBusinessProfile = useAppStore((s) => s.unlockBusinessProfile);
+  const logout = useAppStore((s) => s.logout);
 
   const posts = useFeedStore((s) => s.posts);
   const toggleLike = useFeedStore((s) => s.toggleLike);
@@ -278,6 +279,20 @@ export default function ProfileScreen({ navigation }: Props) {
       "Delete account",
       "please visit: https://ecothot.com/cuevas-delete-account to submit a request"
     );
+  };
+
+  const confirmLogout = () => {
+    Alert.alert("Log out", "Log out of your Cuevas account on this device?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log Out",
+        style: "destructive",
+        onPress: () => {
+          setSettingsOpen(false);
+          logout();
+        },
+      },
+    ]);
   };
 
   const username = useMemo(
@@ -1145,6 +1160,46 @@ export default function ProfileScreen({ navigation }: Props) {
                 Public remains the app default. Friend lists are private. Comment privacy can still be changed per thread.
               </Text>
             </View>
+
+            <Pressable
+              onPress={confirmLogout}
+              accessibilityRole="button"
+              accessibilityLabel="Log out of Cuevas"
+              style={({ pressed }) => ({
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: isDarkMode ? "rgba(6,167,161,0.42)" : "rgba(6,167,161,0.32)",
+                backgroundColor: isDarkMode ? "rgba(6,167,161,0.10)" : "#F0FFFD",
+                padding: 16,
+                marginTop: 12,
+                opacity: pressed ? 0.78 : 1,
+              })}
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center flex-1">
+                  <View
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 16,
+                      backgroundColor: isDarkMode ? "rgba(6,167,161,0.16)" : "#DFFFFB",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 12,
+                    }}
+                  >
+                    <Ionicons name="log-out-outline" size={22} color="#06A7A1" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className={`font-bold ${textColor}`}>Log Out</Text>
+                    <Text className={`text-xs mt-1 ${subText}`}>
+                      Sign out of this account and return to the login screen.
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#06A7A1" />
+              </View>
+            </Pressable>
 
             <Pressable
               onPress={showDeleteAccountRequest}

@@ -137,7 +137,11 @@ export default function FeedScreen({ navigation }: Props) {
           </Pressable>
 
           {/* Logout */}
-          <Pressable onPress={logout}>
+          <Pressable
+            onPress={logout}
+            accessibilityRole="button"
+            accessibilityLabel="Log out of Cuevas"
+          >
             <Ionicons
               name="log-out-outline"
               size={24}

@@ -126,6 +126,8 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
       >
         <Pressable
           onPress={handleLogout}
+          accessibilityRole="button"
+          accessibilityLabel="Log out of Cuevas"
           className="p-2"
           style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
         >

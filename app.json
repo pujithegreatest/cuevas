@@ -21,6 +21,28 @@
           }
         }
       ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Cuevas uses the camera so you can take photos and videos for posts, stories, mission check-ins, and business QR scans. For example, you can record a story video or scan a mission QR code.",
+          "microphonePermission": "Cuevas uses the microphone to record audio when you create videos or story voiceovers. For example, you can record sound with a story video or add a voiceover to a story."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Cuevas uses your photo library so you can choose photos and videos for posts, stories, profile photos, and mission proof. For example, you can select a video to share in a post.",
+          "cameraPermission": "Cuevas uses the camera so you can take photos and videos for posts, stories, mission check-ins, and business QR scans. For example, you can record a story video or scan a mission QR code.",
+          "microphonePermission": "Cuevas uses the microphone to record audio when you create videos or story voiceovers. For example, you can record sound with a story video or add a voiceover to a story."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Cuevas uses your photo library so you can choose photos and videos for posts, stories, profile photos, and mission proof. For example, you can select a video to share in a post.",
+          "savePhotosPermission": "Cuevas saves images and videos to your photo library only when you choose to save or share them. For example, you can save a story export or rewards card image to Photos."
+        }
+      ],
       "./plugins/withAndroidPackageQueries"
     ],
     "ios": {
@@ -34,6 +56,10 @@
           "instagram-stories",
           "instagram"
         ],
+        "NSCameraUsageDescription": "Cuevas uses the camera so you can take photos and videos for posts, stories, mission check-ins, and business QR scans. For example, you can record a story video or scan a mission QR code.",
+        "NSMicrophoneUsageDescription": "Cuevas uses the microphone to record audio when you create videos or story voiceovers. For example, you can record sound with a story video or add a voiceover to a story.",
+        "NSPhotoLibraryUsageDescription": "Cuevas uses your photo library so you can choose photos and videos for posts, stories, profile photos, and mission proof. For example, you can select a video to share in a post.",
+        "NSPhotoLibraryAddUsageDescription": "Cuevas saves images and videos to your photo library only when you choose to save or share them. For example, you can save a story export or rewards card image to Photos.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
