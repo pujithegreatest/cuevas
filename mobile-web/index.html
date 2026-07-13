@@ -4316,13 +4316,37 @@
       }, 20);
     }
 
+    function applyStoryTextEditorPreviewStyle(input, style, color) {
+      if (!input) return;
+      const textColor = style === "chrome" || style === "blood" ? "#ffffff" : color || "#ffffff";
+      input.style.color = textColor;
+      input.style.fontFamily = style === "mono" ? '"Courier New", Courier, monospace' : "";
+      input.style.letterSpacing = style === "mono" ? ".08em" : "0";
+      input.style.background = style === "ticker" ? "rgba(0,0,0,.78)" : "transparent";
+      input.style.border = style === "ticker" ? `1px solid ${color || "#ffffff"}` : "0";
+      input.style.borderRadius = style === "ticker" ? "10px" : "0";
+      input.style.padding = style === "ticker" ? "12px 16px" : "0";
+      if (style === "neon") {
+        input.style.textShadow = `0 0 8px ${color || "#ffffff"}, 0 0 18px rgba(0,255,213,.55), 0 2px 14px rgba(0,0,0,.85)`;
+      } else if (style === "blood") {
+        input.style.textShadow = "0 0 8px #80171F, 0 0 18px #80171F, 0 2px 14px rgba(0,0,0,.85)";
+      } else if (style === "chrome") {
+        input.style.textShadow = "1px 2px 0 rgba(0,0,0,.85), -1px -1px 0 rgba(255,255,255,.45), 0 0 14px rgba(255,255,255,.22)";
+      } else if (style === "glitch") {
+        input.style.textShadow = "2px 0 #ff004d, -2px 0 #00ffd5, 0 2px 13px rgba(0,0,0,.85)";
+      } else {
+        input.style.textShadow = "0 2px 14px rgba(0,0,0,.8)";
+      }
+    }
+
     function renderStoryTextEditor() {
       const id = state.storyDraft.editingTextId;
       const overlay = state.storyDraft.textOverlays.find(item => item.id === id) || activeStoryTextOverlay();
       const input = $("#storyTextEditInput");
-      if (input && document.activeElement !== input) input.value = state.storyDraft.editingTextValue ?? overlay?.text ?? "";
       const activeStyle = overlay?.style || "neon";
       const activeColor = overlay?.color || "#ffffff";
+      if (input && document.activeElement !== input) input.value = state.storyDraft.editingTextValue ?? overlay?.text ?? "";
+      applyStoryTextEditorPreviewStyle(input, activeStyle, activeColor);
       const styleRow = $("#storyTextStyleRow");
       if (styleRow) {
         styleRow.innerHTML = STORY_TEXT_STYLES.map(style => `
