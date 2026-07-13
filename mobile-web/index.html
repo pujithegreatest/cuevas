@@ -1882,6 +1882,420 @@
       bottom: 25%;
     }
 
+    .story-overlay-layer,
+    .story-draw-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 7;
+    }
+
+    .story-overlay-layer {
+      pointer-events: none;
+    }
+
+    .story-draw-canvas {
+      pointer-events: none;
+      touch-action: none;
+    }
+
+    .story-camera-stage.draw-mode .story-draw-canvas {
+      pointer-events: auto;
+      cursor: crosshair;
+    }
+
+    .story-text-item,
+    .story-sticker-item {
+      position: absolute;
+      border: 0;
+      background: transparent;
+      color: #fff;
+      transform-origin: center;
+      pointer-events: auto;
+      touch-action: none;
+      user-select: none;
+      cursor: grab;
+      text-align: center;
+      text-shadow: 0 2px 14px rgba(0,0,0,.8);
+      --story-text-color: #fff;
+    }
+
+    .story-text-item {
+      max-width: 76%;
+      padding: 5px 8px;
+      font-size: 28px;
+      line-height: 1.05;
+      font-weight: 950;
+      overflow-wrap: anywhere;
+    }
+
+    .story-text-item.selected,
+    .story-sticker-item.selected {
+      outline: 1px solid rgba(0,255,213,.95);
+      outline-offset: 5px;
+      border-radius: 10px;
+    }
+
+    .story-text-item.style-neon {
+      color: var(--story-text-color);
+      text-shadow: 0 0 8px var(--story-text-color), 0 0 18px rgba(0,255,213,.55), 0 2px 18px rgba(0,0,0,.9);
+    }
+
+    .story-text-item.style-mono {
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 800;
+      letter-spacing: .08em;
+      color: var(--story-text-color);
+    }
+
+    .story-text-item.style-chrome {
+      color: #fff;
+      text-shadow: 1px 2px 0 rgba(0,0,0,.85), -1px -1px 0 rgba(255,255,255,.45), 0 0 14px rgba(255,255,255,.22);
+    }
+
+    .story-text-item.style-blood {
+      color: #fff;
+      text-shadow: 0 0 8px #80171F, 0 0 18px #80171F, 0 2px 18px rgba(0,0,0,.9);
+    }
+
+    .story-text-item.style-ticker {
+      max-width: 250px;
+      min-width: 190px;
+      overflow: hidden;
+      border: 1px solid var(--story-text-color);
+      border-radius: 8px;
+      background: rgba(0,0,0,.86);
+      color: var(--story-text-color);
+      text-shadow: none;
+      white-space: nowrap;
+    }
+
+    .story-text-item.style-ticker span {
+      display: inline-block;
+      min-width: 200%;
+      animation: storyTicker 5s linear infinite;
+    }
+
+    .story-text-item.style-wave span {
+      display: inline-block;
+      color: var(--story-text-color);
+      animation: storyWave 1.7s ease-in-out infinite;
+      text-shadow: 0 0 10px var(--story-text-color), 0 2px 15px rgba(0,0,0,.86);
+    }
+
+    .story-text-item.style-glitch span {
+      position: relative;
+      display: inline-block;
+      color: #fff;
+      text-shadow: 2px 0 #ff004d, -2px 0 #00ffd5, 0 2px 13px rgba(0,0,0,.85);
+      animation: storyGlitch .75s steps(2, end) infinite;
+    }
+
+    @keyframes storyTicker {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    @keyframes storyWave {
+      0%, 100% { transform: translateY(0) rotate(-1deg); }
+      50% { transform: translateY(-7px) rotate(1deg); }
+    }
+
+    @keyframes storyGlitch {
+      0%, 100% { transform: translate(0, 0); }
+      30% { transform: translate(2px, -1px); }
+      60% { transform: translate(-2px, 1px); }
+    }
+
+    .story-sticker-item {
+      width: 62px;
+      height: 62px;
+      display: grid;
+      place-items: center;
+      font-size: 42px;
+      line-height: 1;
+      filter: drop-shadow(0 8px 18px rgba(0,0,0,.72));
+    }
+
+    .story-editor-tools {
+      position: absolute;
+      z-index: 12;
+      top: calc(106px + var(--safe-top));
+      right: 18px;
+      display: none;
+      gap: 8px;
+      justify-items: center;
+    }
+
+    .story-editor-tool {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(0,0,0,.56);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: .04em;
+      box-shadow: 0 8px 18px rgba(0,0,0,.28);
+      backdrop-filter: blur(14px);
+      cursor: pointer;
+    }
+
+    .story-editor-tool.active {
+      color: #031917;
+      background: var(--accent);
+      border-color: rgba(0,255,213,.45);
+    }
+
+    .story-editor-tool.danger {
+      color: #ffccd2;
+      border-color: rgba(255,80,100,.35);
+    }
+
+    .story-editor-tool:disabled {
+      opacity: .34;
+      pointer-events: none;
+    }
+
+    .story-draw-palette,
+    .story-selected-colors {
+      position: absolute;
+      z-index: 12;
+      left: 14px;
+      right: 14px;
+      bottom: calc(134px + var(--safe-bottom));
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.58);
+      backdrop-filter: blur(16px);
+    }
+
+    .story-camera-stage.draw-mode .story-draw-palette,
+    .story-camera-stage.has-selection:not(.draw-mode) .story-selected-colors {
+      display: flex;
+    }
+
+    .story-color-swatch,
+    .story-draw-size {
+      border: 1px solid rgba(255,255,255,.4);
+      border-radius: 999px;
+      background: rgba(255,255,255,.1);
+      cursor: pointer;
+    }
+
+    .story-color-swatch {
+      width: 27px;
+      height: 27px;
+    }
+
+    .story-color-swatch.active {
+      border: 3px solid #fff;
+      box-shadow: 0 0 16px var(--swatch-color);
+    }
+
+    .story-draw-size {
+      width: 28px;
+      height: 28px;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 950;
+    }
+
+    .story-draw-size.active {
+      background: var(--accent);
+      color: #041817;
+      border-color: rgba(255,255,255,.75);
+    }
+
+    .story-text-editor,
+    .story-sticker-panel {
+      position: absolute;
+      z-index: 20;
+      display: none;
+      color: #fff;
+    }
+
+    .story-text-editor.active,
+    .story-sticker-panel.active {
+      display: block;
+    }
+
+    .story-text-editor {
+      inset: 0;
+      background: rgba(0,0,0,.72);
+      backdrop-filter: blur(8px);
+    }
+
+    .story-text-editor textarea {
+      position: absolute;
+      left: 25px;
+      right: 25px;
+      top: 34%;
+      min-height: 92px;
+      border: 0;
+      outline: 0;
+      resize: none;
+      background: transparent;
+      color: #fff;
+      text-align: center;
+      font-size: 30px;
+      line-height: 1.1;
+      font-weight: 950;
+      text-shadow: 0 2px 14px rgba(0,0,0,.8);
+    }
+
+    .story-text-editor textarea::placeholder {
+      color: rgba(255,255,255,.62);
+    }
+
+    .story-text-done {
+      position: absolute;
+      top: calc(44px + var(--safe-top));
+      right: 22px;
+      min-width: 70px;
+      height: 36px;
+      border-radius: 999px;
+      border: 0;
+      background: var(--accent);
+      color: #031917;
+      font-weight: 950;
+      cursor: pointer;
+    }
+
+    .story-text-style-row,
+    .story-text-color-row {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      justify-content: center;
+    }
+
+    .story-text-style-row {
+      bottom: calc(104px + var(--safe-bottom));
+    }
+
+    .story-text-color-row {
+      bottom: calc(58px + var(--safe-bottom));
+    }
+
+    .story-text-style-row::-webkit-scrollbar,
+    .story-text-color-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .story-style-chip {
+      flex: 0 0 auto;
+      min-width: 64px;
+      height: 32px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(0,0,0,.58);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .story-style-chip.active {
+      background: rgba(0,174,164,.86);
+      color: #041817;
+    }
+
+    .story-sticker-panel {
+      left: 18px;
+      right: 18px;
+      bottom: calc(92px + var(--safe-bottom));
+      border-radius: 22px;
+      border: 1px solid rgba(0,174,164,.38);
+      background: rgba(7,13,20,.92);
+      box-shadow: 0 -18px 40px rgba(0,0,0,.38);
+      padding: 14px;
+      backdrop-filter: blur(18px);
+    }
+
+    .story-sticker-head,
+    .story-sticker-tabs {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .story-sticker-title {
+      margin: 0;
+      color: #dffdfa;
+      font-size: 14px;
+      font-weight: 950;
+      letter-spacing: .04em;
+    }
+
+    .story-sticker-tabs {
+      justify-content: center;
+      margin: 12px 0;
+    }
+
+    .story-sticker-tab {
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.13);
+      background: rgba(255,255,255,.06);
+      color: #dffdfa;
+      padding: 0 13px;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .story-sticker-tab.active {
+      background: var(--accent);
+      color: #031917;
+    }
+
+    .story-sticker-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .story-sticker-pick {
+      min-height: 58px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      padding: 6px 3px;
+      font-size: 23px;
+      font-weight: 950;
+      cursor: pointer;
+    }
+
+    .story-sticker-pick span:last-child {
+      font-size: 9px;
+      color: rgba(223,253,250,.74);
+      overflow: hidden;
+      max-width: 100%;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .story-corner {
       position: absolute;
       width: 42px;
@@ -2049,7 +2463,7 @@
     }
 
     .story-caption-control.active {
-      display: grid;
+      display: none;
     }
 
     .story-caption-control input[type="text"] {
@@ -2217,9 +2631,14 @@
     }
 
     .story-camera-stage.has-capture .story-filter-rail,
-    .story-camera-stage.has-capture .story-mode-switch {
+    .story-camera-stage.has-capture .story-mode-switch,
+    .story-camera-stage.has-capture .story-camera-actions {
       opacity: 0;
       pointer-events: none;
+    }
+
+    .story-camera-stage.has-capture .story-editor-tools {
+      display: grid;
     }
 
     .story-file-input {
@@ -2275,6 +2694,11 @@
       background: #000;
     }
 
+    #storyMedia {
+      position: absolute;
+      inset: 0;
+    }
+
     .story-stage img, .story-stage video {
       width: 100%;
       height: 100%;
@@ -2292,7 +2716,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      z-index: 2;
+      z-index: 12;
     }
 
     .report-reason {
@@ -2727,6 +3151,8 @@
         <video id="storyCameraVideo" class="story-camera-video filter-heatwave" autoplay muted playsinline></video>
         <div id="storyCapturedMedia" class="story-captured-media"></div>
         <div class="story-camera-vignette"></div>
+        <canvas id="storyDrawCanvas" class="story-draw-canvas"></canvas>
+        <div id="storyOverlayLayer" class="story-overlay-layer"></div>
         <div id="storyTextOverlay" class="story-text story-camera-text hidden"></div>
         <span class="story-corner tl"></span>
         <span class="story-corner tr"></span>
@@ -2743,6 +3169,41 @@
           <button id="storyFlipBtn" class="story-camera-action" type="button" aria-label="Flip camera">
             <span data-icon="repeat"></span>
           </button>
+        </div>
+        <div id="storyEditorTools" class="story-editor-tools" aria-label="Story editing tools">
+          <button id="storyDownloadBtn" class="story-editor-tool" type="button" aria-label="Download story">
+            <span data-icon="download"></span>
+          </button>
+          <button id="storyAddTextBtn" class="story-editor-tool" type="button" aria-label="Add text">Aa</button>
+          <button id="storyStyleBtn" class="story-editor-tool" type="button" aria-label="Change text style">STYL</button>
+          <button id="storyStickerBtn" class="story-editor-tool" type="button" aria-label="Add sticker">
+            <span data-icon="smile"></span>
+          </button>
+          <button id="storyDrawBtn" class="story-editor-tool" type="button" aria-label="Draw on story">
+            <span data-icon="brush"></span>
+          </button>
+          <button id="storyUndoDrawBtn" class="story-editor-tool" type="button" aria-label="Undo drawing">
+            <span data-icon="undo"></span>
+          </button>
+          <button id="storyClearDrawBtn" class="story-editor-tool danger" type="button" aria-label="Clear drawing">
+            <span data-icon="trash"></span>
+          </button>
+        </div>
+        <div id="storyDrawPalette" class="story-draw-palette" aria-label="Drawing controls"></div>
+        <div id="storySelectedColors" class="story-selected-colors" aria-label="Text colors"></div>
+        <div id="storyTextEditor" class="story-text-editor" aria-label="Edit story text">
+          <button id="storyTextDoneBtn" class="story-text-done" type="button">Done</button>
+          <textarea id="storyTextEditInput" maxlength="140" placeholder="Add story text"></textarea>
+          <div id="storyTextStyleRow" class="story-text-style-row" aria-label="Story text style"></div>
+          <div id="storyTextColorRow" class="story-text-color-row" aria-label="Story text color"></div>
+        </div>
+        <div id="storyStickerPanel" class="story-sticker-panel" aria-label="Pick a sticker">
+          <div class="story-sticker-head">
+            <h3 class="story-sticker-title">Pick a Sticker</h3>
+            <button id="storyStickerCloseBtn" class="icon-btn" type="button" aria-label="Close stickers"><span data-icon="x"></span></button>
+          </div>
+          <div id="storyStickerTabs" class="story-sticker-tabs"></div>
+          <div id="storyStickerGrid" class="story-sticker-grid"></div>
         </div>
         <input id="storyFile" class="story-file-input" type="file" accept="image/*,video/*" />
         <div id="storyFilterRail" class="story-filter-rail" aria-label="Story filters"></div>
@@ -2802,6 +3263,8 @@
   <div id="storyViewer" class="story-viewer">
     <div class="story-stage">
       <div id="storyMedia"></div>
+      <canvas id="storyViewerDrawCanvas" class="story-draw-canvas"></canvas>
+      <div id="storyViewerOverlayLayer" class="story-overlay-layer"></div>
       <div id="storyViewerText" class="story-text"></div>
       <div class="story-top">
         <div class="row" style="min-width:0;">
@@ -2849,6 +3312,22 @@
       { id: "vaporwave", label: "Synth", icon: "wand" }
     ];
 
+    const STORY_TEXT_STYLES = ["neon", "mono", "chrome", "blood", "ticker", "wave", "glitch"];
+    const STORY_TEXT_COLORS = ["#ffffff", "#06A7A1", "#80171F", "#ff5e3a", "#00ffd5", "#ff00aa", "#39ff14", "#facc15"];
+    const STORY_DRAW_COLORS = ["#ffffff", "#06A7A1", "#FF3B30", "#FACC15", "#39FF14", "#FF00AA", "#00FFD5", "#000000"];
+    const STORY_STICKER_GROUPS = {
+      cuevas: [
+        ["Smoke", "💨"], ["Money", "🤑"], ["Sleepy", "😴"], ["Drool", "🤤"], ["Side Eye", "👀"],
+        ["Cash Face", "💵"], ["Think", "🤔"], ["Zen", "😌"], ["Flex", "👍"], ["Bubble", "🫧"],
+        ["Night Cap", "😪"], ["Ice", "🥶"], ["Love", "😍"], ["Hearts", "😘"], ["Cry Beam", "😭"],
+        ["Single Tear", "🥲"], ["Glass Eye", "🥹"]
+      ],
+      emoji: [
+        ["Time", "🕒"], ["Spot", "📍"], ["Fire", "🔥"], ["Love", "❤️"], ["Bolt", "⚡"],
+        ["Skull", "💀"], ["Star", "⭐"], ["Alien", "👽"], ["Robot", "🤖"], ["Moon", "🌙"]
+      ]
+    };
+
     const ICONS = {
       sun: '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path>',
       moon: '<path d="M20 14.7A8 8 0 0 1 9.3 4 7 7 0 1 0 20 14.7Z"></path>',
@@ -2871,6 +3350,10 @@
       "check-circle": '<circle cx="12" cy="12" r="9"></circle><path d="m8 12 2.5 2.5L16 9"></path>',
       briefcase: '<rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M3 13h18"></path>',
       repeat: '<path d="m17 2 4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path>',
+      download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path>',
+      undo: '<path d="M9 14 4 9l5-5"></path><path d="M4 9h10a6 6 0 0 1 0 12h-3"></path>',
+      brush: '<path d="M9 11 3 17v4h4l6-6"></path><path d="M14 4l6 6"></path><path d="m12 6 6 6-7 7-6-6Z"></path>',
+      smile: '<circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><path d="M9 9h.01"></path><path d="M15 9h.01"></path>',
       globe: '<circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path><path d="M12 2a15 15 0 0 1 0 20"></path><path d="M12 2a15 15 0 0 0 0 20"></path>',
       plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>',
       x: '<path d="M18 6 6 18"></path><path d="m6 6 12 12"></path>',
@@ -2927,7 +3410,26 @@
     const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
     function createStoryDraft() {
-      return { file: null, url: "", type: "", filter: STORY_FILTERS[0].id, text: "", color: "#ffffff" };
+      return {
+        file: null,
+        url: "",
+        type: "",
+        filter: STORY_FILTERS[0].id,
+        text: "",
+        color: "#ffffff",
+        textOverlays: [],
+        stickers: [],
+        strokes: [],
+        selectedTextId: null,
+        selectedStickerId: null,
+        editingTextId: null,
+        editingTextValue: "",
+        stickerTab: "cuevas",
+        drawMode: false,
+        drawColor: "#ffffff",
+        drawWidth: 4,
+        currentStroke: null
+      };
     }
 
     const state = {
@@ -3608,6 +4110,576 @@
       });
     }
 
+    function storyClamp(value, min = 0, max = 1) {
+      return Math.min(max, Math.max(min, Number(value) || 0));
+    }
+
+    function storyUid(prefix) {
+      return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    }
+
+    function activeStoryTextOverlay() {
+      const id = state.storyDraft?.selectedTextId;
+      return state.storyDraft?.textOverlays?.find(item => item.id === id) || null;
+    }
+
+    function activeStorySticker() {
+      const id = state.storyDraft?.selectedStickerId;
+      return state.storyDraft?.stickers?.find(item => item.id === id) || null;
+    }
+
+    function storyStyleLabel(style) {
+      return String(style || "neon").replace(/^\w/, c => c.toUpperCase());
+    }
+
+    function renderStoryTextContent(overlay) {
+      const text = escapeHtml(overlay.text || "");
+      if (overlay.style === "ticker") return `<span>${text}&nbsp;&nbsp;★&nbsp;&nbsp;${text}&nbsp;&nbsp;★&nbsp;&nbsp;</span>`;
+      return `<span>${text}</span>`;
+    }
+
+    function renderStoryOverlayHtml(textOverlays = [], stickers = [], interactive = false) {
+      const textItems = textOverlays
+        .filter(item => item?.text?.trim?.())
+        .map(item => {
+          const scale = Number(item.scale || 1);
+          const rotation = Number(item.rotation || 0);
+          const selected = interactive && state.storyDraft.selectedTextId === item.id;
+          return `
+            <button class="story-text-item style-${escapeAttr(item.style || "neon")} ${selected ? "selected" : ""}" data-text-id="${escapeAttr(item.id)}" type="button"
+              style="left:${storyClamp(item.x, .04, .96) * 100}%; top:${storyClamp(item.y, .04, .96) * 100}%; color:${escapeAttr(item.color || "#fff")}; --story-text-color:${escapeAttr(item.color || "#fff")}; transform:translate(-50%,-50%) scale(${scale}) rotate(${rotation}deg);">
+              ${renderStoryTextContent(item)}
+            </button>`;
+        }).join("");
+      const stickerItems = stickers
+        .filter(item => item?.text || item?.preview || item?.label)
+        .map(item => {
+          const scale = Number(item.scale || 1);
+          const rotation = Number(item.rotation || 0);
+          const selected = interactive && state.storyDraft.selectedStickerId === item.id;
+          return `
+            <button class="story-sticker-item ${selected ? "selected" : ""}" data-sticker-id="${escapeAttr(item.id)}" type="button"
+              aria-label="${escapeAttr(item.label || "Sticker")}"
+              style="left:${storyClamp(item.x, .05, .95) * 100}%; top:${storyClamp(item.y, .05, .95) * 100}%; transform:translate(-50%,-50%) scale(${scale}) rotate(${rotation}deg);">
+              <span>${escapeHtml(item.text || item.preview || item.label || "★")}</span>
+            </button>`;
+        }).join("");
+      return `${textItems}${stickerItems}`;
+    }
+
+    function bindStoryOverlayInteractions(layer) {
+      if (!layer) return;
+      $$(".story-text-item", layer).forEach(node => {
+        node.addEventListener("pointerdown", event => startStoryOverlayDrag(event, "text", node.dataset.textId));
+      });
+      $$(".story-sticker-item", layer).forEach(node => {
+        node.addEventListener("pointerdown", event => startStoryOverlayDrag(event, "sticker", node.dataset.stickerId));
+      });
+    }
+
+    function startStoryOverlayDrag(event, kind, id) {
+      const draft = state.storyDraft;
+      if (!draft?.file || draft.drawMode || !id) return;
+      const item = kind === "text"
+        ? draft.textOverlays.find(entry => entry.id === id)
+        : draft.stickers.find(entry => entry.id === id);
+      if (!item) return;
+      const wasSelected = kind === "text" ? draft.selectedTextId === id : draft.selectedStickerId === id;
+      draft.selectedTextId = kind === "text" ? id : null;
+      draft.selectedStickerId = kind === "sticker" ? id : null;
+      renderStoryEditorControls();
+      event.preventDefault();
+      event.stopPropagation();
+      const stage = $("#storyPreview");
+      const rect = stage?.getBoundingClientRect();
+      if (!rect?.width || !rect?.height) return;
+      const startX = event.clientX;
+      const startY = event.clientY;
+      const originX = Number(item.x || .5);
+      const originY = Number(item.y || .5);
+      let moved = false;
+      const target = event.currentTarget;
+      const onMove = (moveEvent) => {
+        const dx = (moveEvent.clientX - startX) / rect.width;
+        const dy = (moveEvent.clientY - startY) / rect.height;
+        if (Math.abs(moveEvent.clientX - startX) > 3 || Math.abs(moveEvent.clientY - startY) > 3) moved = true;
+        item.x = storyClamp(originX + dx, .06, .94);
+        item.y = storyClamp(originY + dy, .08, .92);
+        target.style.left = `${item.x * 100}%`;
+        target.style.top = `${item.y * 100}%`;
+      };
+      const onUp = () => {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+        if (!moved && kind === "text" && wasSelected) openStoryTextEditor(id);
+        else renderStoryOverlays();
+      };
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp, { once: true });
+    }
+
+    function renderStoryOverlays() {
+      const layer = $("#storyOverlayLayer");
+      const draft = state.storyDraft;
+      if (layer) {
+        layer.innerHTML = draft.file
+          ? renderStoryOverlayHtml(draft.textOverlays || [], draft.stickers || [], true)
+          : "";
+        bindStoryOverlayInteractions(layer);
+      }
+      renderStoryDrawCanvas();
+      renderStoryEditorControls();
+    }
+
+    function renderStoryEditorControls() {
+      const draft = state.storyDraft;
+      const stage = $("#storyPreview");
+      const selectedText = activeStoryTextOverlay();
+      const hasSelection = Boolean(selectedText || activeStorySticker());
+      stage?.classList.toggle("draw-mode", Boolean(draft.drawMode && draft.file));
+      stage?.classList.toggle("has-selection", hasSelection);
+      $("#storyDrawBtn")?.classList.toggle("active", Boolean(draft.drawMode));
+      const styleBtn = $("#storyStyleBtn");
+      if (styleBtn) {
+        styleBtn.disabled = !selectedText;
+        styleBtn.textContent = selectedText ? "STYL" : "STYL";
+      }
+      const selectedRow = $("#storySelectedColors");
+      if (selectedRow) {
+        selectedRow.innerHTML = selectedText ? STORY_TEXT_COLORS.map(color => `
+          <button class="story-color-swatch ${selectedText.color === color ? "active" : ""}" data-story-text-color="${escapeAttr(color)}" type="button" aria-label="${escapeAttr(color)}" style="background:${escapeAttr(color)}; --swatch-color:${escapeAttr(color)}"></button>
+        `).join("") : "";
+        $$("[data-story-text-color]", selectedRow).forEach(btn => {
+          btn.addEventListener("click", () => setSelectedStoryTextColor(btn.dataset.storyTextColor));
+        });
+      }
+      renderStoryDrawPalette();
+    }
+
+    function renderStoryDrawPalette() {
+      const palette = $("#storyDrawPalette");
+      if (!palette) return;
+      const draft = state.storyDraft;
+      const sizes = [3, 5, 8];
+      palette.innerHTML = `
+        ${sizes.map(size => `<button class="story-draw-size ${Number(draft.drawWidth) === size ? "active" : ""}" data-story-draw-width="${size}" type="button">${size}</button>`).join("")}
+        ${STORY_DRAW_COLORS.map(color => `<button class="story-color-swatch ${draft.drawColor === color ? "active" : ""}" data-story-draw-color="${escapeAttr(color)}" type="button" aria-label="${escapeAttr(color)}" style="background:${escapeAttr(color)}; --swatch-color:${escapeAttr(color)}"></button>`).join("")}
+      `;
+      $$("[data-story-draw-width]", palette).forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.storyDraft.drawWidth = Number(btn.dataset.storyDrawWidth) || 4;
+          renderStoryDrawPalette();
+        });
+      });
+      $$("[data-story-draw-color]", palette).forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.storyDraft.drawColor = btn.dataset.storyDrawColor || "#ffffff";
+          renderStoryDrawPalette();
+        });
+      });
+    }
+
+    function addStoryTextOverlay() {
+      if (!state.storyDraft.file) return;
+      const id = storyUid("t");
+      state.storyDraft.drawMode = false;
+      state.storyDraft.selectedStickerId = null;
+      state.storyDraft.selectedTextId = id;
+      state.storyDraft.textOverlays.push({
+        id,
+        text: "",
+        x: .3,
+        y: .45,
+        scale: 1,
+        rotation: 0,
+        color: "#ffffff",
+        style: "neon"
+      });
+      renderStoryOverlays();
+      openStoryTextEditor(id);
+    }
+
+    function openStoryTextEditor(id) {
+      const overlay = state.storyDraft.textOverlays.find(item => item.id === id);
+      if (!overlay) return;
+      state.storyDraft.editingTextId = id;
+      state.storyDraft.editingTextValue = overlay.text || "";
+      state.storyDraft.selectedTextId = id;
+      state.storyDraft.selectedStickerId = null;
+      state.storyDraft.drawMode = false;
+      renderStoryTextEditor();
+      $("#storyTextEditor")?.classList.add("active");
+      setTimeout(() => {
+        const input = $("#storyTextEditInput");
+        input?.focus?.();
+        input?.select?.();
+      }, 20);
+    }
+
+    function renderStoryTextEditor() {
+      const id = state.storyDraft.editingTextId;
+      const overlay = state.storyDraft.textOverlays.find(item => item.id === id) || activeStoryTextOverlay();
+      const input = $("#storyTextEditInput");
+      if (input && document.activeElement !== input) input.value = state.storyDraft.editingTextValue ?? overlay?.text ?? "";
+      const activeStyle = overlay?.style || "neon";
+      const activeColor = overlay?.color || "#ffffff";
+      const styleRow = $("#storyTextStyleRow");
+      if (styleRow) {
+        styleRow.innerHTML = STORY_TEXT_STYLES.map(style => `
+          <button class="story-style-chip ${activeStyle === style ? "active" : ""}" data-story-style="${escapeAttr(style)}" type="button">${escapeHtml(storyStyleLabel(style))}</button>
+        `).join("");
+        $$("[data-story-style]", styleRow).forEach(btn => btn.addEventListener("click", () => setStoryTextStyle(btn.dataset.storyStyle)));
+      }
+      const colorRow = $("#storyTextColorRow");
+      if (colorRow) {
+        colorRow.innerHTML = STORY_TEXT_COLORS.map(color => `
+          <button class="story-color-swatch ${activeColor === color ? "active" : ""}" data-editor-text-color="${escapeAttr(color)}" type="button" aria-label="${escapeAttr(color)}" style="background:${escapeAttr(color)}; --swatch-color:${escapeAttr(color)}"></button>
+        `).join("");
+        $$("[data-editor-text-color]", colorRow).forEach(btn => btn.addEventListener("click", () => setSelectedStoryTextColor(btn.dataset.editorTextColor)));
+      }
+    }
+
+    function commitStoryTextEdit() {
+      const id = state.storyDraft.editingTextId;
+      if (!id) return;
+      const value = ($("#storyTextEditInput")?.value || "").slice(0, 140);
+      if (value.trim()) {
+        state.storyDraft.textOverlays = state.storyDraft.textOverlays.map(item => item.id === id ? { ...item, text: value } : item);
+      } else {
+        state.storyDraft.textOverlays = state.storyDraft.textOverlays.filter(item => item.id !== id);
+        if (state.storyDraft.selectedTextId === id) state.storyDraft.selectedTextId = null;
+      }
+      state.storyDraft.editingTextId = null;
+      state.storyDraft.editingTextValue = "";
+      $("#storyTextEditor")?.classList.remove("active");
+      renderStoryOverlays();
+    }
+
+    function setSelectedStoryTextColor(color) {
+      const id = state.storyDraft.editingTextId || state.storyDraft.selectedTextId;
+      if (!id || !color) return;
+      state.storyDraft.textOverlays = state.storyDraft.textOverlays.map(item => item.id === id ? { ...item, color } : item);
+      state.storyDraft.color = color;
+      renderStoryTextEditor();
+      renderStoryOverlays();
+    }
+
+    function setStoryTextStyle(style) {
+      const id = state.storyDraft.editingTextId || state.storyDraft.selectedTextId;
+      if (!id || !STORY_TEXT_STYLES.includes(style)) return;
+      state.storyDraft.textOverlays = state.storyDraft.textOverlays.map(item => item.id === id ? { ...item, style } : item);
+      renderStoryTextEditor();
+      renderStoryOverlays();
+    }
+
+    function cycleStoryTextStyle() {
+      const overlay = activeStoryTextOverlay();
+      if (!overlay) return;
+      const idx = STORY_TEXT_STYLES.indexOf(overlay.style);
+      setStoryTextStyle(STORY_TEXT_STYLES[(idx + 1) % STORY_TEXT_STYLES.length]);
+    }
+
+    function openStoryStickerPanel() {
+      if (!state.storyDraft.file) return;
+      state.storyDraft.drawMode = false;
+      state.storyDraft.selectedTextId = null;
+      renderStoryStickerPanel();
+      $("#storyStickerPanel")?.classList.add("active");
+      renderStoryEditorControls();
+    }
+
+    function closeStoryStickerPanel() {
+      $("#storyStickerPanel")?.classList.remove("active");
+    }
+
+    function renderStoryStickerPanel() {
+      const tabs = $("#storyStickerTabs");
+      const grid = $("#storyStickerGrid");
+      const tab = state.storyDraft.stickerTab || "cuevas";
+      if (tabs) {
+        tabs.innerHTML = ["cuevas", "emoji"].map(name => `
+          <button class="story-sticker-tab ${tab === name ? "active" : ""}" data-sticker-tab="${escapeAttr(name)}" type="button">${escapeHtml(name === "cuevas" ? "Cuevas" : "Emoji")}</button>
+        `).join("");
+        $$("[data-sticker-tab]", tabs).forEach(btn => btn.addEventListener("click", () => {
+          state.storyDraft.stickerTab = btn.dataset.stickerTab || "cuevas";
+          renderStoryStickerPanel();
+        }));
+      }
+      if (grid) {
+        grid.innerHTML = (STORY_STICKER_GROUPS[tab] || STORY_STICKER_GROUPS.cuevas).map(([label, preview]) => `
+          <button class="story-sticker-pick" data-sticker-label="${escapeAttr(label)}" data-sticker-preview="${escapeAttr(preview)}" type="button">
+            <span>${escapeHtml(preview)}</span><span>${escapeHtml(label)}</span>
+          </button>
+        `).join("");
+        $$(".story-sticker-pick", grid).forEach(btn => btn.addEventListener("click", () => addStorySticker(btn.dataset.stickerLabel, btn.dataset.stickerPreview)));
+      }
+    }
+
+    function addStorySticker(label, preview) {
+      const id = storyUid("s");
+      state.storyDraft.stickers.push({
+        id,
+        kind: "custom",
+        label: label || "Sticker",
+        text: preview || "★",
+        x: .5,
+        y: .48,
+        scale: 1,
+        rotation: 0
+      });
+      state.storyDraft.selectedStickerId = id;
+      state.storyDraft.selectedTextId = null;
+      closeStoryStickerPanel();
+      renderStoryOverlays();
+    }
+
+    function setStoryDrawMode(active) {
+      state.storyDraft.drawMode = Boolean(active && state.storyDraft.file);
+      if (state.storyDraft.drawMode) {
+        state.storyDraft.selectedTextId = null;
+        state.storyDraft.selectedStickerId = null;
+        closeStoryStickerPanel();
+      }
+      renderStoryOverlays();
+    }
+
+    function pointFromCanvasEvent(event, canvas) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: storyClamp((event.clientX - rect.left) / rect.width),
+        y: storyClamp((event.clientY - rect.top) / rect.height)
+      };
+    }
+
+    function startStoryDrawing(event) {
+      const draft = state.storyDraft;
+      if (!draft.file || !draft.drawMode) return;
+      event.preventDefault();
+      const canvas = $("#storyDrawCanvas");
+      const stroke = {
+        id: storyUid("stroke"),
+        color: draft.drawColor || "#ffffff",
+        width: Number(draft.drawWidth || 4),
+        points: [pointFromCanvasEvent(event, canvas)]
+      };
+      draft.currentStroke = stroke;
+      draft.strokes.push(stroke);
+      try { canvas.setPointerCapture(event.pointerId); } catch {}
+      renderStoryDrawCanvas();
+    }
+
+    function continueStoryDrawing(event) {
+      const draft = state.storyDraft;
+      if (!draft.currentStroke || !draft.drawMode) return;
+      event.preventDefault();
+      draft.currentStroke.points.push(pointFromCanvasEvent(event, $("#storyDrawCanvas")));
+      renderStoryDrawCanvas();
+    }
+
+    function endStoryDrawing() {
+      state.storyDraft.currentStroke = null;
+    }
+
+    function drawStoryStrokes(canvas, strokes = []) {
+      if (!canvas) return;
+      const host = canvas.closest(".story-camera-stage, .story-stage");
+      const rect = host?.getBoundingClientRect();
+      if (!rect?.width || !rect?.height) return;
+      const dpr = window.devicePixelRatio || 1;
+      const width = Math.max(1, Math.round(rect.width * dpr));
+      const height = Math.max(1, Math.round(rect.height * dpr));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, width, height);
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      strokes.forEach(stroke => {
+        const points = stroke.points || [];
+        if (!points.length) return;
+        ctx.strokeStyle = stroke.color || "#ffffff";
+        ctx.lineWidth = Number(stroke.width || 4);
+        ctx.beginPath();
+        ctx.moveTo(points[0].x * rect.width, points[0].y * rect.height);
+        points.slice(1).forEach(point => ctx.lineTo(point.x * rect.width, point.y * rect.height));
+        if (points.length === 1) ctx.lineTo(points[0].x * rect.width + .5, points[0].y * rect.height + .5);
+        ctx.stroke();
+      });
+      ctx.restore();
+    }
+
+    function renderStoryDrawCanvas() {
+      drawStoryStrokes($("#storyDrawCanvas"), state.storyDraft?.file ? state.storyDraft.strokes || [] : []);
+    }
+
+    function undoStoryStroke() {
+      state.storyDraft.strokes.pop();
+      renderStoryDrawCanvas();
+    }
+
+    function clearStoryStrokes() {
+      state.storyDraft.strokes = [];
+      state.storyDraft.currentStroke = null;
+      renderStoryDrawCanvas();
+    }
+
+    function triggerDownload(url, filename) {
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+    }
+
+    function drawImageCover(ctx, img, width, height) {
+      const sourceWidth = img.naturalWidth || img.videoWidth || width;
+      const sourceHeight = img.naturalHeight || img.videoHeight || height;
+      const scale = Math.max(width / sourceWidth, height / sourceHeight);
+      const drawWidth = sourceWidth * scale;
+      const drawHeight = sourceHeight * scale;
+      ctx.drawImage(img, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
+    }
+
+    function loadStoryImage(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+      const words = String(text || "").split(/\s+/);
+      const lines = [];
+      let line = "";
+      words.forEach(word => {
+        const next = line ? `${line} ${word}` : word;
+        if (ctx.measureText(next).width > maxWidth && line) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = next;
+        }
+      });
+      if (line) lines.push(line);
+      const startY = y - ((lines.length - 1) * lineHeight) / 2;
+      lines.forEach((lineText, index) => ctx.fillText(lineText, x, startY + index * lineHeight));
+    }
+
+    async function renderStoryImageDownloadBlob() {
+      const draft = state.storyDraft;
+      const stage = $("#storyPreview");
+      const rect = stage?.getBoundingClientRect();
+      const width = Math.max(720, Math.round((rect?.width || 360) * 2));
+      const height = Math.max(1280, Math.round((rect?.height || 640) * 2));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#03050a";
+      ctx.fillRect(0, 0, width, height);
+      const img = await loadStoryImage(draft.url);
+      ctx.save();
+      ctx.filter = canvasFilterForStoryFilter(draft.filter);
+      drawImageCover(ctx, img, width, height);
+      ctx.restore();
+      const scaleX = width;
+      const scaleY = height;
+      (draft.strokes || []).forEach(stroke => {
+        const points = stroke.points || [];
+        if (!points.length) return;
+        ctx.strokeStyle = stroke.color || "#ffffff";
+        ctx.lineWidth = Number(stroke.width || 4) * 2;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        ctx.moveTo(points[0].x * scaleX, points[0].y * scaleY);
+        points.slice(1).forEach(point => ctx.lineTo(point.x * scaleX, point.y * scaleY));
+        ctx.stroke();
+      });
+      (draft.stickers || []).forEach(sticker => {
+        ctx.save();
+        ctx.translate(storyClamp(sticker.x, .05, .95) * width, storyClamp(sticker.y, .05, .95) * height);
+        ctx.rotate((Number(sticker.rotation || 0) * Math.PI) / 180);
+        ctx.font = `${Math.round(70 * Number(sticker.scale || 1))}px system-ui, Apple Color Emoji, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(sticker.text || sticker.preview || "★", 0, 0);
+        ctx.restore();
+      });
+      (draft.textOverlays || []).filter(item => item.text?.trim()).forEach(item => {
+        ctx.save();
+        const x = storyClamp(item.x, .04, .96) * width;
+        const y = storyClamp(item.y, .04, .96) * height;
+        const fontSize = Math.round(54 * Number(item.scale || 1));
+        ctx.translate(x, y);
+        ctx.rotate((Number(item.rotation || 0) * Math.PI) / 180);
+        ctx.font = `900 ${fontSize}px system-ui, -apple-system, BlinkMacSystemFont, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = item.style === "chrome" || item.style === "blood" ? "#ffffff" : item.color || "#ffffff";
+        ctx.shadowBlur = item.style === "mono" ? 0 : 20;
+        ctx.shadowColor = item.style === "blood" ? "#80171F" : item.color || "#00ffd5";
+        if (item.style === "ticker") {
+          const boxWidth = Math.min(width * .72, Math.max(360, ctx.measureText(item.text).width + 80));
+          ctx.fillStyle = "rgba(0,0,0,.86)";
+          ctx.fillRect(-boxWidth / 2, -fontSize * .85, boxWidth, fontSize * 1.7);
+          ctx.strokeStyle = item.color || "#ffffff";
+          ctx.strokeRect(-boxWidth / 2, -fontSize * .85, boxWidth, fontSize * 1.7);
+          ctx.fillStyle = item.color || "#ffffff";
+        }
+        drawWrappedText(ctx, item.text, 0, 0, width * .72, fontSize * 1.1);
+        ctx.restore();
+      });
+      return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", .92));
+    }
+
+    async function downloadStoryDraft() {
+      const draft = state.storyDraft;
+      if (!draft.file) {
+        setStatus("storyStatus", "Capture or choose media first.", "error");
+        return;
+      }
+      if (draft.type === "video") {
+        triggerDownload(draft.url, `cuevas-story-${Date.now()}.${draft.file.type?.includes("mp4") ? "mp4" : "webm"}`);
+        setStatus("storyStatus", "Video download started.");
+        return;
+      }
+      try {
+        const blob = await renderStoryImageDownloadBlob();
+        if (!blob) throw new Error("Download render failed.");
+        const url = URL.createObjectURL(blob);
+        triggerDownload(url, `cuevas-story-${Date.now()}.jpg`);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        setStatus("storyStatus", "Story image download started.");
+      } catch (err) {
+        setStatus("storyStatus", err.message || "Download failed.", "error");
+      }
+    }
+
+    function renderStoryViewerDecorations(story) {
+      const overlays = Array.isArray(story.textOverlays) ? story.textOverlays : [];
+      const stickers = Array.isArray(story.stickers) ? story.stickers : [];
+      const hasOverlays = overlays.length || stickers.length;
+      const layer = $("#storyViewerOverlayLayer");
+      if (layer) layer.innerHTML = renderStoryOverlayHtml(overlays, stickers, false);
+      const legacyText = $("#storyViewerText");
+      if (legacyText) {
+        legacyText.textContent = hasOverlays ? "" : story.text || "";
+        legacyText.style.color = story.color || "#ffffff";
+        legacyText.classList.toggle("hidden", Boolean(hasOverlays || !story.text));
+      }
+      setTimeout(() => drawStoryStrokes($("#storyViewerDrawCanvas"), story.strokes || []), 20);
+    }
+
     function setElementFilterClass(element, filterId) {
       if (!element) return;
       Array.from(element.classList)
@@ -3663,6 +4735,9 @@
       state.storyDraft.file = file;
       state.storyDraft.type = type;
       state.storyDraft.url = URL.createObjectURL(file);
+      state.storyDraft.selectedTextId = null;
+      state.storyDraft.selectedStickerId = null;
+      state.storyDraft.drawMode = false;
       renderStoryPreview();
       updateStoryStatusPill("READY");
       setStatus("storyStatus", "");
@@ -3756,6 +4831,8 @@
       $("#storyFile").value = "";
       $("#storyText").value = "";
       $("#storyTextColor").value = "#ffffff";
+      $("#storyTextEditor")?.classList.remove("active");
+      $("#storyStickerPanel")?.classList.remove("active");
       setStoryMode("photo", false);
       setStoryFilter(state.storyDraft.filter);
       renderStoryPreview();
@@ -3767,6 +4844,11 @@
     function updateStoryDraftFromInputs() {
       state.storyDraft.text = $("#storyText")?.value || "";
       state.storyDraft.color = $("#storyTextColor")?.value || "#ffffff";
+      const first = state.storyDraft.textOverlays?.[0];
+      if (first && state.storyDraft.text) {
+        first.text = state.storyDraft.text;
+        first.color = state.storyDraft.color;
+      }
       renderStoryPreview();
     }
 
@@ -3870,6 +4952,17 @@
       clearStoryMedia();
       state.storyDraft.text = "";
       state.storyDraft.color = "#ffffff";
+      state.storyDraft.textOverlays = [];
+      state.storyDraft.stickers = [];
+      state.storyDraft.strokes = [];
+      state.storyDraft.selectedTextId = null;
+      state.storyDraft.selectedStickerId = null;
+      state.storyDraft.editingTextId = null;
+      state.storyDraft.editingTextValue = "";
+      state.storyDraft.drawMode = false;
+      state.storyDraft.currentStroke = null;
+      $("#storyTextEditor")?.classList.remove("active");
+      $("#storyStickerPanel")?.classList.remove("active");
       $("#storyText").value = "";
       $("#storyTextColor").value = "#ffffff";
       renderStoryPreview();
@@ -3898,18 +4991,22 @@
       }
       const overlay = $("#storyTextOverlay");
       if (overlay) {
-        overlay.textContent = draft.text || "";
-        overlay.style.color = draft.color || "#ffffff";
-        overlay.classList.toggle("hidden", !draft.text);
+        overlay.textContent = "";
+        overlay.classList.add("hidden");
       }
       const colorDot = $(".story-color-dot");
       if (colorDot) colorDot.style.backgroundColor = draft.color || "#ffffff";
-      $(".story-caption-control")?.classList.toggle("active", hasMedia);
+      $(".story-caption-control")?.classList.remove("active");
       $("#storyShutterBtn")?.classList.toggle("ready-to-post", hasMedia);
       $("#storyShutterBtn")?.setAttribute("aria-label", hasMedia ? "Post story" : "Capture story");
       $("#saveStoryBtn")?.classList.toggle("ready", hasMedia);
       if ($("#saveStoryBtn")) $("#saveStoryBtn").disabled = !hasMedia;
       $("#storyRetakeBtn")?.classList.toggle("hidden", !hasMedia);
+      if (!hasMedia) {
+        $("#storyTextEditor")?.classList.remove("active");
+        $("#storyStickerPanel")?.classList.remove("active");
+      }
+      renderStoryOverlays();
     }
 
     async function saveStory() {
@@ -3924,6 +5021,11 @@
       setStatus("storyStatus", "Saving story...");
       try {
         const url = await uploadFile(state.storyDraft.file, "stories");
+        const cleanTextOverlays = (state.storyDraft.textOverlays || []).filter(item => item.text?.trim());
+        const cleanStickers = (state.storyDraft.stickers || []).filter(item => item.text || item.preview || item.label);
+        const cleanStrokes = (state.storyDraft.strokes || []).filter(stroke => stroke.points?.length);
+        const fallbackText = cleanTextOverlays[0]?.text || state.storyDraft.text || "";
+        const fallbackColor = cleanTextOverlays[0]?.color || state.storyDraft.color || "#ffffff";
         const story = {
           id: `story-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           author: displayName(),
@@ -3932,8 +5034,11 @@
           url,
           type: state.storyDraft.type,
           filter: state.storyDraft.filter,
-          text: state.storyDraft.text,
-          color: state.storyDraft.color,
+          text: fallbackText,
+          color: fallbackColor,
+          textOverlays: cleanTextOverlays.length ? cleanTextOverlays : undefined,
+          stickers: cleanStickers.length ? cleanStickers : undefined,
+          strokes: cleanStrokes.length ? cleanStrokes : undefined,
           timestamp: Date.now()
         };
         state.stories.unshift(story);
@@ -3961,8 +5066,7 @@
         ? `<video class="filter-${escapeAttr(story.filter || "none")}" src="${escapeAttr(story.url)}" autoplay controls playsinline></video>`
         : `<img class="filter-${escapeAttr(story.filter || "none")}" src="${escapeAttr(story.url)}" alt="" />`;
       $("#storyMedia").innerHTML = media;
-      $("#storyViewerText").textContent = story.text || "";
-      $("#storyViewerText").style.color = story.color || "#ffffff";
+      renderStoryViewerDecorations(story);
       $("#storyViewerAuthor").textContent = story.author;
       $("#storyViewerAvatar").textContent = initials(story.author);
       $("#storyViewerTime").textContent = `${timeAgo(story.timestamp)} ago`;
@@ -4589,6 +5693,26 @@
       $("#storyVideoModeBtn").addEventListener("click", () => setStoryMode("video"));
       $("#storyShutterBtn").addEventListener("click", handleStoryShutter);
       $("#storyRetakeBtn").addEventListener("click", retakeStoryMedia);
+      $("#storyDownloadBtn").addEventListener("click", downloadStoryDraft);
+      $("#storyAddTextBtn").addEventListener("click", addStoryTextOverlay);
+      $("#storyStyleBtn").addEventListener("click", cycleStoryTextStyle);
+      $("#storyStickerBtn").addEventListener("click", openStoryStickerPanel);
+      $("#storyStickerCloseBtn").addEventListener("click", closeStoryStickerPanel);
+      $("#storyDrawBtn").addEventListener("click", () => setStoryDrawMode(!state.storyDraft.drawMode));
+      $("#storyUndoDrawBtn").addEventListener("click", undoStoryStroke);
+      $("#storyClearDrawBtn").addEventListener("click", clearStoryStrokes);
+      $("#storyTextDoneBtn").addEventListener("click", commitStoryTextEdit);
+      $("#storyTextEditInput").addEventListener("input", event => {
+        state.storyDraft.editingTextValue = event.target.value;
+      });
+      $("#storyTextEditInput").addEventListener("keydown", event => {
+        if ((event.metaKey || event.ctrlKey) && event.key === "Enter") commitStoryTextEdit();
+      });
+      $("#storyDrawCanvas").addEventListener("pointerdown", startStoryDrawing);
+      $("#storyDrawCanvas").addEventListener("pointermove", continueStoryDrawing);
+      $("#storyDrawCanvas").addEventListener("pointerup", endStoryDrawing);
+      $("#storyDrawCanvas").addEventListener("pointercancel", endStoryDrawing);
+      $("#storyDrawCanvas").addEventListener("pointerleave", endStoryDrawing);
       $("#storyText").addEventListener("input", updateStoryDraftFromInputs);
       $("#storyTextColor").addEventListener("input", updateStoryDraftFromInputs);
       $("#saveStoryBtn").addEventListener("click", saveStory);
@@ -4603,6 +5727,13 @@
       $("#profileSettingsBtn").addEventListener("click", () => showModal("profileSettingsModal"));
       $("#editProfileBtn").addEventListener("click", openEditProfile);
       $("#saveHandleBtn").addEventListener("click", saveHandle);
+      window.addEventListener("resize", () => {
+        renderStoryDrawCanvas();
+        const activeStory = $("#deleteStoryBtn")?.dataset.storyId
+          ? state.stories.find(story => story.id === $("#deleteStoryBtn").dataset.storyId)
+          : null;
+        if (activeStory && $("#storyViewer")?.classList.contains("active")) renderStoryViewerDecorations(activeStory);
+      });
       $("#sendReportBtn").addEventListener("click", sendReport);
       $("#logoutTopBtn").addEventListener("click", logout);
       $("#logoutProfileBtn").addEventListener("click", logout);
