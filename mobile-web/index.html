@@ -179,32 +179,109 @@
 
     .login-screen {
       min-height: 100dvh;
-      padding: calc(34px + var(--safe-top)) 18px calc(30px + var(--safe-bottom));
+      padding: calc(46px + var(--safe-top)) 24px calc(42px + var(--safe-bottom));
       display: grid;
       align-content: center;
-      gap: 18px;
+      gap: 24px;
+      background:
+        radial-gradient(circle at 50% 24%, rgba(6,167,161,.16), transparent 31%),
+        radial-gradient(circle at 50% 60%, rgba(6,167,161,.1), transparent 36%),
+        linear-gradient(180deg, #061116 0%, #081920 42%, #0A0A0A 100%);
+    }
+
+    .login-brand {
+      display: grid;
+      justify-items: center;
+      text-align: center;
+      gap: 10px;
     }
 
     .brand-mark {
-      width: 78px;
-      height: 78px;
-      border-radius: 22px;
+      width: 86px;
+      height: 86px;
+      border-radius: 30px;
       background:
-        linear-gradient(135deg, rgba(250,204,21,.22), rgba(6,167,161,.2)),
-        #111827;
-      border: 1px solid rgba(250,204,21,.3);
+        linear-gradient(135deg, rgba(6,167,161,.18), rgba(6,167,161,.08)),
+        rgba(7,18,23,.82);
+      border: 1px solid rgba(6,167,161,.46);
       display: grid;
       place-items: center;
-      font-size: 36px;
+      box-shadow: 0 0 26px rgba(6,167,161,.24), inset 0 0 22px rgba(6,167,161,.12);
+      overflow: hidden;
+    }
+
+    .brand-mark img {
+      width: 58px;
+      height: 58px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      animation: coinSpin 2.4s linear infinite;
+      filter: drop-shadow(0 0 12px rgba(6,167,161,.34));
+    }
+
+    .login-title {
+      margin: 0;
+      color: #CFEFEC;
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(46px, 12vw, 58px);
+      line-height: .95;
       font-weight: 950;
-      color: var(--accent-2);
-      margin-bottom: 8px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      text-shadow: 0 0 18px rgba(6,167,161,.16);
+    }
+
+    .login-kicker {
+      margin: 0;
+      color: var(--accent);
+      font-family: "Courier New", Courier, monospace;
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: .2em;
+      text-transform: uppercase;
     }
 
     .login-card {
-      padding: 20px;
+      width: 100%;
+      max-width: 420px;
+      justify-self: center;
+      padding: 18px;
       display: grid;
       gap: 14px;
+      border-radius: 30px;
+      border-color: rgba(6,167,161,.36);
+      background: rgba(7,18,23,.88);
+      box-shadow: 0 0 36px rgba(6,167,161,.14), 0 20px 45px rgba(0,0,0,.42);
+    }
+
+    .login-card .grid-2 {
+      gap: 6px;
+      padding: 5px;
+      border-radius: 18px;
+      border: 1px solid rgba(6,167,161,.34);
+      background: #061116;
+    }
+
+    .login-card .grid-2 .btn {
+      min-height: 44px;
+      border-radius: 14px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 14px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .login-card .grid-2 .btn.warning {
+      background: var(--accent);
+      color: #10252B;
+      border: 1px solid #057D78;
+      box-shadow: 0 8px 18px rgba(6,167,161,.2);
+    }
+
+    .login-card .grid-2 .btn.secondary {
+      background: rgba(255,255,255,.06);
+      color: #CFEFEC;
+      border: 1px solid rgba(6,167,161,.24);
     }
 
     .field {
@@ -215,20 +292,28 @@
     .field label {
       color: var(--soft);
       font-size: 12px;
-      font-weight: 800;
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 950;
       text-transform: uppercase;
-      letter-spacing: .05em;
+      letter-spacing: .04em;
     }
 
     .input, .select, textarea {
       width: 100%;
-      min-height: 48px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,.1);
-      background: #08101d;
+      min-height: 56px;
+      border-radius: 16px;
+      border: 1px solid rgba(6,167,161,.45);
+      background: rgba(9,24,30,.92);
       color: var(--text);
-      padding: 12px 13px;
+      padding: 13px 14px;
       outline: none;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 15px;
+    }
+
+    .input::placeholder,
+    textarea::placeholder {
+      color: #66777A;
     }
 
     textarea {
@@ -243,9 +328,9 @@
     }
 
     .btn {
-      min-height: 48px;
+      min-height: 56px;
       border: 0;
-      border-radius: 8px;
+      border-radius: 18px;
       padding: 0 16px;
       background: var(--accent);
       color: #001211;
@@ -256,6 +341,27 @@
       justify-content: center;
       gap: 9px;
       white-space: nowrap;
+    }
+
+    #authSubmitBtn {
+      margin-top: 2px;
+      border: 2px solid #39D8D0;
+      color: #fff;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 16px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      box-shadow: 0 10px 22px rgba(6,167,161,.2);
+    }
+
+    #googleBtn {
+      min-height: 54px;
+      display: grid;
+      place-items: center;
+    }
+
+    #googleBtn > div {
+      width: 100% !important;
     }
 
     .btn.secondary {
@@ -310,6 +416,7 @@
       color: var(--muted);
       font-size: 13px;
       font-weight: 700;
+      font-family: "Courier New", Courier, monospace;
     }
 
     .status.error {
@@ -2796,31 +2903,30 @@
 <body>
   <main class="app-shell">
     <section id="loginScreen" class="login-screen">
-      <div>
-        <div class="brand-mark">C</div>
-        <h1 class="title">Cuevas</h1>
-        <p class="subtitle">Community feed, rewards, missions, and stories.</p>
+      <div class="login-brand">
+        <div class="brand-mark"><img src="coin.gif" alt="" /></div>
+        <h1 class="login-title">Cuevas</h1>
+        <p id="loginKicker" class="login-kicker">Rewards Login</p>
       </div>
       <div class="card login-card">
         <div class="grid-2">
-          <button id="loginModeBtn" class="btn warning" type="button">Login</button>
+          <button id="loginModeBtn" class="btn warning" type="button">Sign In</button>
           <button id="signupModeBtn" class="btn secondary" type="button">Sign up</button>
         </div>
         <div id="nameField" class="field hidden">
-          <label for="displayNameInput">Display name</label>
-          <input id="displayNameInput" class="input" autocomplete="name" placeholder="Your name" />
+          <label for="displayNameInput">Username</label>
+          <input id="displayNameInput" class="input" autocomplete="name" placeholder="username" />
         </div>
         <div class="field">
           <label for="emailInput">Email</label>
-          <input id="emailInput" class="input" autocomplete="email" inputmode="email" placeholder="you@example.com" />
+          <input id="emailInput" class="input" autocomplete="email" inputmode="email" placeholder="your@email.com" />
         </div>
         <div class="field">
           <label for="passwordInput">Password</label>
-          <input id="passwordInput" class="input" type="password" autocomplete="current-password" placeholder="Password" />
+          <input id="passwordInput" class="input" type="password" autocomplete="current-password" placeholder="••••••••" />
         </div>
-        <button id="authSubmitBtn" class="btn" type="button">Continue</button>
+        <button id="authSubmitBtn" class="btn" type="button"><span data-icon="logout"></span><span>Sign In</span></button>
         <div id="googleBtn"></div>
-        <p class="tiny muted">Apple Sign In is not included in this web version yet. The existing backend can still support it later after web-domain setup.</p>
         <div id="authStatus" class="status"></div>
       </div>
     </section>
@@ -3617,7 +3723,10 @@
       $("#nameField").classList.toggle("hidden", mode !== "signup");
       $("#loginModeBtn").className = mode === "login" ? "btn warning" : "btn secondary";
       $("#signupModeBtn").className = mode === "signup" ? "btn warning" : "btn secondary";
-      $("#authSubmitBtn").textContent = mode === "signup" ? "Create account" : "Continue";
+      $("#loginKicker").textContent = mode === "signup" ? "Create Your Reward ID" : "Rewards Login";
+      $("#authSubmitBtn").innerHTML = mode === "signup"
+        ? `${icon("user-plus", 18)}<span>Create Account</span>`
+        : `${icon("logout", 18)}<span>Sign In</span>`;
       $("#passwordInput").autocomplete = mode === "signup" ? "new-password" : "current-password";
       setStatus("authStatus", "");
     }
@@ -5780,10 +5889,12 @@
             callback: handleGoogleCredential
           });
           google.accounts.id.renderButton($("#googleBtn"), {
-            theme: "filled_black",
+            theme: "outline",
             size: "large",
+            shape: "rectangular",
             width: Math.min(380, window.innerWidth - 72),
-            text: "continue_with"
+            text: "signin_with",
+            logo_alignment: "left"
           });
         } catch {
           $("#googleBtn").innerHTML = "";
