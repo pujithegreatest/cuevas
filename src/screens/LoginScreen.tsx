@@ -43,6 +43,13 @@ const COMMUNITY_TERMS = [
   "Cuevas may remove content, restrict accounts, or remove accounts that violate these terms or community standards.",
 ];
 
+const PUBLIC_POLICY_LINKS = [
+  "https://www.ecothot.com/cuevas-terms-of-use",
+  "https://www.ecothot.com/cuevas-privacy",
+  "https://www.ecothot.com/child-safety",
+  "https://www.ecothot.com/cuevas-delete-account",
+];
+
 // Debug: Log the client IDs (remove in production)
 console.log("Google Auth Config:", {
   ios: GOOGLE_IOS_CLIENT_ID ? "✓ Set" : "✗ Missing",
@@ -323,7 +330,7 @@ function GoogleAuthButton({
             style={({ pressed }) => ({
               minHeight: 54,
               borderRadius: 8,
-              opacity: !termsAccepted ? 0.46 : pressed ? 0.7 : 1,
+              opacity: pressed ? 0.7 : 1,
             })}
           >
             <Text className="text-lg font-bold text-white" style={{ fontFamily: "Courier New" }}>
@@ -338,7 +345,7 @@ function GoogleAuthButton({
         onPress={handleGooglePress}
         disabled={isLoading || isAppleLoading || isGoogleLoading || !request || !termsAccepted}
         className={`py-4 px-6 border-2 items-center flex-row justify-center ${
-          isGoogleLoading || !request || !termsAccepted
+          isGoogleLoading || !request
             ? isDarkMode
               ? "bg-dark-surface border-gray-600"
               : "bg-gray-100 border-gray-300"
@@ -354,7 +361,7 @@ function GoogleAuthButton({
           shadowRadius: 10,
           shadowOffset: { width: 0, height: 5 },
           elevation: 2,
-          opacity: !termsAccepted ? 0.58 : pressed ? 0.7 : 1,
+          opacity: pressed ? 0.7 : 1,
         })}
       >
         {isGoogleLoading ? (
@@ -876,6 +883,14 @@ export default function LoginScreen({ navigation }: Props) {
                 <Text style={{ color: mutedColor, fontFamily: "Courier New", fontSize: 12, lineHeight: 18, marginTop: 12 }}>
                   For moderation, safety, privacy, or support questions, contact notifications@ecothot.com.
                 </Text>
+                <Text style={{ color: textColor, fontFamily: "Courier New", fontSize: 13, fontWeight: "900", marginTop: 14, marginBottom: 8 }}>
+                  Public Pages
+                </Text>
+                {PUBLIC_POLICY_LINKS.map((link) => (
+                  <Text key={link} style={{ color: "#06A7A1", fontFamily: "Courier New", fontSize: 11, lineHeight: 17, marginBottom: 4 }}>
+                    {link}
+                  </Text>
+                ))}
               </ScrollView>
               <View style={{ padding: 16, flexDirection: "row", gap: 10, borderTopWidth: 1, borderTopColor: "rgba(6,167,161,0.25)" }}>
                 <Pressable

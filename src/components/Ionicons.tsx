@@ -74,6 +74,7 @@ import {
   Ban,
   Flag,
   Circle,
+  Check,
   LucideIcon,
 } from "lucide-react-native";
 
@@ -197,6 +198,10 @@ const map: Record<string, LucideIcon> = {
   "repeat-outline": Repeat,
   "list-checks": ListChecks,
   "shield-check": ShieldCheck,
+  "shield-checkmark": ShieldCheck,
+  "shield-checkmark-outline": ShieldCheck,
+  checkmark: Check,
+  "checkmark-outline": Check,
   people: Users,
   "people-outline": Users,
   globe: Globe,
