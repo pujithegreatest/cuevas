@@ -1179,7 +1179,7 @@ export default function ProfileScreen({ navigation }: Props) {
               })}
             >
               <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center flex-1" style={{ minWidth: 0 }}>
+                <View className="flex-row items-center flex-1" style={{ minWidth: 0, marginLeft: 36 }}>
                   <View
                     style={{
                       width: 42,

@@ -735,11 +735,12 @@ export default function LoginScreen({ navigation }: Props) {
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: termsAccepted }}
                   style={({ pressed }) => ({
-                    flexDirection: "row",
-                    alignItems: "flex-start",
                     opacity: pressed ? 0.74 : 1,
                   })}
                 >
+                  <Text style={{ color: textColor, fontFamily: "Courier New", fontSize: 12, fontWeight: "800", lineHeight: 17 }}>
+                    I agree to the Cuevas Terms of Use, Apple standard EULA where applicable, Privacy Policy, and zero-tolerance community rules.
+                  </Text>
                   <View
                     style={{
                       width: 24,
@@ -750,15 +751,11 @@ export default function LoginScreen({ navigation }: Props) {
                       backgroundColor: termsAccepted ? "#06A7A1" : "transparent",
                       alignItems: "center",
                       justifyContent: "center",
-                      marginRight: 10,
-                      marginTop: 1,
+                      marginTop: 10,
                     }}
                   >
                     {termsAccepted ? <Ionicons name="checkmark" size={17} color={isDarkMode ? "#FFFFFF" : "#10252B"} /> : null}
                   </View>
-                  <Text style={{ color: textColor, fontFamily: "Courier New", fontSize: 12, fontWeight: "800", lineHeight: 17, flex: 1 }}>
-                    I agree to the Cuevas Terms of Use, Apple standard EULA where applicable, Privacy Policy, and zero-tolerance community rules.
-                  </Text>
                 </Pressable>
                 <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10, gap: 16, flexWrap: "wrap" }}>
                   <Pressable onPress={() => setTermsModalVisible(true)} hitSlop={8}>
