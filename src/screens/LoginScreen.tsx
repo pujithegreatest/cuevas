@@ -10,6 +10,7 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
   ScrollView,
+  Modal,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
@@ -35,6 +36,13 @@ const GOOGLE_IOS_CLIENT_ID = extra.googleIosClientId || "863626649134-qti4ohta0m
 const GOOGLE_ANDROID_CLIENT_ID = extra.googleAndroidClientId || "";
 const GOOGLE_WEB_CLIENT_ID = extra.googleWebClientId || "863626649134-pudh60mc0rcu9lpil92a6b6861kqaki5.apps.googleusercontent.com";
 
+const COMMUNITY_TERMS = [
+  "Cuevas has no tolerance for objectionable content or abusive users.",
+  "Do not post harassment, bullying, hate, threats, sexual exploitation, CSAM, spam, scams, impersonation, or illegal content.",
+  "Users can report objectionable posts, stories, profiles, and comments, and can block abusive users.",
+  "Cuevas may remove content, restrict accounts, or remove accounts that violate these terms or community standards.",
+];
+
 // Debug: Log the client IDs (remove in production)
 console.log("Google Auth Config:", {
   ios: GOOGLE_IOS_CLIENT_ID ? "✓ Set" : "✗ Missing",
@@ -51,11 +59,15 @@ function GoogleAuthButton({
   isLoading,
   onLoginSuccess,
   onError,
+  termsAccepted,
+  onRequireTerms,
 }: {
   isDarkMode: boolean;
   isLoading: boolean;
   onLoginSuccess: (email: string, cuevas: number, displayName?: string, handle?: string) => void;
   onError: (error: string) => void;
+  termsAccepted: boolean;
+  onRequireTerms: () => void;
 }) {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
@@ -171,6 +183,10 @@ function GoogleAuthButton({
   };
 
   const handleGooglePress = async () => {
+    if (!termsAccepted) {
+      onRequireTerms();
+      return;
+    }
     onError("");
     setIsGoogleLoading(true);
     try {
@@ -192,6 +208,10 @@ function GoogleAuthButton({
       googleLoading: isGoogleLoading,
     });
     if (isAppleLoading || isGoogleLoading) return;
+    if (!termsAccepted) {
+      onRequireTerms();
+      return;
+    }
     onError("");
     setIsAppleLoading(true);
     try {
@@ -298,11 +318,12 @@ function GoogleAuthButton({
         ) : (
           <Pressable
             onPress={handleApplePress}
+            disabled={isLoading || isAppleLoading || isGoogleLoading || !termsAccepted}
             className="py-4 px-6 border-2 items-center flex-row justify-center mb-3 bg-black border-black"
             style={({ pressed }) => ({
               minHeight: 54,
               borderRadius: 8,
-              opacity: pressed ? 0.7 : 1,
+              opacity: !termsAccepted ? 0.46 : pressed ? 0.7 : 1,
             })}
           >
             <Text className="text-lg font-bold text-white" style={{ fontFamily: "Courier New" }}>
@@ -315,9 +336,9 @@ function GoogleAuthButton({
       {/* Google Sign-In Button */}
       <Pressable
         onPress={handleGooglePress}
-        disabled={isLoading || isAppleLoading || isGoogleLoading || !request}
+        disabled={isLoading || isAppleLoading || isGoogleLoading || !request || !termsAccepted}
         className={`py-4 px-6 border-2 items-center flex-row justify-center ${
-          isGoogleLoading || !request
+          isGoogleLoading || !request || !termsAccepted
             ? isDarkMode
               ? "bg-dark-surface border-gray-600"
               : "bg-gray-100 border-gray-300"
@@ -333,7 +354,7 @@ function GoogleAuthButton({
           shadowRadius: 10,
           shadowOffset: { width: 0, height: 5 },
           elevation: 2,
-          opacity: pressed ? 0.7 : 1,
+          opacity: !termsAccepted ? 0.58 : pressed ? 0.7 : 1,
         })}
       >
         {isGoogleLoading ? (
@@ -369,6 +390,8 @@ export default function LoginScreen({ navigation }: Props) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsModalVisible, setTermsModalVisible] = useState(false);
 
   const login = useAppStore((s) => s.login);
   const setDisplayName = useAppStore((s) => s.setDisplayName);
@@ -392,11 +415,19 @@ export default function LoginScreen({ navigation }: Props) {
     }
   };
 
+  const requireTerms = () => {
+    setError("Please agree to the Cuevas Terms of Use and community rules before continuing.");
+  };
+
   const handleSubmit = async () => {
     setError("");
 
     const normalizedEmail = email.trim().toLowerCase();
 
+    if (!termsAccepted) {
+      requireTerms();
+      return;
+    }
     if (!email || !password) {
       setError("Please enter both email and password");
       return;
@@ -670,6 +701,67 @@ export default function LoginScreen({ navigation }: Props) {
                 </View>
               ) : null}
 
+              <View
+                style={{
+                  marginBottom: 14,
+                  padding: 14,
+                  borderRadius: 18,
+                  backgroundColor: isDarkMode ? "rgba(6,167,161,0.12)" : "rgba(232,255,252,0.92)",
+                  borderWidth: 1,
+                  borderColor: termsAccepted ? "#06A7A1" : "rgba(6,167,161,0.42)",
+                }}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 9 }}>
+                  <Ionicons name="shield-checkmark-outline" size={18} color="#06A7A1" />
+                  <Text style={{ color: textColor, fontFamily: "Courier New", fontSize: 12, fontWeight: "900", marginLeft: 7 }}>
+                    TERMS OF USE / EULA
+                  </Text>
+                </View>
+                <Text style={{ color: mutedColor, fontFamily: "Courier New", fontSize: 11, lineHeight: 16, marginBottom: 10 }}>
+                  Cuevas has no tolerance for objectionable content or abusive users. Reports and blocks help keep the community safe.
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    setTermsAccepted((value) => !value);
+                    setError("");
+                  }}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: termsAccepted }}
+                  style={({ pressed }) => ({
+                    flexDirection: "row",
+                    alignItems: "flex-start",
+                    opacity: pressed ? 0.74 : 1,
+                  })}
+                >
+                  <View
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 7,
+                      borderWidth: 2,
+                      borderColor: termsAccepted ? "#06A7A1" : "rgba(6,167,161,0.62)",
+                      backgroundColor: termsAccepted ? "#06A7A1" : "transparent",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 10,
+                      marginTop: 1,
+                    }}
+                  >
+                    {termsAccepted ? <Ionicons name="checkmark" size={17} color={isDarkMode ? "#FFFFFF" : "#10252B"} /> : null}
+                  </View>
+                  <Text style={{ color: textColor, fontFamily: "Courier New", fontSize: 12, fontWeight: "800", lineHeight: 17, flex: 1 }}>
+                    I agree to the Cuevas Terms of Use, Apple standard EULA where applicable, Privacy Policy, and zero-tolerance community rules.
+                  </Text>
+                </Pressable>
+                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10, gap: 16, flexWrap: "wrap" }}>
+                  <Pressable onPress={() => setTermsModalVisible(true)} hitSlop={8}>
+                    <Text style={{ color: "#06A7A1", fontFamily: "Courier New", fontSize: 12, fontWeight: "900" }}>
+                      View Terms
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+
               {error ? (
                 <View style={{ marginBottom: 14, padding: 12, borderRadius: 16, backgroundColor: "rgba(128,23,31,0.16)", borderWidth: 1, borderColor: "#80171F" }}>
                   <Text style={{ color: "#FF6B72", fontFamily: "Courier New", fontSize: 12, fontWeight: "900", marginBottom: 4 }}>
@@ -715,6 +807,8 @@ export default function LoginScreen({ navigation }: Props) {
                 isLoading={isLoading}
                 onLoginSuccess={handleGoogleLoginSuccess}
                 onError={setError}
+                termsAccepted={termsAccepted}
+                onRequireTerms={requireTerms}
               />
 
               <Text style={{ color: mutedColor, fontFamily: "Courier New", fontSize: 11, textAlign: "center", lineHeight: 16, marginTop: 4 }}>
@@ -727,6 +821,105 @@ export default function LoginScreen({ navigation }: Props) {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
+        <Modal
+          visible={termsModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setTermsModalVisible(false)}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              padding: 20,
+              backgroundColor: "rgba(0,0,0,0.58)",
+            }}
+          >
+            <View
+              style={{
+                maxHeight: "82%",
+                borderRadius: 24,
+                borderWidth: 1,
+                borderColor: "rgba(6,167,161,0.5)",
+                backgroundColor: isDarkMode ? "#071217" : "#F7FFFF",
+                overflow: "hidden",
+              }}
+            >
+              <View style={{ padding: 18, borderBottomWidth: 1, borderBottomColor: "rgba(6,167,161,0.25)" }}>
+                <Text style={{ color: textColor, fontFamily: "Courier New", fontSize: 20, fontWeight: "900" }}>
+                  Cuevas Terms of Use
+                </Text>
+                <Text style={{ color: mutedColor, fontFamily: "Courier New", fontSize: 12, lineHeight: 17, marginTop: 5 }}>
+                  You must agree before creating an account or signing in.
+                </Text>
+              </View>
+              <ScrollView contentContainerStyle={{ padding: 18 }}>
+                <Text style={{ color: textColor, fontFamily: "Courier New", fontSize: 13, fontWeight: "900", marginBottom: 10 }}>
+                  Community Safety
+                </Text>
+                {COMMUNITY_TERMS.map((item) => (
+                  <View key={item} style={{ flexDirection: "row", marginBottom: 10 }}>
+                    <Text style={{ color: "#06A7A1", fontFamily: "Courier New", fontSize: 13, fontWeight: "900", marginRight: 8 }}>
+                      •
+                    </Text>
+                    <Text style={{ color: mutedColor, fontFamily: "Courier New", fontSize: 12, lineHeight: 18, flex: 1 }}>
+                      {item}
+                    </Text>
+                  </View>
+                ))}
+                <Text style={{ color: textColor, fontFamily: "Courier New", fontSize: 13, fontWeight: "900", marginTop: 8, marginBottom: 8 }}>
+                  Account Rules
+                </Text>
+                <Text style={{ color: mutedColor, fontFamily: "Courier New", fontSize: 12, lineHeight: 18 }}>
+                  By continuing, you agree to use Cuevas lawfully, respect other users, follow these terms, and accept that Cuevas can moderate content and accounts to protect the service and its community. If you do not agree, do not create an account or sign in.
+                </Text>
+                <Text style={{ color: mutedColor, fontFamily: "Courier New", fontSize: 12, lineHeight: 18, marginTop: 12 }}>
+                  For moderation, safety, privacy, or support questions, contact notifications@ecothot.com.
+                </Text>
+              </ScrollView>
+              <View style={{ padding: 16, flexDirection: "row", gap: 10, borderTopWidth: 1, borderTopColor: "rgba(6,167,161,0.25)" }}>
+                <Pressable
+                  onPress={() => setTermsModalVisible(false)}
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    borderRadius: 16,
+                    paddingVertical: 13,
+                    alignItems: "center",
+                    backgroundColor: isDarkMode ? "rgba(255,255,255,0.06)" : "#E8FFFC",
+                    borderWidth: 1,
+                    borderColor: "rgba(6,167,161,0.42)",
+                    opacity: pressed ? 0.72 : 1,
+                  })}
+                >
+                  <Text style={{ color: "#06A7A1", fontFamily: "Courier New", fontSize: 13, fontWeight: "900" }}>
+                    Close
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setTermsAccepted(true);
+                    setTermsModalVisible(false);
+                    setError("");
+                  }}
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    borderRadius: 16,
+                    paddingVertical: 13,
+                    alignItems: "center",
+                    backgroundColor: "#06A7A1",
+                    borderWidth: 1,
+                    borderColor: "#057D78",
+                    opacity: pressed ? 0.72 : 1,
+                  })}
+                >
+                  <Text style={{ color: isDarkMode ? "#FFFFFF" : "#10252B", fontFamily: "Courier New", fontSize: 13, fontWeight: "900" }}>
+                    Agree
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </LinearGradient>
     </TouchableWithoutFeedback>
   );
