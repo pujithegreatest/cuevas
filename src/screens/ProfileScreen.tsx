@@ -1170,10 +1170,9 @@ export default function ProfileScreen({ navigation }: Props) {
                 borderWidth: 1,
                 borderColor: isDarkMode ? "rgba(6,167,161,0.62)" : "rgba(6,167,161,0.38)",
                 backgroundColor: isDarkMode ? "rgba(6,167,161,0.14)" : "#E8FFFC",
-                paddingVertical: 16,
-                paddingHorizontal: 18,
-                marginTop: 16,
-                minHeight: 92,
+                padding: 16,
+                marginTop: 24,
+                minHeight: 84,
                 justifyContent: "center",
                 opacity: pressed ? 0.78 : 1,
               })}
@@ -1214,7 +1213,7 @@ export default function ProfileScreen({ navigation }: Props) {
                 borderColor: isDarkMode ? "rgba(248,113,113,0.5)" : "rgba(185,28,28,0.28)",
                 backgroundColor: isDarkMode ? "rgba(127,29,29,0.18)" : "#FEF2F2",
                 padding: 16,
-                marginTop: 12,
+                marginTop: 16,
               }}
             >
               <View className="flex-row items-center justify-between">
