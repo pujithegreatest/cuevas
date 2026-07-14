@@ -1162,22 +1162,58 @@ export default function ProfileScreen({ navigation }: Props) {
             </View>
 
             <Pressable
+              onPress={showDeleteAccountRequest}
+              style={{
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: isDarkMode ? "rgba(248,113,113,0.5)" : "rgba(185,28,28,0.28)",
+                backgroundColor: isDarkMode ? "rgba(127,29,29,0.18)" : "#FEF2F2",
+                padding: 16,
+                marginTop: 24,
+              }}
+            >
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center flex-1">
+                  <View
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 16,
+                      backgroundColor: isDarkMode ? "rgba(248,113,113,0.16)" : "#FEE2E2",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 12,
+                    }}
+                  >
+                    <Ionicons name="trash-outline" size={22} color="#EF4444" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className={`font-bold ${textColor}`}>Delete Account</Text>
+                    <Text className={`text-xs mt-1 ${subText}`}>
+                      Submit a request to remove your Cuevas account.
+                    </Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#EF4444" />
+              </View>
+            </Pressable>
+
+            <Pressable
               onPress={confirmLogout}
               accessibilityRole="button"
               accessibilityLabel="Log out of Cuevas"
-              style={({ pressed }) => ({
+              style={{
+                width: "100%",
+                alignSelf: "stretch",
                 borderRadius: 20,
                 borderWidth: 1,
                 borderColor: isDarkMode ? "rgba(6,167,161,0.62)" : "rgba(6,167,161,0.38)",
-                backgroundColor: isDarkMode ? "rgba(6,167,161,0.14)" : "#E8FFFC",
-                paddingVertical: 16,
-                paddingRight: 16,
-                paddingLeft: 32,
-                marginTop: 24,
+                backgroundColor: isDarkMode ? "rgba(6,167,161,0.18)" : "#E8FFFC",
+                padding: 16,
+                marginTop: 16,
                 minHeight: 84,
                 justifyContent: "center",
-                opacity: pressed ? 0.78 : 1,
-              })}
+              }}
             >
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center flex-1" style={{ minWidth: 0 }}>
@@ -1204,43 +1240,6 @@ export default function ProfileScreen({ navigation }: Props) {
                   </View>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#06A7A1" style={{ marginLeft: 12 }} />
-              </View>
-            </Pressable>
-
-            <Pressable
-              onPress={showDeleteAccountRequest}
-              style={{
-                borderRadius: 20,
-                borderWidth: 1,
-                borderColor: isDarkMode ? "rgba(248,113,113,0.5)" : "rgba(185,28,28,0.28)",
-                backgroundColor: isDarkMode ? "rgba(127,29,29,0.18)" : "#FEF2F2",
-                padding: 16,
-                marginTop: 16,
-              }}
-            >
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center flex-1">
-                  <View
-                    style={{
-                      width: 42,
-                      height: 42,
-                      borderRadius: 16,
-                      backgroundColor: isDarkMode ? "rgba(248,113,113,0.16)" : "#FEE2E2",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginRight: 12,
-                    }}
-                  >
-                    <Ionicons name="trash-outline" size={22} color="#EF4444" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className={`font-bold ${textColor}`}>Delete Account</Text>
-                    <Text className={`text-xs mt-1 ${subText}`}>
-                      Submit a request to remove your Cuevas account.
-                    </Text>
-                  </View>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#EF4444" />
               </View>
             </Pressable>
           </ScrollView>
