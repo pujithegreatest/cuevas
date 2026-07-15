@@ -11,7 +11,6 @@ import {
   TextInput,
   RefreshControl,
   ActivityIndicator,
-  Linking,
 } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import Animated, {
@@ -58,6 +57,7 @@ type ResearchSuggestion = {
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const LEGAL_SAFETY_LAST_UPDATED = "July 15, 2026";
 
 const LEGAL_SAFETY_LINKS = [
   {
@@ -313,12 +313,6 @@ export default function ProfileScreen({ navigation }: Props) {
   const [profileRefreshing, setProfileRefreshing] = useState(false);
   const [accountDeleting, setAccountDeleting] = useState(false);
   const [selectedLegalPage, setSelectedLegalPage] = useState<LegalSafetyLink | null>(null);
-
-  const openLegalSafetyLink = (url: string) => {
-    Linking.openURL(url).catch(() => {
-      Alert.alert("Could not open link", "Please try again in a moment.");
-    });
-  };
 
   const closeSettings = () => {
     setSelectedLegalPage(null);
@@ -1223,6 +1217,7 @@ export default function ProfileScreen({ navigation }: Props) {
                   <View className="flex-1">
                     <Text className={`font-bold ${textColor}`}>{selectedLegalPage.label}</Text>
                     <Text className={`text-xs mt-1 ${subText}`}>{selectedLegalPage.detail}</Text>
+                    <Text className={`text-xs mt-2 ${subText}`}>Last updated: {LEGAL_SAFETY_LAST_UPDATED}</Text>
                   </View>
                 </View>
 
@@ -1253,26 +1248,6 @@ export default function ProfileScreen({ navigation }: Props) {
                   <Text className="text-xs mt-1 text-teal-500" numberOfLines={2}>
                     {selectedLegalPage.url}
                   </Text>
-                  <Pressable
-                    onPress={() => openLegalSafetyLink(selectedLegalPage.url)}
-                    accessibilityRole="link"
-                    accessibilityLabel={`Open public ${selectedLegalPage.label} page`}
-                    style={{
-                      marginTop: 12,
-                      borderRadius: 16,
-                      borderWidth: 1,
-                      borderColor: "rgba(6,167,161,0.42)",
-                      backgroundColor: isDarkMode ? "rgba(6,167,161,0.14)" : "#E8FFFC",
-                      paddingVertical: 12,
-                      paddingHorizontal: 14,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Text className="font-bold text-teal-500">Open Public Page</Text>
-                    <Ionicons name="chevron-forward" size={18} color="#06A7A1" />
-                  </Pressable>
                 </View>
               </View>
             ) : (
