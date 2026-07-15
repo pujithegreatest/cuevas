@@ -65,26 +65,57 @@ const LEGAL_SAFETY_LINKS = [
     detail: "Zero-tolerance community rules and EULA terms.",
     url: "https://www.ecothot.com/cuevas-terms-of-use",
     icon: "shield-checkmark-outline",
+    body: [
+      "Cuevas has no tolerance for objectionable content or abusive users.",
+      "Cuevas filters objectionable material from being posted to the app and reviews reports to keep the community safe.",
+      "Do not post harassment, bullying, hate, threats, sexual exploitation, CSAM, spam, scams, impersonation, or illegal content.",
+      "Users can report objectionable posts, stories, profiles, and comments, and can block abusive users.",
+      "Cuevas may remove content, restrict accounts, or remove accounts that violate these terms or community standards.",
+    ],
   },
   {
     label: "Privacy Policy",
     detail: "Data collection, account deletion, and retention details.",
     url: "https://www.ecothot.com/cuevas-privacy",
     icon: "lock-closed-outline",
+    body: [
+      "Cuevas collects account information such as username, email address, user ID, profile details, rewards balance, and login provider identifiers so users can sign in and use app features.",
+      "Cuevas stores user-generated content users choose to create, including posts, comments, stories, photos, videos, audio, reports, blocks, and mission activity.",
+      "Camera, microphone, photo library, and media access are used only when users choose features such as creating posts, stories, proof uploads, QR scans, or voice/audio features.",
+      "Cuevas uses data for app functionality, account management, safety, moderation, fraud prevention, support, and service improvement. Cuevas does not sell user personal information.",
+      "Users can delete their Cuevas account in-app from Settings. Some limited records may be retained only when needed for security, legal compliance, moderation, or dispute prevention.",
+      "Privacy questions: notifications@ecothot.com",
+    ],
   },
   {
     label: "Child Safety Standards",
     detail: "CSAE, CSAM, report handling, and child safety contact.",
     url: "https://www.ecothot.com/child-safety",
     icon: "warning-outline",
+    body: [
+      "Cuevas does not allow child sexual abuse and exploitation, child sexual abuse material, grooming, sexual exploitation of minors, sextortion, trafficking, or any content or behavior that endangers children.",
+      "Users can report child safety concerns in-app through the report menu on user-generated content, including the Child safety or exploitation report reason.",
+      "Reports are reviewed and action may include content removal, account restrictions, account removal, and escalation where required.",
+      "Cuevas removes CSAM or child exploitation content when identified and reports applicable incidents to appropriate regional or national authorities as required by law, including NCMEC where applicable.",
+      "Child safety contact: notifications@ecothot.com",
+    ],
   },
   {
     label: "Account Deletion",
     detail: "Permanent in-app account deletion information.",
     url: "https://www.ecothot.com/cuevas-delete-account",
     icon: "trash-outline",
+    body: [
+      "Cuevas users can delete their account directly in the app from Profile > Settings > Delete Account.",
+      "The in-app deletion flow permanently deletes the Cuevas account and associated Cuevas profile data without requiring users to email support or create another account.",
+      "Deleted data may include profile information, account identifiers, rewards profile data, app-created content tied to the account, and account access records where deletion is supported by the service.",
+      "Some limited records may be retained only when required for legal compliance, security, moderation, abuse prevention, or dispute handling.",
+      "Account deletion questions: notifications@ecothot.com",
+    ],
   },
 ];
+
+type LegalSafetyLink = (typeof LEGAL_SAFETY_LINKS)[number];
 
 function TickerHeadline({ items, isDark }: { items: string[]; isDark: boolean }) {
   const x = useSharedValue(0);
@@ -281,6 +312,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const [selectedNetworkProfileHandle, setSelectedNetworkProfileHandle] = useState<string | null>(null);
   const [profileRefreshing, setProfileRefreshing] = useState(false);
   const [accountDeleting, setAccountDeleting] = useState(false);
+  const [selectedLegalPage, setSelectedLegalPage] = useState<LegalSafetyLink | null>(null);
 
   const openLegalSafetyLink = (url: string) => {
     Linking.openURL(url).catch(() => {
@@ -1238,9 +1270,9 @@ export default function ProfileScreen({ navigation }: Props) {
               {LEGAL_SAFETY_LINKS.map((item) => (
                 <Pressable
                   key={item.url}
-                  onPress={() => openLegalSafetyLink(item.url)}
-                  accessibilityRole="link"
-                  accessibilityLabel={`Open ${item.label}`}
+                  onPress={() => setSelectedLegalPage(item)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Read ${item.label}`}
                   style={{
                     flexDirection: "row",
                     alignItems: "center",
@@ -1365,6 +1397,101 @@ export default function ProfileScreen({ navigation }: Props) {
                 <Ionicons name="chevron-forward" size={20} color="#06A7A1" style={{ marginLeft: 12 }} />
               </View>
             </Pressable>
+          </ScrollView>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={selectedLegalPage !== null}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setSelectedLegalPage(null)}
+      >
+        <View className={`flex-1 ${isDarkMode ? "bg-dark-bg" : "bg-pixel-bg"}`}>
+          <View
+            className={`flex-row items-center justify-between px-4 py-4 border-b ${statBorder}`}
+            style={{ paddingTop: insets.top + 10 }}
+          >
+            <Pressable onPress={() => setSelectedLegalPage(null)} hitSlop={10}>
+              <Ionicons name="close" size={26} color={isDarkMode ? "#CFEFEC" : "#1F2937"} />
+            </Pressable>
+            <Text className={`font-bold text-lg ${textColor}`} numberOfLines={1}>
+              {selectedLegalPage?.label || "Legal & Safety"}
+            </Text>
+            <View style={{ width: 26 }} />
+          </View>
+
+          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 34 }}>
+            <View className={`rounded-2xl border p-4 ${statBg} ${statBorder}`}>
+              <View className="flex-row items-center mb-3">
+                <View
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 16,
+                    backgroundColor: isDarkMode ? "rgba(6,167,161,0.18)" : "#DDFBF7",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 12,
+                  }}
+                >
+                  <Ionicons name={selectedLegalPage?.icon || "shield-checkmark-outline"} size={22} color="#06A7A1" />
+                </View>
+                <View className="flex-1">
+                  <Text className={`font-bold ${textColor}`}>{selectedLegalPage?.label}</Text>
+                  <Text className={`text-xs mt-1 ${subText}`}>{selectedLegalPage?.detail}</Text>
+                </View>
+              </View>
+
+              {(selectedLegalPage?.body || []).map((item, index) => (
+                <View
+                  key={`${selectedLegalPage?.label}-${index}`}
+                  style={{
+                    flexDirection: "row",
+                    paddingTop: index === 0 ? 8 : 12,
+                    borderTopWidth: index === 0 ? 1 : 0,
+                    borderTopColor: isDarkMode ? "#26313b" : "#E5E7EB",
+                  }}
+                >
+                  <Text style={{ color: "#06A7A1", fontWeight: "900", marginRight: 9 }}>•</Text>
+                  <Text className={`text-sm leading-5 flex-1 ${subText}`}>{item}</Text>
+                </View>
+              ))}
+
+              <View
+                style={{
+                  marginTop: 16,
+                  paddingTop: 14,
+                  borderTopWidth: 1,
+                  borderTopColor: isDarkMode ? "#26313b" : "#E5E7EB",
+                }}
+              >
+                <Text className={`text-xs ${subText}`}>External public page</Text>
+                <Text className="text-xs mt-1 text-teal-500" numberOfLines={2}>
+                  {selectedLegalPage?.url}
+                </Text>
+                <Pressable
+                  onPress={() => selectedLegalPage && openLegalSafetyLink(selectedLegalPage.url)}
+                  accessibilityRole="link"
+                  accessibilityLabel={`Open public ${selectedLegalPage?.label || "legal"} page`}
+                  style={{
+                    marginTop: 12,
+                    borderRadius: 16,
+                    borderWidth: 1,
+                    borderColor: "rgba(6,167,161,0.42)",
+                    backgroundColor: isDarkMode ? "rgba(6,167,161,0.14)" : "#E8FFFC",
+                    paddingVertical: 12,
+                    paddingHorizontal: 14,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Text className="font-bold text-teal-500">Open Public Page</Text>
+                  <Ionicons name="chevron-forward" size={18} color="#06A7A1" />
+                </Pressable>
+              </View>
+            </View>
           </ScrollView>
         </View>
       </Modal>
