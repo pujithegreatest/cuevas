@@ -30,6 +30,7 @@ import PostAudioPlayer from "./PostAudioPlayer";
 import ReportReasonModal from "./ReportReasonModal";
 import MissionShareCard from "./MissionShareCard";
 import { submitModerationReport, ReportReason } from "../api/moderation-reports";
+import { getObjectionableContentMessage } from "../utils/contentSafety";
 
 interface PostCardProps {
   post: Post;
@@ -176,6 +177,11 @@ function PostCardImpl({ post, onLike, onComment, onDelete, onAuthorPress }: Post
     const content = editContent.trim();
     if (!content && mediaList.length === 0 && !post.audio) {
       Alert.alert("Add text or media", "A post needs text, media, audio, or a link.");
+      return;
+    }
+    const safetyMessage = getObjectionableContentMessage(content);
+    if (safetyMessage) {
+      Alert.alert("Edit post", safetyMessage);
       return;
     }
 

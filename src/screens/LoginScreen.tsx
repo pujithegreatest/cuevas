@@ -38,6 +38,7 @@ const GOOGLE_WEB_CLIENT_ID = extra.googleWebClientId || "863626649134-pudh60mc0r
 
 const COMMUNITY_TERMS = [
   "Cuevas has no tolerance for objectionable content or abusive users.",
+  "Cuevas filters objectionable material from being posted to the app and reviews reports to keep the community safe.",
   "Do not post harassment, bullying, hate, threats, sexual exploitation, CSAM, spam, scams, impersonation, or illegal content.",
   "Users can report objectionable posts, stories, profiles, and comments, and can block abusive users.",
   "Cuevas may remove content, restrict accounts, or remove accounts that violate these terms or community standards.",

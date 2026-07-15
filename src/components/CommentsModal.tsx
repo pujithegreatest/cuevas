@@ -10,6 +10,7 @@ import {
   Platform,
   Linking,
   Keyboard,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -30,6 +31,7 @@ import {
   nextCommentPrivacy,
 } from "../utils/privacy";
 import { normalizeHandle } from "../utils/handles";
+import { getObjectionableContentMessage } from "../utils/contentSafety";
 
 interface CommentsModalProps {
   visible: boolean;
@@ -145,6 +147,12 @@ export default function CommentsModal({
 
   const handleAddComment = () => {
     if (!commentText.trim() || !postId) return;
+
+    const safetyMessage = getObjectionableContentMessage(commentText);
+    if (safetyMessage) {
+      Alert.alert("Edit comment", safetyMessage);
+      return;
+    }
 
     addComment(postId, {
       author: userEmail?.split("@")[0] || "anonymous",

@@ -11,6 +11,7 @@ import {
   TextInput,
   RefreshControl,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import Animated, {
@@ -57,6 +58,33 @@ type ResearchSuggestion = {
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+const LEGAL_SAFETY_LINKS = [
+  {
+    label: "Terms of Use",
+    detail: "Zero-tolerance community rules and EULA terms.",
+    url: "https://www.ecothot.com/cuevas-terms-of-use",
+    icon: "shield-checkmark-outline",
+  },
+  {
+    label: "Privacy Policy",
+    detail: "Data collection, account deletion, and retention details.",
+    url: "https://www.ecothot.com/cuevas-privacy",
+    icon: "lock-closed-outline",
+  },
+  {
+    label: "Child Safety Standards",
+    detail: "CSAE, CSAM, report handling, and child safety contact.",
+    url: "https://www.ecothot.com/child-safety",
+    icon: "warning-outline",
+  },
+  {
+    label: "Account Deletion",
+    detail: "Permanent in-app account deletion information.",
+    url: "https://www.ecothot.com/cuevas-delete-account",
+    icon: "trash-outline",
+  },
+];
 
 function TickerHeadline({ items, isDark }: { items: string[]; isDark: boolean }) {
   const x = useSharedValue(0);
@@ -253,6 +281,12 @@ export default function ProfileScreen({ navigation }: Props) {
   const [selectedNetworkProfileHandle, setSelectedNetworkProfileHandle] = useState<string | null>(null);
   const [profileRefreshing, setProfileRefreshing] = useState(false);
   const [accountDeleting, setAccountDeleting] = useState(false);
+
+  const openLegalSafetyLink = (url: string) => {
+    Linking.openURL(url).catch(() => {
+      Alert.alert("Could not open link", "Please try again in a moment.");
+    });
+  };
 
   const openBusinessProfile = () => {
     if (!businessProfileUnlocked) {
@@ -1189,6 +1223,57 @@ export default function ProfileScreen({ navigation }: Props) {
               <Text className={`text-xs mt-2 ${subText}`}>
                 Public remains the app default. Friend lists are private. Comment privacy can still be changed per thread.
               </Text>
+            </View>
+
+            <View className={`rounded-2xl border p-4 mt-3 ${statBg} ${statBorder}`}>
+              <View className="flex-row items-start justify-between mb-2">
+                <View className="flex-1">
+                  <Text className={`font-bold ${textColor}`}>Legal & Safety</Text>
+                  <Text className={`text-xs mt-1 ${subText}`}>
+                    Cuevas filters objectionable material from being posted and reviews reports to keep the community safe.
+                  </Text>
+                </View>
+                <Ionicons name="shield-checkmark-outline" size={22} color="#06A7A1" />
+              </View>
+              {LEGAL_SAFETY_LINKS.map((item) => (
+                <Pressable
+                  key={item.url}
+                  onPress={() => openLegalSafetyLink(item.url)}
+                  accessibilityRole="link"
+                  accessibilityLabel={`Open ${item.label}`}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingVertical: 11,
+                    borderTopWidth: 1,
+                    borderTopColor: isDarkMode ? "#26313b" : "#E5E7EB",
+                  }}
+                >
+                  <View style={{ flexDirection: "row", alignItems: "center", flex: 1, minWidth: 0 }}>
+                    <Ionicons name={item.icon} size={18} color="#06A7A1" />
+                    <View style={{ marginLeft: 12, flex: 1, minWidth: 0 }}>
+                      <Text className={`font-bold ${textColor}`} numberOfLines={1}>
+                        {item.label}
+                      </Text>
+                      <Text className={`text-xs mt-1 ${subText}`} numberOfLines={2}>
+                        {item.detail}
+                      </Text>
+                    </View>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#06A7A1" style={{ marginLeft: 10 }} />
+                </Pressable>
+              ))}
+              <View
+                style={{
+                  paddingTop: 11,
+                  borderTopWidth: 1,
+                  borderTopColor: isDarkMode ? "#26313b" : "#E5E7EB",
+                }}
+              >
+                <Text className={`font-bold ${textColor}`}>Support contact</Text>
+                <Text className={`text-xs mt-1 ${subText}`}>notifications@ecothot.com</Text>
+              </View>
             </View>
 
             <Pressable

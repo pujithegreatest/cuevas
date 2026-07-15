@@ -43,6 +43,7 @@ import MusicPickerModal from "./MusicPickerModal";
 import DrawingCanvas from "./DrawingCanvas";
 import DraggableSticker from "./DraggableSticker";
 import StickerPickerModal from "./StickerPickerModal";
+import { getObjectionableContentMessage } from "../utils/contentSafety";
 import { displayUsername } from "../utils/handles";
 import { getSongById, resolveSongSourceUri } from "../utils/musicLibrary";
 import {
@@ -969,6 +970,13 @@ export default function CreateStoryModal({
     if (!mediaUri) return;
     setIsSaving(true);
     setErrorMsg(null);
+    const cleanOverlays = overlays.filter((o) => o.text.trim().length > 0);
+    const safetyMessage = getObjectionableContentMessage(cleanOverlays.map((o) => o.text));
+    if (safetyMessage) {
+      setErrorMsg(safetyMessage);
+      setIsSaving(false);
+      return;
+    }
     if (mediaType === "video") {
       setVideoPreviewEnabled(false);
       await wait(VIDEO_PREVIEW_STOP_MS);
@@ -985,7 +993,6 @@ export default function CreateStoryModal({
     }
     await unloadVoiceoverPreview();
     try {
-      const cleanOverlays = overlays.filter((o) => o.text.trim().length > 0);
       const renderFilter = getActiveVideoFilter();
       let storyMediaUri = mediaUri;
       let storyFilter: StoryFilter = filter;

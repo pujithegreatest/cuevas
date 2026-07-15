@@ -21,6 +21,7 @@ import { useFeedStore } from "../state/feedStore";
 import { detectLinkPreview, enrichLinkPreview, extractUrlsFromText } from "../utils/linkPreview";
 import { LinkPreview, MissionShare, PostAudio, PrivacyLevel } from "../types/feed";
 import { getPrivacyOption, nextPrivacy } from "../utils/privacy";
+import { getObjectionableContentMessage } from "../utils/contentSafety";
 import PostPhotoEditorModal from "./PostPhotoEditorModal";
 import MissionShareCard from "./MissionShareCard";
 
@@ -366,6 +367,12 @@ export default function CreatePostModal({
 
   const handlePost = async () => {
     if (!hasPostBody) {
+      return;
+    }
+
+    const safetyMessage = getObjectionableContentMessage(content);
+    if (safetyMessage) {
+      setErrorMsg(safetyMessage);
       return;
     }
 
