@@ -10,6 +10,7 @@ import {
   Modal,
   TextInput,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import Animated, {
@@ -36,6 +37,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { formatRelativeTime } from "../utils/linkPreview";
 import { POST_PRIVACY_OPTIONS, getPrivacyOption } from "../utils/privacy";
 import { deriveHandle, displayUsername, emailLocalPart, normalizeHandle } from "../utils/handles";
+import { deleteCuevasAccount } from "../api/ecothot-auth";
 
 type Props = BottomTabScreenProps<MainTabParamList, "Profile">;
 
@@ -250,6 +252,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const [editingFriendTag, setEditingFriendTag] = useState("");
   const [selectedNetworkProfileHandle, setSelectedNetworkProfileHandle] = useState<string | null>(null);
   const [profileRefreshing, setProfileRefreshing] = useState(false);
+  const [accountDeleting, setAccountDeleting] = useState(false);
 
   const openBusinessProfile = () => {
     if (!businessProfileUnlocked) {
@@ -274,10 +277,37 @@ export default function ProfileScreen({ navigation }: Props) {
     setTimeout(() => setBusinessProfileOpen(true), 250);
   };
 
-  const showDeleteAccountRequest = () => {
+  const confirmDeleteAccount = () => {
+    if (accountDeleting) return;
+    if (!userEmail) {
+      Alert.alert("Delete account", "You must be signed in to delete this account.");
+      return;
+    }
+
     Alert.alert(
       "Delete account",
-      "please visit: https://ecothot.com/cuevas-delete-account to submit a request"
+      "This will permanently delete your Cuevas account and remove your Cuevas profile data. This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete Account",
+          style: "destructive",
+          onPress: async () => {
+            setAccountDeleting(true);
+            const result = await deleteCuevasAccount(userEmail);
+            setAccountDeleting(false);
+
+            if (!result.success) {
+              Alert.alert("Could not delete account", result.error || "Please try again.");
+              return;
+            }
+
+            setSettingsOpen(false);
+            logout();
+            Alert.alert("Account deleted", "Your Cuevas account has been deleted.");
+          },
+        },
+      ]
     );
   };
 
@@ -1162,7 +1192,10 @@ export default function ProfileScreen({ navigation }: Props) {
             </View>
 
             <Pressable
-              onPress={showDeleteAccountRequest}
+              onPress={confirmDeleteAccount}
+              disabled={accountDeleting}
+              accessibilityRole="button"
+              accessibilityLabel="Delete Cuevas account"
               style={{
                 borderRadius: 20,
                 borderWidth: 1,
@@ -1170,6 +1203,7 @@ export default function ProfileScreen({ navigation }: Props) {
                 backgroundColor: isDarkMode ? "rgba(127,29,29,0.18)" : "#FEF2F2",
                 padding: 16,
                 marginTop: 24,
+                opacity: accountDeleting ? 0.72 : 1,
               }}
             >
               <View className="flex-row items-center justify-between">
@@ -1190,11 +1224,15 @@ export default function ProfileScreen({ navigation }: Props) {
                   <View className="flex-1">
                     <Text className={`font-bold ${textColor}`}>Delete Account</Text>
                     <Text className={`text-xs mt-1 ${subText}`}>
-                      Submit a request to remove your Cuevas account.
+                      Permanently delete your Cuevas account in the app.
                     </Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#EF4444" />
+                {accountDeleting ? (
+                  <ActivityIndicator size="small" color="#EF4444" />
+                ) : (
+                  <Ionicons name="chevron-forward" size={20} color="#EF4444" />
+                )}
               </View>
             </Pressable>
 

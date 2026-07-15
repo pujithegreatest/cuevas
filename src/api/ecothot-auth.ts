@@ -43,6 +43,14 @@ interface LoginResponse {
   stage?: string;
 }
 
+interface DeleteAccountResponse {
+  success: boolean;
+  email?: string;
+  accountDeleted?: boolean;
+  ownedDataDeleted?: Record<string, number>;
+  error?: string;
+}
+
 /**
  * Login to Cuevas API
  * @param email - User's email
@@ -433,6 +441,77 @@ export async function loginWithApple(input: {
       cuevas: data.cuevas,
       displayName: data.displayName,
       handle: data.handle || data.username,
+    };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("Network request failed")) {
+      return {
+        success: false,
+        error: "No internet connection. Please check your network.",
+      };
+    }
+
+    return {
+      success: false,
+      error: "Unable to connect to server. Please try again.",
+    };
+  }
+}
+
+export async function deleteCuevasAccount(email: string): Promise<DeleteAccountResponse> {
+  try {
+    if (!CUEVAS_CLIENT_KEY) {
+      return {
+        success: false,
+        error: "Configuration error: Missing client key. Please restart the app.",
+      };
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !normalizedEmail.includes("@")) {
+      return {
+        success: false,
+        error: "A valid signed-in email is required to delete this account.",
+      };
+    }
+
+    const response = await fetch("https://www.ecothot.com/_functions/deleteAccount", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify({
+        clientKey: CUEVAS_CLIENT_KEY,
+        email: normalizedEmail,
+        confirmDelete: true,
+      }),
+    });
+
+    const responseText = await response.text();
+    let data: any = {};
+    if (responseText && responseText.trim()) {
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        return {
+          success: false,
+          error: `Invalid server response (${response.status}). Please try again.`,
+        };
+      }
+    }
+
+    if (!response.ok || !data.success) {
+      return {
+        success: false,
+        error: data.error || `Server error (${response.status})`,
+      };
+    }
+
+    return {
+      success: true,
+      email: data.email || normalizedEmail,
+      accountDeleted: data.accountDeleted !== false,
+      ownedDataDeleted: data.ownedDataDeleted,
     };
   } catch (error) {
     if (error instanceof Error && error.message.includes("Network request failed")) {
