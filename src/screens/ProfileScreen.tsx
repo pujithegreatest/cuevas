@@ -320,15 +320,20 @@ export default function ProfileScreen({ navigation }: Props) {
     });
   };
 
+  const closeSettings = () => {
+    setSelectedLegalPage(null);
+    setSettingsOpen(false);
+  };
+
   const openBusinessProfile = () => {
     if (!businessProfileUnlocked) {
       setBusinessPassword("");
       setBusinessPasswordError(null);
-      setSettingsOpen(false);
+      closeSettings();
       setTimeout(() => setBusinessPasswordOpen(true), 250);
       return;
     }
-    setSettingsOpen(false);
+    closeSettings();
     setTimeout(() => setBusinessProfileOpen(true), 250);
   };
 
@@ -1163,21 +1168,115 @@ export default function ProfileScreen({ navigation }: Props) {
         visible={settingsOpen}
         animationType="slide"
         presentationStyle="pageSheet"
-        onRequestClose={() => setSettingsOpen(false)}
+        onRequestClose={() => {
+          if (selectedLegalPage) {
+            setSelectedLegalPage(null);
+          } else {
+            closeSettings();
+          }
+        }}
       >
         <View className={`flex-1 ${isDarkMode ? "bg-dark-bg" : "bg-pixel-bg"}`}>
           <View
             className={`flex-row items-center justify-between px-4 py-4 border-b ${statBorder}`}
             style={{ paddingTop: insets.top + 10 }}
           >
-            <Pressable onPress={() => setSettingsOpen(false)} hitSlop={10}>
-              <Ionicons name="close" size={26} color={isDarkMode ? "#CFEFEC" : "#1F2937"} />
+            <Pressable
+              onPress={() => {
+                if (selectedLegalPage) {
+                  setSelectedLegalPage(null);
+                } else {
+                  closeSettings();
+                }
+              }}
+              hitSlop={10}
+            >
+              <Ionicons
+                name={selectedLegalPage ? "chevron-back" : "close"}
+                size={26}
+                color={isDarkMode ? "#CFEFEC" : "#1F2937"}
+              />
             </Pressable>
-            <Text className={`font-bold text-lg ${textColor}`}>Settings</Text>
+            <Text className={`font-bold text-lg ${textColor}`} numberOfLines={1}>
+              {selectedLegalPage?.label || "Settings"}
+            </Text>
             <View style={{ width: 26 }} />
           </View>
 
           <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+            {selectedLegalPage ? (
+              <View className={`rounded-2xl border p-4 ${statBg} ${statBorder}`}>
+                <View className="flex-row items-center mb-3">
+                  <View
+                    style={{
+                      width: 42,
+                      height: 42,
+                      borderRadius: 16,
+                      backgroundColor: isDarkMode ? "rgba(6,167,161,0.18)" : "#DDFBF7",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 12,
+                    }}
+                  >
+                    <Ionicons name={selectedLegalPage.icon} size={22} color="#06A7A1" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className={`font-bold ${textColor}`}>{selectedLegalPage.label}</Text>
+                    <Text className={`text-xs mt-1 ${subText}`}>{selectedLegalPage.detail}</Text>
+                  </View>
+                </View>
+
+                {selectedLegalPage.body.map((item, index) => (
+                  <View
+                    key={`${selectedLegalPage.label}-${index}`}
+                    style={{
+                      flexDirection: "row",
+                      paddingTop: index === 0 ? 8 : 12,
+                      borderTopWidth: index === 0 ? 1 : 0,
+                      borderTopColor: isDarkMode ? "#26313b" : "#E5E7EB",
+                    }}
+                  >
+                    <Text style={{ color: "#06A7A1", fontWeight: "900", marginRight: 9 }}>•</Text>
+                    <Text className={`text-sm leading-5 flex-1 ${subText}`}>{item}</Text>
+                  </View>
+                ))}
+
+                <View
+                  style={{
+                    marginTop: 16,
+                    paddingTop: 14,
+                    borderTopWidth: 1,
+                    borderTopColor: isDarkMode ? "#26313b" : "#E5E7EB",
+                  }}
+                >
+                  <Text className={`text-xs ${subText}`}>External public page</Text>
+                  <Text className="text-xs mt-1 text-teal-500" numberOfLines={2}>
+                    {selectedLegalPage.url}
+                  </Text>
+                  <Pressable
+                    onPress={() => openLegalSafetyLink(selectedLegalPage.url)}
+                    accessibilityRole="link"
+                    accessibilityLabel={`Open public ${selectedLegalPage.label} page`}
+                    style={{
+                      marginTop: 12,
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      borderColor: "rgba(6,167,161,0.42)",
+                      backgroundColor: isDarkMode ? "rgba(6,167,161,0.14)" : "#E8FFFC",
+                      paddingVertical: 12,
+                      paddingHorizontal: 14,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Text className="font-bold text-teal-500">Open Public Page</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#06A7A1" />
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <>
             <Pressable
               onPress={openBusinessProfile}
               style={{
@@ -1397,101 +1496,8 @@ export default function ProfileScreen({ navigation }: Props) {
                 <Ionicons name="chevron-forward" size={20} color="#06A7A1" style={{ marginLeft: 12 }} />
               </View>
             </Pressable>
-          </ScrollView>
-        </View>
-      </Modal>
-
-      <Modal
-        visible={selectedLegalPage !== null}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setSelectedLegalPage(null)}
-      >
-        <View className={`flex-1 ${isDarkMode ? "bg-dark-bg" : "bg-pixel-bg"}`}>
-          <View
-            className={`flex-row items-center justify-between px-4 py-4 border-b ${statBorder}`}
-            style={{ paddingTop: insets.top + 10 }}
-          >
-            <Pressable onPress={() => setSelectedLegalPage(null)} hitSlop={10}>
-              <Ionicons name="close" size={26} color={isDarkMode ? "#CFEFEC" : "#1F2937"} />
-            </Pressable>
-            <Text className={`font-bold text-lg ${textColor}`} numberOfLines={1}>
-              {selectedLegalPage?.label || "Legal & Safety"}
-            </Text>
-            <View style={{ width: 26 }} />
-          </View>
-
-          <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 34 }}>
-            <View className={`rounded-2xl border p-4 ${statBg} ${statBorder}`}>
-              <View className="flex-row items-center mb-3">
-                <View
-                  style={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: 16,
-                    backgroundColor: isDarkMode ? "rgba(6,167,161,0.18)" : "#DDFBF7",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginRight: 12,
-                  }}
-                >
-                  <Ionicons name={selectedLegalPage?.icon || "shield-checkmark-outline"} size={22} color="#06A7A1" />
-                </View>
-                <View className="flex-1">
-                  <Text className={`font-bold ${textColor}`}>{selectedLegalPage?.label}</Text>
-                  <Text className={`text-xs mt-1 ${subText}`}>{selectedLegalPage?.detail}</Text>
-                </View>
-              </View>
-
-              {(selectedLegalPage?.body || []).map((item, index) => (
-                <View
-                  key={`${selectedLegalPage?.label}-${index}`}
-                  style={{
-                    flexDirection: "row",
-                    paddingTop: index === 0 ? 8 : 12,
-                    borderTopWidth: index === 0 ? 1 : 0,
-                    borderTopColor: isDarkMode ? "#26313b" : "#E5E7EB",
-                  }}
-                >
-                  <Text style={{ color: "#06A7A1", fontWeight: "900", marginRight: 9 }}>•</Text>
-                  <Text className={`text-sm leading-5 flex-1 ${subText}`}>{item}</Text>
-                </View>
-              ))}
-
-              <View
-                style={{
-                  marginTop: 16,
-                  paddingTop: 14,
-                  borderTopWidth: 1,
-                  borderTopColor: isDarkMode ? "#26313b" : "#E5E7EB",
-                }}
-              >
-                <Text className={`text-xs ${subText}`}>External public page</Text>
-                <Text className="text-xs mt-1 text-teal-500" numberOfLines={2}>
-                  {selectedLegalPage?.url}
-                </Text>
-                <Pressable
-                  onPress={() => selectedLegalPage && openLegalSafetyLink(selectedLegalPage.url)}
-                  accessibilityRole="link"
-                  accessibilityLabel={`Open public ${selectedLegalPage?.label || "legal"} page`}
-                  style={{
-                    marginTop: 12,
-                    borderRadius: 16,
-                    borderWidth: 1,
-                    borderColor: "rgba(6,167,161,0.42)",
-                    backgroundColor: isDarkMode ? "rgba(6,167,161,0.14)" : "#E8FFFC",
-                    paddingVertical: 12,
-                    paddingHorizontal: 14,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Text className="font-bold text-teal-500">Open Public Page</Text>
-                  <Ionicons name="chevron-forward" size={18} color="#06A7A1" />
-                </Pressable>
-              </View>
-            </View>
+              </>
+            )}
           </ScrollView>
         </View>
       </Modal>
