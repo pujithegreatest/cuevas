@@ -50,12 +50,10 @@ const PUBLIC_POLICY_LINKS = [
   "https://www.ecothot.com/cuevas-delete-account",
 ];
 
-// Debug: Log the client IDs (remove in production)
 console.log("Google Auth Config:", {
   ios: GOOGLE_IOS_CLIENT_ID ? "✓ Set" : "✗ Missing",
   android: GOOGLE_ANDROID_CLIENT_ID ? "✓ Set" : "✗ Missing", 
   web: GOOGLE_WEB_CLIENT_ID ? "✓ Set" : "✗ Missing",
-  extra: extra,
 });
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
@@ -64,6 +62,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 function GoogleAuthButton({
   isDarkMode,
   isLoading,
+  mode,
   onLoginSuccess,
   onError,
   termsAccepted,
@@ -71,6 +70,7 @@ function GoogleAuthButton({
 }: {
   isDarkMode: boolean;
   isLoading: boolean;
+  mode: "login" | "signup";
   onLoginSuccess: (email: string, cuevas: number, displayName?: string, handle?: string) => void;
   onError: (error: string) => void;
   termsAccepted: boolean;
@@ -169,7 +169,7 @@ function GoogleAuthButton({
       console.log("Google Email:", userInfo.email); // Debug log
 
       // Login to Ecothot with Google credentials
-      const echothotResponse = await loginWithGoogle(userInfo.email, accessToken, userInfo.name);
+      const echothotResponse = await loginWithGoogle(userInfo.email, accessToken, userInfo.name, mode);
 
       if (echothotResponse.success && echothotResponse.cuevas !== undefined) {
         onLoginSuccess(
@@ -247,6 +247,7 @@ function GoogleAuthButton({
         appleUserId: credential.user,
         appleIdentityToken: credential.identityToken,
         displayName,
+        authMode: mode,
       });
       console.log("[AppleAuth] backend response:", {
         success: cuevasResponse.success,
@@ -334,7 +335,7 @@ function GoogleAuthButton({
             })}
           >
             <Text className="text-lg font-bold text-white" style={{ fontFamily: "Courier New" }}>
-               SIGN IN WITH APPLE
+               {mode === "signup" ? "SIGN UP" : "SIGN IN"} WITH APPLE
             </Text>
           </Pressable>
         )
@@ -380,7 +381,7 @@ function GoogleAuthButton({
               }`}
               style={{ fontFamily: "Courier New" }}
             >
-              SIGN IN WITH GOOGLE
+              {mode === "signup" ? "SIGN UP" : "SIGN IN"} WITH GOOGLE
             </Text>
           </>
         )}
@@ -809,6 +810,7 @@ export default function LoginScreen({ navigation }: Props) {
               <GoogleAuthButton
                 isDarkMode={isDarkMode}
                 isLoading={isLoading}
+                mode={mode}
                 onLoginSuccess={handleGoogleLoginSuccess}
                 onError={setError}
                 termsAccepted={termsAccepted}

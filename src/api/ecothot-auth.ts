@@ -2,6 +2,7 @@
 import { normalizeHandle } from "../utils/handles";
 
 const CUEVAS_CLIENT_KEY = "ecothot-super-secret-9384fjksd";
+type AuthMode = "login" | "signup";
 
 interface LoginRequest {
   clientKey: string;
@@ -20,6 +21,7 @@ interface GoogleLoginRequest {
   googleToken: string;
   displayName?: string;
   handle?: string;
+  authMode?: AuthMode;
 }
 
 interface AppleLoginRequest {
@@ -29,6 +31,7 @@ interface AppleLoginRequest {
   appleIdentityToken?: string | null;
   displayName?: string;
   handle?: string;
+  authMode?: AuthMode;
 }
 
 interface LoginResponse {
@@ -250,7 +253,8 @@ export async function signupToCuevas(
 export async function loginWithGoogle(
   email: string,
   googleToken: string,
-  displayName?: string
+  displayName?: string,
+  authMode: AuthMode = "login"
 ): Promise<LoginResponse> {
   try {
     if (!CUEVAS_CLIENT_KEY) {
@@ -266,6 +270,7 @@ export async function loginWithGoogle(
       googleToken: googleToken,
       displayName,
       handle: displayName ? normalizeHandle(displayName) : undefined,
+      authMode,
     };
 
     // Use the existing login endpoint since it supports the same logic
@@ -358,6 +363,7 @@ export async function loginWithApple(input: {
   appleUserId: string;
   appleIdentityToken?: string | null;
   displayName?: string | null;
+  authMode?: AuthMode;
 }): Promise<LoginResponse> {
   try {
     if (!CUEVAS_CLIENT_KEY) {
@@ -374,6 +380,7 @@ export async function loginWithApple(input: {
       appleIdentityToken: input.appleIdentityToken || null,
       displayName: input.displayName?.trim() || undefined,
       handle: input.displayName ? normalizeHandle(input.displayName) : undefined,
+      authMode: input.authMode || "login",
     };
     console.log("[AppleAuth] request summary:", {
       hasEmail: Boolean(requestBody.email),
