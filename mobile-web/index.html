@@ -6102,14 +6102,21 @@
     }
 
     async function addToWallet() {
-      if (!state.session?.email) return;
+      const email = normalizeEmail(state.session?.email);
+      if (!email) {
+        setStatus("walletStatus", "Log in again before adding a wallet card.", "error");
+        return;
+      }
+      state.session.email = email;
+      saveJson("cuevas.web.session", state.session);
       $("#addWalletBtn").disabled = true;
       setStatus("walletStatus", "Creating wallet link...");
       try {
         const json = await apiJson(`${WALLET_BASE}/walletLinks`, {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email: state.session.email,
+            email,
             rewardsBalance: Number(state.session.cuevas || 0),
             memberDisplayName: `@${handleName()}`
           })
