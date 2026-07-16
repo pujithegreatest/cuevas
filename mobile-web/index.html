@@ -2144,6 +2144,23 @@
       margin-bottom: 7px;
     }
 
+    .transmissions-list {
+      display: grid;
+      gap: 0;
+    }
+
+    .transmissions-list .post {
+      border-left: 0;
+      border-right: 0;
+      border-radius: 0;
+      background: #202020;
+      box-shadow: none;
+    }
+
+    .transmissions-list .post + .post {
+      border-top: 1px solid rgba(35,48,66,.86);
+    }
+
     .profile-edit-actions {
       display: grid;
       gap: 14px;
@@ -3723,7 +3740,8 @@
 
         <section class="transmissions-section" aria-label="Your transmissions">
           <div class="transmissions-title"><span data-icon="eye"></span> Your transmissions · <span id="profileTransmissionsCount">0</span></div>
-          <div class="transmissions-empty">
+          <div id="profileTransmissionsList" class="transmissions-list"></div>
+          <div id="profileTransmissionsEmpty" class="transmissions-empty">
             <div>
               <span data-icon="chat"></span>
               <strong>No posts yet</strong>
@@ -4522,6 +4540,7 @@
         const json = await apiJson(buildPostsUrl());
         state.posts = (json.posts || []).map(mapPost).sort((a, b) => b.timestamp - a.timestamp);
         renderFeed();
+        renderProfile();
       } catch (err) {
         $("#feedList").innerHTML = `<div class="empty">Feed could not load: ${escapeHtml(err.message)}</div>`;
       }
@@ -4625,7 +4644,7 @@
     function renderPost(post) {
       const mediaHtml = renderPostMedia(post);
       const commentCount = post.commentsList?.length || 0;
-      const owner = normalizeEmail(post.authorEmail) && normalizeEmail(post.authorEmail) === normalizeEmail(state.session?.email);
+      const owner = belongsToCurrentUser(post);
       const points = Number(post.authorRewardPoints || 0) || 0;
       return `
         <article class="post" data-post-id="${escapeAttr(post.id)}">
@@ -4713,31 +4732,53 @@
     }
 
     function bindPostButtons() {
-      $$(".like-btn").forEach(btn => btn.addEventListener("click", () => {
-        const id = btn.closest("[data-post-id]").dataset.postId;
-        const post = state.posts.find(p => p.id === id);
-        if (!post) return;
-        post.isLiked = !post.isLiked;
-        post.likes += post.isLiked ? 1 : -1;
-        renderFeed();
-      }));
-      $$(".comments-btn").forEach(btn => btn.addEventListener("click", () => {
-        state.selectedPostId = btn.closest("[data-post-id]").dataset.postId;
-        renderComments();
-        showModal("commentsModal");
-      }));
-      $$(".share-btn").forEach(btn => btn.addEventListener("click", () => sharePost(btn.closest("[data-post-id]").dataset.postId)));
-      $$(".report-btn").forEach(btn => btn.addEventListener("click", () => {
-        state.reportPostId = btn.closest("[data-post-id]").dataset.postId;
-        state.selectedReportReason = REPORT_REASONS[0];
-        renderReport();
-        showModal("reportModal");
-      }));
-      $$(".delete-post-btn").forEach(btn => btn.addEventListener("click", () => {
-        const id = btn.closest("[data-post-id]").dataset.postId;
-        state.posts = state.posts.filter(p => p.id !== id);
-        renderFeed();
-      }));
+      $$(".like-btn").forEach(btn => {
+        if (btn.dataset.bound === "true") return;
+        btn.dataset.bound = "true";
+        btn.addEventListener("click", () => {
+          const id = btn.closest("[data-post-id]").dataset.postId;
+          const post = state.posts.find(p => p.id === id);
+          if (!post) return;
+          post.isLiked = !post.isLiked;
+          post.likes += post.isLiked ? 1 : -1;
+          renderFeed();
+          renderProfile();
+        });
+      });
+      $$(".comments-btn").forEach(btn => {
+        if (btn.dataset.bound === "true") return;
+        btn.dataset.bound = "true";
+        btn.addEventListener("click", () => {
+          state.selectedPostId = btn.closest("[data-post-id]").dataset.postId;
+          renderComments();
+          showModal("commentsModal");
+        });
+      });
+      $$(".share-btn").forEach(btn => {
+        if (btn.dataset.bound === "true") return;
+        btn.dataset.bound = "true";
+        btn.addEventListener("click", () => sharePost(btn.closest("[data-post-id]").dataset.postId));
+      });
+      $$(".report-btn").forEach(btn => {
+        if (btn.dataset.bound === "true") return;
+        btn.dataset.bound = "true";
+        btn.addEventListener("click", () => {
+          state.reportPostId = btn.closest("[data-post-id]").dataset.postId;
+          state.selectedReportReason = REPORT_REASONS[0];
+          renderReport();
+          showModal("reportModal");
+        });
+      });
+      $$(".delete-post-btn").forEach(btn => {
+        if (btn.dataset.bound === "true") return;
+        btn.dataset.bound = "true";
+        btn.addEventListener("click", () => {
+          const id = btn.closest("[data-post-id]").dataset.postId;
+          state.posts = state.posts.filter(p => p.id !== id);
+          renderFeed();
+          renderProfile();
+        });
+      });
     }
 
     async function sharePost(postId) {
@@ -4789,6 +4830,7 @@
       $("#commentInput").value = "";
       renderComments();
       renderFeed();
+      renderProfile();
     }
 
     async function uploadFile(file, destination = "") {
@@ -4961,6 +5003,7 @@
         updateComposerState();
         closeModal("composerModal");
         renderFeed();
+        renderProfile();
         refreshRewards();
       } catch (err) {
         setStatus("composerStatus", err.message || "Publish failed.", "error");
@@ -6600,7 +6643,7 @@
     }
 
     function profileCounts(balance = 0) {
-      const ownPosts = state.posts.filter(post => belongsToCurrentUser(post));
+      const ownPosts = profileOwnPosts();
       const ownStories = state.stories.filter(story => belongsToCurrentUser(story));
       const comments = ownPosts.reduce((total, post) => total + (post.commentsList?.length || 0), 0);
       const zaps = ownPosts.reduce((total, post) => total + Number(post.likes || 0), 0);
@@ -6636,6 +6679,25 @@
         badges,
         unlockedBadges: badges.filter(Boolean).length
       };
+    }
+
+    function profileOwnPosts() {
+      return state.posts.filter(post => belongsToCurrentUser(post));
+    }
+
+    function renderProfileTransmissions() {
+      const list = $("#profileTransmissionsList");
+      const empty = $("#profileTransmissionsEmpty");
+      if (!list || !empty) return;
+      const posts = profileOwnPosts();
+      if (!posts.length) {
+        list.innerHTML = "";
+        empty.classList.remove("hidden");
+        return;
+      }
+      empty.classList.add("hidden");
+      list.innerHTML = posts.map(renderPost).join("");
+      bindPostButtons();
     }
 
     function openEditProfile() {
@@ -6701,6 +6763,7 @@
         tile.classList.toggle("unlocked", Boolean(counts.badges[index]));
       });
       $$("[data-avatar]").forEach(node => node.textContent = initials(displayName()));
+      renderProfileTransmissions();
     }
 
     async function saveHandle() {
