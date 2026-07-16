@@ -27,6 +27,7 @@ interface FeedState {
   ) => Promise<void>;
   toggleLike: (postId: string, viewer?: FeedViewer) => void;
   addComment: (postId: string, comment: Omit<Comment, "id" | "timestamp">) => void;
+  deleteComment: (postId: string, commentId: string, viewer?: FeedViewer) => void;
   updatePostRemote: (
     postId: string,
     updates: {
@@ -821,6 +822,71 @@ export const useFeedStore = create<FeedState>()(
               ),
             }));
             console.log("[FEED] addComment remote failed", String(e));
+          });
+      },
+
+      deleteComment: (postId, commentId, viewer) => {
+        let previousPost: Post | null = null;
+        let targetComment: Comment | null = null;
+
+        set((state) => ({
+          posts: state.posts.map((post) => {
+            if (post.id !== postId) return post;
+            previousPost = post;
+            targetComment = (post.commentsList || []).find((comment) => comment.id === commentId) || null;
+            return {
+              ...post,
+              commentsList: (post.commentsList || []).filter((comment) => comment.id !== commentId),
+            };
+          }),
+        }));
+
+        if (!previousPost || !targetComment) return;
+
+        const ownerHandles = Array.from(buildViewerIdentitySet(viewer));
+        fetch(POST_UPDATE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            action: "deleteComment",
+            id: postId,
+            _id: postId,
+            commentId,
+            comment: targetComment,
+            viewerEmail: viewer?.userEmail || "",
+            userEmail: viewer?.userEmail || "",
+            displayName: viewer?.displayName || "",
+            viewerHandle: viewer?.userHandle || "",
+            ownerHandles,
+          }),
+        })
+          .then(async (res) => {
+            const text = await res.text();
+            let json: any = null;
+            try {
+              json = text ? JSON.parse(text) : null;
+            } catch {
+              // Keep response text for the error below.
+            }
+            if (!res.ok || !json?.success) {
+              throw new Error(json?.error || text || `Comment delete failed (${res.status})`);
+            }
+            if (json?.post) {
+              const mapped = mapFromBackend(json.post, viewer);
+              set((state) => ({
+                posts: state.posts.map((post) =>
+                  post.id === postId ? { ...post, commentsList: mapped.commentsList } : post
+                ),
+              }));
+            }
+          })
+          .catch((e) => {
+            set((state) => ({
+              posts: state.posts.map((post) =>
+                post.id === postId && previousPost ? previousPost : post
+              ),
+            }));
+            console.log("[FEED] deleteComment remote failed", String(e));
           });
       },
 

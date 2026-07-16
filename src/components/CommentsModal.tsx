@@ -61,6 +61,7 @@ export default function CommentsModal({
 
   const posts = useFeedStore((s) => s.posts);
   const addComment = useFeedStore((s) => s.addComment);
+  const deleteComment = useFeedStore((s) => s.deleteComment);
   const updateCommentPrivacy = useFeedStore((s) => s.updateCommentPrivacy);
 
   const post = posts.find((p) => p.id === postId);
@@ -143,6 +144,41 @@ export default function CommentsModal({
     const next = nextCommentPrivacy(commentPrivacy);
     setCommentPrivacy(next);
     flashPrivacy(next);
+  };
+
+  const ownsPost = useMemo(() => {
+    if (!post) return false;
+    const postEmail = String(post.authorEmail || "").toLowerCase().trim();
+    const postHandle = normalizeHandle(post.author, "");
+    return postEmail
+      ? userHandles.has(postEmail) || userHandles.has(post.authorEmail || "")
+      : userHandles.has(post.author) || (!!postHandle && userHandles.has(postHandle));
+  }, [post, userHandles]);
+
+  const canDeleteComment = (comment: Comment) => {
+    const commentEmail = String(comment.authorEmail || "").toLowerCase().trim();
+    const commentHandle = normalizeHandle(comment.author, "");
+    const ownsComment = commentEmail
+      ? userHandles.has(commentEmail) || userHandles.has(comment.authorEmail || "")
+      : userHandles.has(comment.author) || (!!commentHandle && userHandles.has(commentHandle));
+    return ownsPost || ownsComment;
+  };
+
+  const handleDeleteComment = (comment: Comment) => {
+    if (!postId || !canDeleteComment(comment)) return;
+    Alert.alert("Delete comment?", "This comment will be removed from the post.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () =>
+          deleteComment(postId, comment.id, {
+            userEmail,
+            displayName,
+            handleAliases,
+          }),
+      },
+    ]);
   };
 
   const handleAddComment = () => {
@@ -320,6 +356,22 @@ export default function CommentsModal({
               >
                 <Ionicons name={option.icon} size={13} color={colors.accent} />
               </Pressable>
+              {canDeleteComment(item) && (
+                <Pressable
+                  onPress={() => handleDeleteComment(item)}
+                  hitSlop={8}
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: isDarkMode ? "rgba(239,68,68,0.12)" : "rgba(239,68,68,0.1)",
+                  }}
+                >
+                  <Ionicons name="trash-outline" size={13} color="#EF4444" />
+                </Pressable>
+              )}
             </View>
             <Text style={{ color: colors.text, fontSize: 15, marginTop: 5, lineHeight: 20 }}>
               {item.content}
