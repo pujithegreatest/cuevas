@@ -2535,6 +2535,216 @@
       cursor: not-allowed;
     }
 
+    .mission-qr-modal {
+      align-items: stretch;
+      padding: 0;
+      background: rgba(0,0,0,.92);
+    }
+
+    .mission-qr-sheet {
+      width: min(470px, 100vw);
+      height: 100dvh;
+      margin: 0 auto;
+      padding-top: var(--safe-top);
+      background: linear-gradient(180deg, #081920 0%, #050606 100%);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      color: #CFEFEC;
+      overflow: hidden;
+    }
+
+    .mission-qr-head {
+      min-height: 68px;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(6,167,161,.22);
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mission-qr-title {
+      margin: 0;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+
+    .mission-qr-close {
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: #CFEFEC;
+      display: grid;
+      place-items: center;
+    }
+
+    .mission-qr-close .svg-icon {
+      --icon-size: 31px;
+    }
+
+    .mission-qr-body {
+      min-height: 0;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .mission-qr-stage {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 360px;
+      border-radius: 28px;
+      overflow: hidden;
+      background: #000;
+      border: 1px solid rgba(6,167,161,.38);
+      box-shadow: 0 22px 50px rgba(0,0,0,.42);
+    }
+
+    .mission-qr-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: #000;
+    }
+
+    .mission-qr-frame {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(0,0,0,.14), rgba(0,0,0,.14)),
+        radial-gradient(circle at center, transparent 0 32%, rgba(0,0,0,.34) 58%, rgba(0,0,0,.72) 100%);
+    }
+
+    .mission-qr-frame span {
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      border-color: var(--accent);
+      border-style: solid;
+      filter: drop-shadow(0 0 14px rgba(6,167,161,.55));
+    }
+
+    .mission-qr-frame .tl {
+      top: 40px;
+      left: 40px;
+      border-width: 4px 0 0 4px;
+    }
+
+    .mission-qr-frame .tr {
+      top: 40px;
+      right: 40px;
+      border-width: 4px 4px 0 0;
+    }
+
+    .mission-qr-frame .bl {
+      bottom: 40px;
+      left: 40px;
+      border-width: 0 0 4px 4px;
+    }
+
+    .mission-qr-frame .br {
+      bottom: 40px;
+      right: 40px;
+      border-width: 0 4px 4px 0;
+    }
+
+    .mission-qr-scanline {
+      position: absolute;
+      left: 38px;
+      right: 38px;
+      top: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(6,255,230,.9), transparent);
+      box-shadow: 0 0 20px rgba(6,255,230,.7);
+      animation: missionQrSweep 2.6s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes missionQrSweep {
+      0%, 100% { transform: translateY(-130px); opacity: .35; }
+      50% { transform: translateY(130px); opacity: .95; }
+    }
+
+    .mission-qr-status {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 18px;
+      min-height: 44px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(5,9,12,.76);
+      border: 1px solid rgba(6,167,161,.34);
+      color: #CFEFEC;
+      font-size: 12px;
+      font-weight: 850;
+      line-height: 1.35;
+      text-align: center;
+      backdrop-filter: blur(12px);
+    }
+
+    .mission-qr-status.good {
+      color: #9FFFD7;
+      border-color: rgba(20,255,190,.55);
+    }
+
+    .mission-qr-status.error {
+      color: #FCA5A5;
+      border-color: rgba(248,113,113,.55);
+    }
+
+    .mission-qr-copy {
+      margin: 0;
+      color: rgba(207,239,236,.68);
+      font-size: 12px;
+      line-height: 18px;
+      text-align: center;
+    }
+
+    .mission-qr-manual {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 20px;
+      background: rgba(6,43,49,.48);
+      border: 1px solid rgba(6,167,161,.26);
+    }
+
+    .mission-qr-manual input {
+      width: 100%;
+      min-width: 0;
+      height: 44px;
+      border: 1px solid rgba(207,239,236,.18);
+      border-radius: 15px;
+      background: #071018;
+      color: #EFFFFB;
+      padding: 0 13px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      outline: none;
+    }
+
+    .mission-qr-manual button {
+      height: 44px;
+      border: 0;
+      border-radius: 15px;
+      padding: 0 16px;
+      background: var(--accent);
+      color: #051010;
+      font-size: 13px;
+      font-weight: 950;
+      cursor: pointer;
+    }
+
     .composer-modal {
       padding: calc(34px + var(--safe-top)) 0 0;
       align-items: flex-end;
@@ -4283,6 +4493,37 @@
     </div>
   </div>
 
+  <div id="missionQrModal" class="modal mission-qr-modal" role="dialog" aria-modal="true">
+    <div class="mission-qr-sheet">
+      <div class="mission-qr-head">
+        <button class="mission-qr-close" data-close="missionQrModal" type="button" aria-label="Close mission scanner">
+          <span data-icon="x"></span>
+        </button>
+        <h3 class="mission-qr-title">Scan Mission QR</h3>
+        <div></div>
+      </div>
+      <div class="mission-qr-body">
+        <div class="mission-qr-stage">
+          <video id="missionQrVideo" class="mission-qr-video" autoplay muted playsinline></video>
+          <canvas id="missionQrCanvas" hidden></canvas>
+          <div class="mission-qr-frame" aria-hidden="true">
+            <span class="tl"></span>
+            <span class="tr"></span>
+            <span class="bl"></span>
+            <span class="br"></span>
+          </div>
+          <div class="mission-qr-scanline" aria-hidden="true"></div>
+          <div id="missionQrStatus" class="mission-qr-status">Point your camera at a Cuevas mission QR.</div>
+        </div>
+        <p class="mission-qr-copy">Scan a Cuevas event QR from a vendor table to join, check in, unlock proof submissions, and update your wallet balance.</p>
+        <div class="mission-qr-manual">
+          <input id="missionQrManualInput" type="text" autocomplete="off" placeholder="Paste mission QR code" />
+          <button id="missionQrManualBtn" type="button">Check In</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="reportModal" class="modal" role="dialog" aria-modal="true">
     <div class="sheet">
       <div class="sheet-head">
@@ -4497,6 +4738,13 @@
       chatMessages: [],
       chatStatus: "",
       chatLoading: false,
+      missionScanner: {
+        stream: null,
+        frameId: 0,
+        detector: null,
+        locked: false,
+        jsQrPromise: null
+      },
       leaderboard: [],
       leaderboardOpen: false,
       selectedPostId: null,
@@ -4658,6 +4906,7 @@
 
     function closeModal(id) {
       if (id === "storyModal") stopStoryCamera();
+      if (id === "missionQrModal") stopMissionQrScanner();
       $(`#${id}`)?.classList.remove("active");
     }
 
@@ -7149,8 +7398,261 @@
       if (mission?.eventUrl) window.open(mission.eventUrl, "_blank", "noopener,noreferrer");
     }
 
-    function scanMissionQr() {
-      alert("Mission QR scanning will use the phone camera in a later web pass.");
+    function activeMissionList() {
+      return state.missions.filter(mission => !["completed", "archived", "deleted"].includes(text(mission.status || "active").toLowerCase()));
+    }
+
+    function extractMissionQrMissionId(rawValue) {
+      const raw = text(rawValue).trim();
+      if (!raw) return "";
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed?.type === "cuevas-mission-checkin" && parsed?.missionId) return text(parsed.missionId);
+        if (parsed?.missionId) return text(parsed.missionId);
+      } catch {}
+      try {
+        const url = new URL(raw, window.location.origin);
+        const queryId = url.searchParams.get("missionId") || url.searchParams.get("mission") || url.searchParams.get("id");
+        if (queryId) return queryId;
+        const pathParts = url.pathname.split("/").filter(Boolean);
+        const lastPart = decodeURIComponent(pathParts[pathParts.length - 1] || "");
+        if (/mission/i.test(url.pathname) && lastPart) return lastPart;
+      } catch {}
+      return raw.startsWith("mission-") || raw.length > 8 ? raw : "";
+    }
+
+    function findMissionFromQr(rawValue) {
+      const missionId = extractMissionQrMissionId(rawValue);
+      if (!missionId) return null;
+      const active = activeMissionList();
+      return active.find(mission => mission.id === missionId)
+        || state.missions.find(mission => mission.id === missionId)
+        || active.find(mission => mission.id.toLowerCase() === missionId.toLowerCase())
+        || null;
+    }
+
+    function setMissionQrStatus(message, kind = "") {
+      const node = $("#missionQrStatus");
+      if (!node) return;
+      node.textContent = message || "";
+      node.className = `mission-qr-status ${kind}`.trim();
+    }
+
+    function stopMissionQrScanner() {
+      if (state.missionScanner.frameId) {
+        cancelAnimationFrame(state.missionScanner.frameId);
+        state.missionScanner.frameId = 0;
+      }
+      if (state.missionScanner.stream) {
+        state.missionScanner.stream.getTracks().forEach(track => track.stop());
+      }
+      state.missionScanner.stream = null;
+      state.missionScanner.detector = null;
+      state.missionScanner.locked = false;
+      const video = $("#missionQrVideo");
+      if (video) {
+        video.pause?.();
+        video.srcObject = null;
+      }
+      const input = $("#missionQrManualInput");
+      if (input) input.value = "";
+    }
+
+    function resumeMissionQrScanning(delay = 850) {
+      window.setTimeout(() => {
+        if ($("#missionQrModal")?.classList.contains("active") && !state.missionScanner.locked) {
+          state.missionScanner.frameId = requestAnimationFrame(scanMissionQrFrame);
+        }
+      }, delay);
+    }
+
+    function loadMissionQrDecoder() {
+      if (window.jsQR) return Promise.resolve(window.jsQR);
+      if (state.missionScanner.jsQrPromise) return state.missionScanner.jsQrPromise;
+      state.missionScanner.jsQrPromise = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js";
+        script.async = true;
+        script.onload = () => window.jsQR ? resolve(window.jsQR) : reject(new Error("QR decoder failed to initialize."));
+        script.onerror = () => reject(new Error("QR decoder could not load."));
+        document.head.appendChild(script);
+      });
+      return state.missionScanner.jsQrPromise;
+    }
+
+    async function startMissionQrCamera() {
+      const video = $("#missionQrVideo");
+      if (!video) return;
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setMissionQrStatus("Camera scanning is not available in this browser. Paste the mission QR code below.", "error");
+        return;
+      }
+      setMissionQrStatus("Starting camera...");
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        });
+        state.missionScanner.stream = stream;
+        video.srcObject = stream;
+        await video.play();
+        state.missionScanner.detector = null;
+        if ("BarcodeDetector" in window) {
+          try {
+            state.missionScanner.detector = new BarcodeDetector({ formats: ["qr_code"] });
+          } catch {
+            state.missionScanner.detector = null;
+          }
+        }
+        if (!state.missionScanner.detector) {
+          setMissionQrStatus("Loading QR decoder...");
+          try {
+            await loadMissionQrDecoder();
+          } catch {
+            setMissionQrStatus("Camera is open, but this browser cannot decode QR automatically. Paste the mission QR code below.", "error");
+            return;
+          }
+        }
+        setMissionQrStatus("Point your camera at a Cuevas mission QR.");
+        state.missionScanner.frameId = requestAnimationFrame(scanMissionQrFrame);
+      } catch (err) {
+        setMissionQrStatus(err?.name === "NotAllowedError" ? "Camera permission is required to scan mission QR codes." : "Camera could not start. Paste the mission QR code below.", "error");
+      }
+    }
+
+    async function scanMissionQrFrame() {
+      if (!$("#missionQrModal")?.classList.contains("active") || state.missionScanner.locked) return;
+      const video = $("#missionQrVideo");
+      if (!video || video.readyState < 2) {
+        state.missionScanner.frameId = requestAnimationFrame(scanMissionQrFrame);
+        return;
+      }
+      try {
+        let rawValue = "";
+        if (state.missionScanner.detector) {
+          const codes = await state.missionScanner.detector.detect(video);
+          rawValue = text(codes?.[0]?.rawValue || "");
+        }
+        if (!rawValue && window.jsQR) {
+          const canvas = $("#missionQrCanvas");
+          const context = canvas?.getContext?.("2d", { willReadFrequently: true });
+          if (canvas && context && video.videoWidth && video.videoHeight) {
+            const scale = Math.min(1, 720 / video.videoWidth);
+            canvas.width = Math.max(1, Math.floor(video.videoWidth * scale));
+            canvas.height = Math.max(1, Math.floor(video.videoHeight * scale));
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = window.jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "attemptBoth" });
+            rawValue = text(code?.data || "");
+          }
+        }
+        if (rawValue) {
+          await checkInFromMissionQr(rawValue);
+          return;
+        }
+      } catch {
+        if (state.missionScanner.detector && !window.jsQR) {
+          state.missionScanner.detector = null;
+          try {
+            await loadMissionQrDecoder();
+          } catch {
+            setMissionQrStatus("QR decoder failed. Paste the mission QR code below.", "error");
+            return;
+          }
+        }
+      }
+      state.missionScanner.frameId = requestAnimationFrame(scanMissionQrFrame);
+    }
+
+    async function checkInFromMissionQr(rawValue) {
+      if (state.missionScanner.locked) return;
+      const email = normalizeEmail(state.session?.email);
+      if (!email) {
+        setMissionQrStatus("Sign in before scanning mission QR codes.", "error");
+        resumeMissionQrScanning();
+        return;
+      }
+      const mission = findMissionFromQr(rawValue);
+      if (!mission) {
+        setMissionQrStatus("Mission QR did not match an active Cuevas mission.", "error");
+        resumeMissionQrScanning();
+        return;
+      }
+
+      state.missionScanner.locked = true;
+      setMissionQrStatus(`Checking you into ${mission.title}...`);
+      state.missionQueueIds = Array.from(new Set([...state.missionQueueIds, mission.id]));
+      state.missionStatuses[mission.id] = "Checking you into mission...";
+      saveJson("cuevas.web.missionQueueIds", state.missionQueueIds);
+      renderMissions();
+
+      try {
+        await apiJson(`${API_BASE}/missionSignup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            clientKey: CUEVAS_CLIENT_KEY,
+            missionId: mission.id,
+            userEmail: email,
+            userHandle: handleName()
+          })
+        }).catch(() => null);
+        const json = await apiJson(`${API_BASE}/missionCheckIn`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            clientKey: CUEVAS_CLIENT_KEY,
+            missionId: mission.id,
+            userEmail: email,
+            userHandle: handleName(),
+            businessHandle: mission.businessHandle || ""
+          })
+        });
+        const awardedPoints = Number(json.awardedPoints || 0);
+        const nextBalance = Number(json.loyaltyPoints ?? json.cuevas ?? state.session.cuevas ?? 0);
+        if (Number.isFinite(nextBalance)) {
+          state.session.cuevas = nextBalance;
+          saveJson("cuevas.web.session", state.session);
+        }
+        mission.goingCount = Math.max(Number(mission.goingCount || 0), Number(json.goingCount || mission.goingCount || 0));
+        state.missionStatuses[mission.id] = awardedPoints > 0 ? `Checked in. +${awardedPoints} Cuevas.` : "Already checked in.";
+        setMissionQrStatus(state.missionStatuses[mission.id], "good");
+        renderMissions();
+        renderRewards();
+        renderProfile();
+        window.setTimeout(() => closeModal("missionQrModal"), 700);
+      } catch (err) {
+        state.missionScanner.locked = false;
+        state.missionStatuses[mission.id] = `Check-in failed: ${err.message || "Try again."}`;
+        setMissionQrStatus(state.missionStatuses[mission.id], "error");
+        renderMissions();
+        resumeMissionQrScanning(1200);
+      }
+    }
+
+    async function submitMissionQrManual() {
+      const input = $("#missionQrManualInput");
+      const value = input?.value.trim() || "";
+      if (!value) {
+        setMissionQrStatus("Paste a Cuevas mission QR code first.", "error");
+        return;
+      }
+      await checkInFromMissionQr(value);
+    }
+
+    async function scanMissionQr() {
+      if (!state.session?.email) {
+        alert("Sign in before scanning mission QR codes.");
+        return;
+      }
+      stopMissionQrScanner();
+      setMissionQrStatus("Point your camera at a Cuevas mission QR.");
+      showModal("missionQrModal");
+      await startMissionQrCamera();
     }
 
     function setText(selector, value) {
@@ -7509,6 +8011,10 @@
       $("#viewLeaderboardBtn").addEventListener("click", toggleLeaderboard);
       $("#refreshMissionsBtn").addEventListener("click", refreshMissions);
       $("#scanMissionBtn").addEventListener("click", scanMissionQr);
+      $("#missionQrManualBtn").addEventListener("click", submitMissionQrManual);
+      $("#missionQrManualInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") submitMissionQrManual();
+      });
       $("#profileSettingsBtn").addEventListener("click", () => showModal("profileSettingsModal"));
       $("#editProfileBtn").addEventListener("click", openEditProfile);
       $("#saveHandleBtn").addEventListener("click", saveHandle);
