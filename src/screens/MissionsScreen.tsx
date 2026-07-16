@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { useFocusEffect } from "@react-navigation/native";
 import { CameraView, useCameraPermissions } from "expo-camera";
@@ -40,8 +41,19 @@ type ProofMedia = {
 };
 
 const MISSION_PROOF_VIDEO_MAX_SECONDS = 60;
+const MISSION_QUEUE_STORAGE_PREFIX = "cuevas:mission-queue:v1";
 
 const fallbackMissions: CuevasMission[] = [];
+
+function getMissionQueueStorageKey(userEmail?: string | null) {
+  const accountKey = String(userEmail || "guest").trim().toLowerCase() || "guest";
+  return `${MISSION_QUEUE_STORAGE_PREFIX}:${accountKey}`;
+}
+
+function normalizeMissionIdList(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return Array.from(new Set(value.map((item) => String(item || "").trim()).filter(Boolean)));
+}
 
 function parseMissionStart(mission: CuevasMission) {
   const rawDate = mission.eventDateISO || mission.eventDate;
@@ -635,6 +647,7 @@ export default function MissionsScreen({ navigation }: Props) {
   const [isLoadingMissions, setIsLoadingMissions] = useState(false);
   const [missionError, setMissionError] = useState<string | null>(null);
   const [queuedMissionIds, setQueuedMissionIds] = useState<string[]>([]);
+  const [loadedMissionQueueKey, setLoadedMissionQueueKey] = useState<string | null>(null);
   const [checkedInMissionIds, setCheckedInMissionIds] = useState<string[]>([]);
   const [missionCheckIns, setMissionCheckIns] = useState<MissionAttendee[]>([]);
   const [scanVisible, setScanVisible] = useState(false);
@@ -645,6 +658,7 @@ export default function MissionsScreen({ navigation }: Props) {
   const [chatMission, setChatMission] = useState<CuevasMission | null>(null);
   const [shareMission, setShareMission] = useState<MissionShare | null>(null);
   const [missionActionStatus, setMissionActionStatus] = useState<Record<string, string>>({});
+  const missionQueueStorageKey = useMemo(() => getMissionQueueStorageKey(userEmail), [userEmail]);
 
   const refreshMissions = React.useCallback(() => {
     let cancelled = false;
@@ -678,6 +692,47 @@ export default function MissionsScreen({ navigation }: Props) {
       return cancel;
     }, [refreshMissions])
   );
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadedMissionQueueKey(null);
+    setQueuedMissionIds([]);
+
+    AsyncStorage.getItem(missionQueueStorageKey)
+      .then((storedQueue) => {
+        if (cancelled) return;
+        if (!storedQueue) {
+          setQueuedMissionIds([]);
+          return;
+        }
+        try {
+          setQueuedMissionIds(normalizeMissionIdList(JSON.parse(storedQueue)));
+        } catch (error) {
+          console.log("[MISSIONS] queued mission restore failed", String((error as any)?.message || error));
+          setQueuedMissionIds([]);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.log("[MISSIONS] queued mission load failed", String((error as any)?.message || error));
+          setQueuedMissionIds([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoadedMissionQueueKey(missionQueueStorageKey);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [missionQueueStorageKey]);
+
+  useEffect(() => {
+    if (loadedMissionQueueKey !== missionQueueStorageKey) return;
+    AsyncStorage.setItem(missionQueueStorageKey, JSON.stringify(queuedMissionIds)).catch((error) => {
+      console.log("[MISSIONS] queued mission save failed", String((error as any)?.message || error));
+    });
+  }, [loadedMissionQueueKey, missionQueueStorageKey, queuedMissionIds]);
 
   const refreshCheckIns = React.useCallback(async () => {
     if (!userEmail) return;
@@ -756,7 +811,7 @@ export default function MissionsScreen({ navigation }: Props) {
       return;
     }
 
-    setQueuedMissionIds((current) => [...current, mission.id]);
+    setQueuedMissionIds((current) => (current.includes(mission.id) ? current : [...current, mission.id]));
     setMissions((current) =>
       current.map((item) =>
         item.id === mission.id ? { ...item, goingCount: (item.goingCount || 0) + 1 } : item
@@ -799,9 +854,7 @@ export default function MissionsScreen({ navigation }: Props) {
     setScanVisible(false);
     setMissionActionStatus((current) => ({ ...current, [mission.id]: "Checking you into mission..." }));
     try {
-      if (!queuedMissionIds.includes(mission.id)) {
-        setQueuedMissionIds((current) => [...current, mission.id]);
-      }
+      setQueuedMissionIds((current) => (current.includes(mission.id) ? current : [...current, mission.id]));
       await joinCuevasMission({
         missionId: mission.id,
         userEmail,
