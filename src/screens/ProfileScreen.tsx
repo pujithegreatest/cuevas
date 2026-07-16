@@ -294,6 +294,10 @@ export default function ProfileScreen({ navigation }: Props) {
   const toggleLike = useFeedStore((s) => s.toggleLike);
   const deletePost = useFeedStore((s) => s.deletePost);
   const stories = useStoryStore((s) => s.stories);
+  const feedViewer = useMemo(
+    () => ({ userEmail, displayName, userHandle, handleAliases, friends }),
+    [userEmail, displayName, userHandle, handleAliases, friends]
+  );
 
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [editUsernameOpen, setEditUsernameOpen] = useState(false);
@@ -697,7 +701,7 @@ export default function ProfileScreen({ navigation }: Props) {
         renderItem={({ item }) => (
           <PostCard
             post={item}
-            onLike={toggleLike}
+            onLike={(postId) => toggleLike(postId, feedViewer)}
             onComment={(id: string) => setSelectedPostId(id)}
             onDelete={deletePost}
           />

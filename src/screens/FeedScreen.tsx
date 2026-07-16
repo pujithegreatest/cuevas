@@ -78,6 +78,13 @@ export default function FeedScreen({ navigation }: Props) {
     [deletePost],
   );
 
+  const handleLike = useCallback(
+    (postId: string) => {
+      toggleLike(postId, feedViewer);
+    },
+    [toggleLike, feedViewer],
+  );
+
   const handleAuthorPress = useCallback((handle: string) => {
     setSelectedProfileHandle(handle);
   }, []);
@@ -96,13 +103,13 @@ export default function FeedScreen({ navigation }: Props) {
     ({ item }: { item: (typeof visiblePosts)[number] }) => (
       <PostCard
         post={item}
-        onLike={toggleLike}
+        onLike={handleLike}
         onComment={handleComment}
         onDelete={handleDelete}
         onAuthorPress={handleAuthorPress}
       />
     ),
-    [toggleLike, handleComment, handleDelete, handleAuthorPress],
+    [handleLike, handleComment, handleDelete, handleAuthorPress],
   );
 
   const keyExtractor = useCallback((item: (typeof visiblePosts)[number]) => item.id, []);

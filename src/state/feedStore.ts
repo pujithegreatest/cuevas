@@ -25,7 +25,7 @@ interface FeedState {
   createPostRemote: (
     post: Omit<Post, "id" | "timestamp" | "likes" | "commentsList" | "isLiked">
   ) => Promise<void>;
-  toggleLike: (postId: string) => void;
+  toggleLike: (postId: string, viewer?: FeedViewer) => void;
   addComment: (postId: string, comment: Omit<Comment, "id" | "timestamp">) => void;
   updatePostRemote: (
     postId: string,
@@ -66,6 +66,66 @@ function parseJsonField<T = any>(raw: any): T | undefined {
   } catch {
     return undefined;
   }
+}
+
+function parseListField<T = any>(raw: any): T[] {
+  if (Array.isArray(raw)) return raw as T[];
+  const parsed = parseJsonField<T[]>(raw);
+  return Array.isArray(parsed) ? parsed : [];
+}
+
+function parseStringListField(raw: any): string[] {
+  if (Array.isArray(raw)) {
+    return raw.map((item) => String(item || "").trim()).filter(Boolean);
+  }
+  if (typeof raw === "string") {
+    const parsed = parseJsonField<any[]>(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.map((item) => String(item || "").trim()).filter(Boolean);
+    }
+    return raw
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function normalizeIdentity(value?: string | null) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (raw.includes("@")) return raw.toLowerCase();
+  return normalizeHandle(raw) || raw.toLowerCase();
+}
+
+function buildViewerIdentitySet(viewer?: FeedViewer) {
+  const identities = new Set<string>();
+  const add = (value?: string | null) => {
+    const raw = String(value || "").trim();
+    const normalized = normalizeIdentity(raw);
+    if (raw) identities.add(raw.toLowerCase());
+    if (normalized) identities.add(normalized);
+  };
+  add(viewer?.userEmail);
+  if (viewer?.userEmail) add(viewer.userEmail.split("@")[0]);
+  add(viewer?.displayName);
+  add(viewer?.userHandle);
+  (viewer?.handleAliases || []).forEach(add);
+  return identities;
+}
+
+function isLikedByViewer(item: any, viewer?: FeedViewer) {
+  const viewerIdentities = buildViewerIdentitySet(viewer);
+  if (viewerIdentities.size === 0) return false;
+  const likedBy = parseStringListField(
+    item?.LikedBy ||
+      item?.likedBy ||
+      item?.ZappedBy ||
+      item?.zappedBy ||
+      item?.["Liked By"] ||
+      item?.["Zapped By"]
+  );
+  return likedBy.some((identity) => viewerIdentities.has(normalizeIdentity(identity)));
 }
 
 function normalizeMissionShare(raw: any): MissionShare | undefined {
@@ -158,7 +218,7 @@ function buildPostsUrl(viewer?: FeedViewer) {
   return qs ? `${POSTS_API}?${qs}` : POSTS_API;
 }
 
-function mapFromBackend(item: any): Post {
+function mapFromBackend(item: any, viewer?: FeedViewer): Post {
   // Wix CMS URL fields can come back as:
   // - string URLs
   // - objects like { url: "https://..." }
@@ -293,6 +353,22 @@ function mapFromBackend(item: any): Post {
       item?.mission_share ||
       null
   );
+  const rawComments =
+    item?.CommentsList ||
+    item?.commentsList ||
+    item?.Comments ||
+    item?.comments ||
+    [];
+  const commentsList = parseListField<Comment>(rawComments).map((comment) => ({
+    ...comment,
+    id: String(comment?.id || `c${Date.now()}`),
+    author: String(comment?.author || "anonymous"),
+    authorEmail: comment?.authorEmail || undefined,
+    authorRewardPoints: Number(comment?.authorRewardPoints || 0),
+    content: String(comment?.content || ""),
+    timestamp: Number(comment?.timestamp || Date.now()),
+    privacy: (comment?.privacy || "public") as CommentPrivacyLevel,
+  }));
 
   return {
     id: item?._id?.toString?.() || Date.now().toString(),
@@ -306,8 +382,8 @@ function mapFromBackend(item: any): Post {
     missionShare,
     timestamp: new Date(date).getTime(),
     likes: item?.["Like Count"] ?? item?.likeCount ?? 0,
-    commentsList: item?.commentsList || [],
-    isLiked: false,
+    commentsList,
+    isLiked: isLikedByViewer(item, viewer),
     privacy: normalizePrivacyValue(item?.Privacy || item?.privacy || item?.PostPrivacy || item?.postPrivacy),
   };
 }
@@ -326,6 +402,12 @@ function mapToBackend(
     MediaUrls: mediaUrls,
     Hashtags: [],
     "Like Count": 0,
+    LikeCount: 0,
+    likeCount: 0,
+    LikedBy: "[]",
+    likedBy: "[]",
+    CommentsList: "[]",
+    commentsList: "[]",
     "Date Published": new Date().toISOString(),
     authorRewardPoints: postData.authorRewardPoints ?? 0,
     Privacy: normalizePrivacyValue(postData.privacy),
@@ -531,7 +613,7 @@ export const useFeedStore = create<FeedState>()(
           const res = await fetch(buildPostsUrl(viewer), { method: "GET" });
           const json = await res.json();
           if (json?.success && Array.isArray(json.posts)) {
-            set({ posts: json.posts.map((item: any) => applyViewerIdentity(mapFromBackend(item), viewer)) });
+            set({ posts: json.posts.map((item: any) => applyViewerIdentity(mapFromBackend(item, viewer), viewer)) });
           }
         } catch (e) {
           console.error("fetchPosts error", e);
@@ -601,38 +683,146 @@ export const useFeedStore = create<FeedState>()(
         }
       },
 
-      toggleLike: (postId) =>
-        set((state) => ({
-          posts: state.posts.map((post) =>
-            post.id === postId
-              ? {
-                  ...post,
-                  isLiked: !post.isLiked,
-                  likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-                }
-              : post
-          ),
-        })),
+      toggleLike: (postId, viewer) => {
+        let previousPost: Post | null = null;
+        let nextLiked = false;
 
-      addComment: (postId, commentData) =>
         set((state) => ({
-          posts: state.posts.map((post) =>
-            post.id === postId
-              ? {
-                  ...post,
-                  commentsList: [
-                    ...(post.commentsList || []),
-                    {
-                      ...commentData,
-                      id: `c${Date.now()}`,
-                      timestamp: Date.now(),
-                      privacy: commentData.privacy || "public",
-                    },
-                  ],
-                }
-              : post
-          ),
-        })),
+          posts: state.posts.map((post) => {
+            if (post.id !== postId) return post;
+            previousPost = post;
+            nextLiked = !post.isLiked;
+            return {
+              ...post,
+              isLiked: nextLiked,
+              likes: Math.max(0, post.likes + (nextLiked ? 1 : -1)),
+            };
+          }),
+        }));
+
+        if (!previousPost) return;
+
+        fetch(POST_UPDATE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            action: "toggleLike",
+            id: postId,
+            _id: postId,
+            liked: nextLiked,
+            viewerEmail: viewer?.userEmail || "",
+            userEmail: viewer?.userEmail || "",
+            displayName: viewer?.displayName || "",
+            userHandle: viewer?.userHandle || "",
+            aliases: viewer?.handleAliases || [],
+          }),
+        })
+          .then(async (res) => {
+            const text = await res.text();
+            let json: any = null;
+            try {
+              json = text ? JSON.parse(text) : null;
+            } catch {
+              // Keep response text for the error below.
+            }
+            if (!res.ok || !json?.success) {
+              throw new Error(json?.error || text || `Zap save failed (${res.status})`);
+            }
+            if (json?.post) {
+              const mapped = applyViewerIdentity(mapFromBackend(json.post, viewer), viewer);
+              set((state) => ({
+                posts: state.posts.map((post) =>
+                  post.id === postId
+                    ? {
+                        ...post,
+                        likes: mapped.likes,
+                        isLiked: mapped.isLiked,
+                      }
+                    : post
+                ),
+              }));
+            }
+          })
+          .catch((e) => {
+            set((state) => ({
+              posts: state.posts.map((post) =>
+                post.id === postId && previousPost ? previousPost : post
+              ),
+            }));
+            console.log("[FEED] toggleLike remote failed", String(e));
+          });
+      },
+
+      addComment: (postId, commentData) => {
+        const newComment: Comment = {
+          ...commentData,
+          id: `c${Date.now()}`,
+          timestamp: Date.now(),
+          privacy: commentData.privacy || "public",
+        };
+        let previousPost: Post | null = null;
+
+        set((state) => ({
+          posts: state.posts.map((post) => {
+            if (post.id !== postId) return post;
+            previousPost = post;
+            return {
+              ...post,
+              commentsList: [...(post.commentsList || []), newComment],
+            };
+          }),
+        }));
+
+        if (!previousPost) return;
+
+        fetch(POST_UPDATE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            action: "addComment",
+            id: postId,
+            _id: postId,
+            comment: newComment,
+            content: newComment.content,
+            viewerEmail: newComment.authorEmail || "",
+            userEmail: newComment.authorEmail || "",
+            displayName: newComment.author,
+          }),
+        })
+          .then(async (res) => {
+            const text = await res.text();
+            let json: any = null;
+            try {
+              json = text ? JSON.parse(text) : null;
+            } catch {
+              // Keep response text for the error below.
+            }
+            if (!res.ok || !json?.success) {
+              throw new Error(json?.error || text || `Comment save failed (${res.status})`);
+            }
+            if (json?.post) {
+              const mapped = mapFromBackend(json.post);
+              set((state) => ({
+                posts: state.posts.map((post) =>
+                  post.id === postId
+                    ? {
+                        ...post,
+                        commentsList: mapped.commentsList,
+                      }
+                    : post
+                ),
+              }));
+            }
+          })
+          .catch((e) => {
+            set((state) => ({
+              posts: state.posts.map((post) =>
+                post.id === postId && previousPost ? previousPost : post
+              ),
+            }));
+            console.log("[FEED] addComment remote failed", String(e));
+          });
+      },
 
       updatePostRemote: async (postId, updates) => {
         const hasContent = Object.prototype.hasOwnProperty.call(updates, "content");

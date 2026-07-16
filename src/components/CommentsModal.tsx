@@ -155,7 +155,8 @@ export default function CommentsModal({
     }
 
     addComment(postId, {
-      author: userEmail?.split("@")[0] || "anonymous",
+      author: displayName || userEmail?.split("@")[0] || "anonymous",
+      authorEmail: userEmail || undefined,
       authorRewardPoints: rewardsBalance,
       content: commentText.trim(),
       privacy: commentPrivacy,

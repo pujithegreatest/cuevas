@@ -59,6 +59,10 @@ export default function UserProfileModal({
     () => getUserHandles(userEmail, displayName, handleAliases),
     [userEmail, displayName, handleAliases]
   );
+  const feedViewer = useMemo(
+    () => ({ userEmail, displayName, handleAliases, friends }),
+    [userEmail, displayName, handleAliases, friends]
+  );
 
   const userPosts = useMemo(
     () => {
@@ -102,13 +106,13 @@ export default function UserProfileModal({
     ({ item }: { item: (typeof userPosts)[number] }) => (
       <PostCard
         post={item}
-        onLike={toggleLike}
+        onLike={(postId) => toggleLike(postId, feedViewer)}
         onComment={onComment}
         onDelete={deletePost}
         onAuthorPress={onAvatarPress}
       />
     ),
-    [toggleLike, onComment, deletePost, onAvatarPress],
+    [toggleLike, feedViewer, onComment, deletePost, onAvatarPress],
   );
 
   const keyExtractor = useCallback(
