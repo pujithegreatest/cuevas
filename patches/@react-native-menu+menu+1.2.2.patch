@@ -1,6 +1,6 @@
-diff --git a/android/src/main/java/com/reactnativemenu/MenuView.kt b/android/src/main/java/com/reactnativemenu/MenuView.kt
---- a/android/src/main/java/com/reactnativemenu/MenuView.kt
-+++ b/android/src/main/java/com/reactnativemenu/MenuView.kt
+diff --git a/node_modules/@react-native-menu/menu/android/src/main/java/com/reactnativemenu/MenuView.kt b/node_modules/@react-native-menu/menu/android/src/main/java/com/reactnativemenu/MenuView.kt
+--- a/node_modules/@react-native-menu/menu/android/src/main/java/com/reactnativemenu/MenuView.kt
++++ b/node_modules/@react-native-menu/menu/android/src/main/java/com/reactnativemenu/MenuView.kt
 @@ -47,8 +47,7 @@ class MenuView(private val mContext: ReactContext) : ReactViewGroup(mContext) {
      prepareMenu()
    }
@@ -11,9 +11,9 @@ diff --git a/android/src/main/java/com/reactnativemenu/MenuView.kt b/android/src
      mHitSlopRect = rect
      updateTouchDelegate()
    }
-diff --git a/android/src/main/java/com/reactnativemenu/MenuViewManagerBase.kt b/android/src/main/java/com/reactnativemenu/MenuViewManagerBase.kt
---- a/android/src/main/java/com/reactnativemenu/MenuViewManagerBase.kt
-+++ b/android/src/main/java/com/reactnativemenu/MenuViewManagerBase.kt
+diff --git a/node_modules/@react-native-menu/menu/android/src/main/java/com/reactnativemenu/MenuViewManagerBase.kt b/node_modules/@react-native-menu/menu/android/src/main/java/com/reactnativemenu/MenuViewManagerBase.kt
+--- a/node_modules/@react-native-menu/menu/android/src/main/java/com/reactnativemenu/MenuViewManagerBase.kt
++++ b/node_modules/@react-native-menu/menu/android/src/main/java/com/reactnativemenu/MenuViewManagerBase.kt
 @@ -120,12 +120,12 @@ abstract class MenuViewManagerBase : ReactClippingViewManager<MenuView>() {
    }
  
