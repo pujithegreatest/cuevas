@@ -4333,6 +4333,7 @@
         ? `${icon("user-plus", 18)}<span>Create Account</span>`
         : `${icon("logout", 18)}<span>Sign In</span>`;
       $("#passwordInput").autocomplete = mode === "signup" ? "new-password" : "current-password";
+      setGoogleAuthLoading(false);
       setStatus("authStatus", "");
     }
 
@@ -4382,7 +4383,7 @@
         setStatus("authStatus", "Google did not return an email.", "error");
         return;
       }
-      setStatus("authStatus", "Signing in with Google...");
+      setStatus("authStatus", state.mode === "signup" ? "Creating Google account..." : "Signing in with Google...");
       try {
         const data = await apiJson(`${API_BASE}/login`, {
           method: "POST",
@@ -4391,7 +4392,8 @@
             email,
             googleToken: credential,
             displayName: name,
-            handle: deriveHandle(null, name, email)
+            handle: deriveHandle(null, name, email),
+            authMode: state.mode === "signup" ? "signup" : "login"
           })
         });
         finishLogin(data, email, name);
@@ -4404,7 +4406,8 @@
       const btn = $("#googleAuthBtn");
       if (!btn) return;
       btn.disabled = Boolean(isLoading);
-      btn.querySelector("span:last-child").textContent = isLoading ? "SIGNING IN..." : "SIGN IN WITH GOOGLE";
+      const action = state.mode === "signup" ? "SIGN UP" : "SIGN IN";
+      btn.querySelector("span:last-child").textContent = isLoading ? `${action}...` : `${action} WITH GOOGLE`;
     }
 
     async function fetchGoogleProfile(accessToken) {
@@ -4427,7 +4430,7 @@
         setStatus("authStatus", "Google did not return a token.", "error");
         return;
       }
-      setStatus("authStatus", "Signing in with Google...");
+      setStatus("authStatus", state.mode === "signup" ? "Creating Google account..." : "Signing in with Google...");
       try {
         const profile = await fetchGoogleProfile(accessToken);
         const email = normalizeEmail(profile.email);
@@ -4440,7 +4443,8 @@
             email,
             googleToken: accessToken,
             displayName: name,
-            handle: deriveHandle(null, name, email)
+            handle: deriveHandle(null, name, email),
+            authMode: state.mode === "signup" ? "signup" : "login"
           })
         });
         finishLogin(data, email, name);
