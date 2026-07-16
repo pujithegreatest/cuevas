@@ -296,7 +296,11 @@ export default function MissionChatModal({
               })}
               accessibilityLabel="Send mission chat message"
             >
-              {isSending ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="send" size={19} color="#FFFFFF" />}
+              {isSending ? (
+                <ActivityIndicator color={isDarkMode ? "#FFFFFF" : "#111827"} />
+              ) : (
+                <Ionicons name="send" size={19} color={isDarkMode ? "#FFFFFF" : "#111827"} />
+              )}
             </Pressable>
           </View>
         </LinearGradient>
