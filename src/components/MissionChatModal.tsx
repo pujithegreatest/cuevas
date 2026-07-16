@@ -248,6 +248,9 @@ export default function MissionChatModal({
               borderTopWidth: 1,
               borderTopColor: "rgba(6,167,161,0.20)",
               backgroundColor: isDarkMode ? "transparent" : "rgba(255,255,255,0.96)",
+              flexDirection: "row",
+              alignItems: "flex-end",
+              gap: 10,
             }}
           >
             <TextInput
@@ -258,7 +261,7 @@ export default function MissionChatModal({
               multiline
               maxLength={1000}
               style={{
-                width: "100%",
+                flex: 1,
                 maxHeight: 110,
                 minHeight: 46,
                 borderRadius: 22,
@@ -267,7 +270,7 @@ export default function MissionChatModal({
                 backgroundColor: isDarkMode ? "rgba(255,255,255,0.07)" : "#FFFFFF",
                 color: textColor,
                 paddingLeft: 14,
-                paddingRight: 66,
+                paddingRight: 14,
                 paddingVertical: 11,
                 fontWeight: "800",
               }}
@@ -276,12 +279,9 @@ export default function MissionChatModal({
               onPress={sendMessage}
               disabled={!canSend}
               style={({ pressed }) => ({
-                position: "absolute",
-                right: 18,
-                top: 17,
-                width: 42,
-                height: 42,
-                borderRadius: 21,
+                width: 48,
+                height: 48,
+                borderRadius: 24,
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: "#06A7A1",
@@ -292,7 +292,7 @@ export default function MissionChatModal({
                 shadowRadius: 8,
                 shadowOffset: { width: 0, height: 3 },
                 elevation: isDarkMode ? 0 : 3,
-                opacity: pressed || (isDarkMode && !canSend) ? 0.55 : 1,
+                opacity: pressed || !canSend ? 0.72 : 1,
               })}
               accessibilityLabel="Send mission chat message"
             >
