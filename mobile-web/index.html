@@ -2220,6 +2220,303 @@
       font-weight: 950;
     }
 
+    .comments-modal {
+      align-items: stretch;
+      padding: 0;
+      background: rgba(0,0,0,.9);
+    }
+
+    .comments-sheet {
+      width: min(470px, 100vw);
+      height: 100dvh;
+      margin: 0 auto;
+      background: #0b1115;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      color: #cfeffc;
+      overflow: hidden;
+    }
+
+    .comments-head {
+      min-height: calc(70px + var(--safe-top));
+      padding: calc(14px + var(--safe-top)) 18px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      align-items: center;
+      gap: 10px;
+      background: rgba(11,17,21,.98);
+    }
+
+    .comments-close {
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: #cfeffc;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .comments-close .svg-icon {
+      --icon-size: 36px;
+    }
+
+    .comments-title {
+      margin: 0;
+      text-align: center;
+      color: #cfeffc;
+      font-size: 21px;
+      line-height: 1;
+      font-weight: 950;
+    }
+
+    .comments-scroll {
+      min-height: 0;
+      overflow-y: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+      background: #0b1115;
+    }
+
+    .comments-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .comment-post-preview {
+      padding: 20px 18px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      background: #0b1115;
+    }
+
+    .comment-post-head,
+    .comment-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .comment-post-head {
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .comment-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      background: var(--accent);
+      color: #d9fffb;
+      display: grid;
+      place-items: center;
+      font-size: 21px;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .comment-author-line {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .comment-author {
+      max-width: 190px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #c9f4ef;
+      font-size: 16px;
+      font-weight: 950;
+      line-height: 1.1;
+    }
+
+    .comment-meta {
+      color: rgba(207,239,236,.64);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .comment-preview-media {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 18px;
+      overflow: hidden;
+      background: #02050a;
+      border: 1px solid rgba(255,255,255,.08);
+      display: block;
+      object-fit: cover;
+    }
+
+    .comment-preview-audio {
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    .comment-preview-body {
+      margin: 14px 0 0;
+      color: #d9fffb;
+      font-size: 17px;
+      line-height: 1.38;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .comments-thread {
+      display: grid;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .comment-row {
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      background: #0b1115;
+    }
+
+    .comment-row:last-child {
+      border-bottom: 0;
+    }
+
+    .comment-row .comment-avatar {
+      width: 42px;
+      height: 42px;
+      font-size: 19px;
+    }
+
+    .comment-body {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .comment-points {
+      min-height: 20px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6,167,161,.28);
+      color: var(--accent);
+      font-size: 12px;
+      line-height: 1;
+      font-weight: 950;
+    }
+
+    .comment-privacy-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      display: inline-grid;
+      place-items: center;
+      color: var(--accent);
+      background: rgba(6,167,161,.14);
+      margin-left: 2px;
+    }
+
+    .comment-privacy-dot .svg-icon {
+      --icon-size: 21px;
+    }
+
+    .comment-text {
+      margin-top: 7px;
+      color: #e9fffb;
+      font-size: 15px;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .comments-empty {
+      min-height: 150px;
+      display: grid;
+      place-items: center;
+      padding: 32px 18px;
+      color: rgba(207,239,236,.58);
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .comments-composer {
+      padding: 12px 16px calc(12px + var(--safe-bottom));
+      background: #0b1115;
+      border-top: 1px solid rgba(255,255,255,.1);
+    }
+
+    .comments-composer-shell {
+      min-height: 68px;
+      padding: 10px;
+      border-radius: 28px;
+      border: 1px solid rgba(6,167,161,.55);
+      background: rgba(6,43,49,.76);
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr) 42px;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 14px 30px rgba(0,0,0,.25);
+    }
+
+    .comment-privacy-btn,
+    .comment-send-btn {
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .comment-privacy-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      background: rgba(6,167,161,.18);
+    }
+
+    .comment-privacy-btn .svg-icon {
+      --icon-size: 26px;
+    }
+
+    .comment-input {
+      width: 100%;
+      min-width: 0;
+      min-height: 44px;
+      border: 0;
+      border-radius: 22px;
+      padding: 0 18px;
+      background: #090e12;
+      color: #eafffc;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 850;
+      outline: none;
+    }
+
+    .comment-input::placeholder {
+      color: rgba(207,239,236,.44);
+    }
+
+    .comment-send-btn {
+      width: 42px;
+      height: 42px;
+      opacity: .95;
+    }
+
+    .comment-send-btn .svg-icon {
+      --icon-size: 31px;
+    }
+
+    .comment-send-btn:disabled {
+      opacity: .32;
+      cursor: not-allowed;
+    }
+
     .composer-modal {
       padding: calc(34px + var(--safe-top)) 0 0;
       align-items: flex-end;
@@ -3921,18 +4218,30 @@
     </div>
   </div>
 
-  <div id="commentsModal" class="modal" role="dialog" aria-modal="true">
-    <div class="sheet">
-      <div class="sheet-head">
-        <h3 class="sheet-title">Comments</h3>
-        <button class="icon-btn" data-close="commentsModal" type="button">X</button>
+  <div id="commentsModal" class="modal comments-modal" role="dialog" aria-modal="true">
+    <div class="comments-sheet">
+      <div class="comments-head">
+        <button class="comments-close" data-close="commentsModal" type="button" aria-label="Close comments">
+          <span data-icon="x"></span>
+        </button>
+        <h3 class="comments-title">Comments</h3>
+        <div></div>
       </div>
-      <div id="commentsList" class="list"></div>
-      <div class="row" style="margin-top:12px;">
-        <input id="commentInput" class="input" placeholder="Add a comment" />
-        <button id="sendCommentBtn" class="btn" style="min-width:74px;" type="button">Send</button>
+      <div class="comments-scroll">
+        <div id="commentsPostPreview"></div>
+        <div id="commentsList" class="comments-thread"></div>
       </div>
-      <div class="status tiny" style="margin-top:8px;">Comments are saved in this browser for this test client.</div>
+      <div class="comments-composer">
+        <div class="comments-composer-shell">
+          <button id="commentPrivacyBtn" class="comment-privacy-btn" type="button" aria-label="Comment privacy">
+            <span data-icon="globe"></span>
+          </button>
+          <input id="commentInput" class="comment-input" placeholder="Add a comment..." />
+          <button id="sendCommentBtn" class="comment-send-btn" type="button" aria-label="Send comment" disabled>
+            <span data-icon="send"></span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -4088,6 +4397,7 @@
       "chevron-right": '<path d="m9 18 6-6-6-6"></path>',
       chat: '<path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.5 9.5 0 0 1-4-.9L3 20l1.4-4A8.3 8.3 0 1 1 21 11.5Z"></path>',
       share: '<circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 10.7 6.8-4.4"></path><path d="m8.6 13.3 6.8 4.4"></path>',
+      send: '<path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path>',
       image: '<rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="8.5" cy="9.5" r="1.5"></circle><path d="m21 15-4.5-4.5L6 21"></path>',
       camera: '<rect x="4" y="5" width="16" height="16" rx="4"></rect><circle cx="12" cy="13" r="4"></circle><path d="M9 5l1.4-2h3.2L15 5"></path>',
       music: '<path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>',
@@ -4280,6 +4590,17 @@
       if (hours < 24) return `${hours}h`;
       const days = Math.floor(hours / 24);
       return `${days}d`;
+    }
+
+    function relativeTimeLabel(ts) {
+      const value = timeAgo(ts);
+      return value === "now" ? "Just now" : `${value} ago`;
+    }
+
+    function formatCuevasPoints(points) {
+      const value = Number(points || 0) || 0;
+      if (value >= 1000) return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}k`;
+      return value.toString();
     }
 
     async function apiJson(url, options = {}) {
@@ -4892,13 +5213,74 @@
       }
     }
 
+    function renderCommentPostPreview(post) {
+      const preview = $("#commentsPostPreview");
+      if (!preview) return;
+      if (!post) {
+        preview.innerHTML = "";
+        return;
+      }
+      const mediaUri = (post.images || [])[0] || "";
+      const mediaHtml = mediaUri
+        ? isVideo(mediaUri)
+          ? `<video class="comment-preview-media" src="${escapeAttr(mediaUri)}" controls playsinline preload="metadata"></video>`
+          : `<img class="comment-preview-media" src="${escapeAttr(mediaUri)}" loading="lazy" alt="" />`
+        : "";
+      const audioHtml = post.audio?.uri
+        ? `<audio class="comment-preview-audio" src="${escapeAttr(post.audio.uri)}" controls></audio>`
+        : "";
+      preview.innerHTML = `
+        <section class="comment-post-preview">
+          <div class="comment-post-head">
+            <div class="comment-avatar">${escapeHtml(initials(post.author))}</div>
+            <div style="min-width:0; flex:1;">
+              <div class="comment-author-line">
+                <span class="comment-author">${escapeHtml(post.author || "cuevas")}</span>
+                <span class="comment-points">${escapeHtml(formatCuevasPoints(post.authorRewardPoints))} ₡</span>
+              </div>
+              <div class="comment-meta">${escapeHtml(relativeTimeLabel(post.timestamp))}</div>
+            </div>
+          </div>
+          ${mediaHtml}
+          ${post.missionShare ? renderMissionShareCard(post.missionShare) : ""}
+          ${audioHtml}
+          ${post.content ? `<p class="comment-preview-body">${escapeHtml(post.content)}</p>` : ""}
+        </section>`;
+    }
+
+    function renderCommentRow(comment) {
+      const author = comment.author || "cuevas";
+      const points = formatCuevasPoints(comment.authorRewardPoints);
+      return `
+        <article class="comment-row">
+          <div class="comment-avatar">${escapeHtml(initials(author))}</div>
+          <div class="comment-body">
+            <div class="comment-author-line">
+              <span class="comment-author">${escapeHtml(author)}</span>
+              <span class="comment-points">${escapeHtml(points)} ₡</span>
+              <span class="comment-meta">${escapeHtml(relativeTimeLabel(comment.timestamp))}</span>
+              <span class="comment-privacy-dot">${icon("globe", 21)}</span>
+            </div>
+            <div class="comment-text">${escapeHtml(comment.content || comment.text || "")}</div>
+          </div>
+        </article>`;
+    }
+
+    function updateCommentComposerState() {
+      const input = $("#commentInput");
+      const button = $("#sendCommentBtn");
+      if (button) button.disabled = !(input?.value || "").trim();
+    }
+
     function renderComments() {
       const post = state.posts.find(p => p.id === state.selectedPostId);
+      renderCommentPostPreview(post);
       const list = $("#commentsList");
       const comments = post?.commentsList || [];
       list.innerHTML = comments.length
-        ? comments.map(c => `<div class="panel" style="padding:10px;"><strong>${escapeHtml(c.author || "cuevas")}</strong><div class="tiny muted">${timeAgo(c.timestamp || Date.now())} ago</div><div style="margin-top:5px;">${escapeHtml(c.content || c.text || "")}</div></div>`).join("")
-        : `<div class="empty">No comments yet.</div>`;
+        ? comments.map(renderCommentRow).join("")
+        : `<div class="comments-empty">No comments yet. Start the thread.</div>`;
+      updateCommentComposerState();
     }
 
     async function addComment() {
@@ -4909,6 +5291,7 @@
         id: `comment-${Date.now()}`,
         author: displayName(),
         authorEmail: state.session?.email || "",
+        authorRewardPoints: Number(state.session?.cuevas || 0) || 0,
         content: value,
         timestamp: Date.now(),
         privacy: "public"
@@ -7000,6 +7383,7 @@
       $("#postAudioBtn").addEventListener("click", () => openPostFilePicker("audio"));
       $("#postFiles").addEventListener("change", previewPostFiles);
       $("#sendCommentBtn").addEventListener("click", addComment);
+      $("#commentInput").addEventListener("input", updateCommentComposerState);
       $("#commentInput").addEventListener("keydown", e => {
         if (e.key === "Enter") addComment();
       });
