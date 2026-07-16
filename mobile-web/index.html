@@ -2424,6 +2424,24 @@
       --icon-size: 21px;
     }
 
+    .comment-delete-btn {
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      display: inline-grid;
+      place-items: center;
+      color: rgba(255,180,183,.92);
+      background: rgba(255,91,95,.12);
+      cursor: pointer;
+      margin-left: auto;
+    }
+
+    .comment-delete-btn .svg-icon {
+      --icon-size: 19px;
+    }
+
     .comment-text {
       margin-top: 7px;
       color: #e9fffb;
@@ -5248,11 +5266,19 @@
         </section>`;
     }
 
-    function renderCommentRow(comment) {
+    function canDeleteComment(post, comment) {
+      if (!post || !comment) return false;
+      return belongsToCurrentUser(post) || belongsToCurrentUser(comment);
+    }
+
+    function renderCommentRow(comment, post) {
       const author = comment.author || "cuevas";
       const points = formatCuevasPoints(comment.authorRewardPoints);
+      const deleteButton = canDeleteComment(post, comment)
+        ? `<button class="comment-delete-btn" type="button" data-comment-id="${escapeAttr(comment.id)}" aria-label="Delete comment">${icon("trash", 19)}</button>`
+        : "";
       return `
-        <article class="comment-row">
+        <article class="comment-row" data-comment-id="${escapeAttr(comment.id)}">
           <div class="comment-avatar">${escapeHtml(initials(author))}</div>
           <div class="comment-body">
             <div class="comment-author-line">
@@ -5260,10 +5286,19 @@
               <span class="comment-points">${escapeHtml(points)} ₡</span>
               <span class="comment-meta">${escapeHtml(relativeTimeLabel(comment.timestamp))}</span>
               <span class="comment-privacy-dot">${icon("globe", 21)}</span>
+              ${deleteButton}
             </div>
             <div class="comment-text">${escapeHtml(comment.content || comment.text || "")}</div>
           </div>
         </article>`;
+    }
+
+    function bindCommentDeleteButtons() {
+      $$(".comment-delete-btn").forEach(btn => {
+        if (btn.dataset.bound === "true") return;
+        btn.dataset.bound = "true";
+        btn.addEventListener("click", () => deleteComment(btn.dataset.commentId));
+      });
     }
 
     function updateCommentComposerState() {
@@ -5278,9 +5313,57 @@
       const list = $("#commentsList");
       const comments = post?.commentsList || [];
       list.innerHTML = comments.length
-        ? comments.map(renderCommentRow).join("")
+        ? comments.map(comment => renderCommentRow(comment, post)).join("")
         : `<div class="comments-empty">No comments yet. Start the thread.</div>`;
+      bindCommentDeleteButtons();
       updateCommentComposerState();
+    }
+
+    async function deleteComment(commentId) {
+      const postId = state.selectedPostId;
+      const post = state.posts.find(p => p.id === postId);
+      const comment = post?.commentsList?.find(item => item.id === commentId);
+      if (!post || !comment || !canDeleteComment(post, comment)) return;
+      if (!confirm("Delete this comment?")) return;
+
+      const previousComments = [...(post.commentsList || [])];
+      post.commentsList = previousComments.filter(item => item.id !== commentId);
+      state.comments[postId] = (state.comments[postId] || []).filter(item => item.id !== commentId);
+      saveJson("cuevas.web.comments", state.comments);
+      renderComments();
+      renderFeed();
+      renderProfile();
+
+      try {
+        const json = await apiJson(`${API_BASE}/postUpdate`, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "deleteComment",
+            id: postId,
+            _id: postId,
+            commentId,
+            comment,
+            viewerEmail: state.session?.email || "",
+            userEmail: state.session?.email || "",
+            displayName: displayName(),
+            viewerHandle: handleName(),
+            ownerHandles: Array.from(currentUserAliases())
+          })
+        });
+        if (json.post) {
+          const mapped = mapPost(json.post);
+          state.posts = state.posts.map(item => item.id === postId ? { ...item, commentsList: mapped.commentsList } : item);
+          renderComments();
+          renderFeed();
+          renderProfile();
+        }
+      } catch (err) {
+        if (post) post.commentsList = previousComments;
+        renderComments();
+        renderFeed();
+        renderProfile();
+        alert(err.message || "Comment delete failed.");
+      }
     }
 
     async function addComment() {
