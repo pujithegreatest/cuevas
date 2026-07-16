@@ -4550,7 +4550,7 @@
       const media = item.MediaUrls || item.mediaUrls || item.Media || item.media || [];
       const rawAudio = parseMaybeJson(item.Audio || item.audio || item.PostAudio || item.postAudio);
       const audioUrl = item.AudioUrl || item.audioUrl || rawAudio?.uri || "";
-      const commentsList = Array.isArray(item.commentsList) ? item.commentsList : [];
+      const commentsList = parseArrayField(item.CommentsList || item.commentsList || item.Comments || item.comments);
       const localComments = state.comments[item._id || item.id] || [];
       return {
         id: text(item._id || item.id || `post-${Date.now()}`),
@@ -4565,8 +4565,8 @@
         } : null,
         timestamp: new Date(item["Date Published"] || item.datePublished || item._createdDate || Date.now()).getTime(),
         likes: Number(item["Like Count"] ?? item.likeCount ?? 0) || 0,
-        commentsList: [...commentsList, ...localComments],
-        isLiked: false,
+        commentsList: dedupeComments([...commentsList, ...localComments]),
+        isLiked: isPostLikedByViewer(item),
         privacy: item.Privacy || item.privacy || item.PostPrivacy || "public",
         authorRewardPoints: Number(item.authorRewardPoints ?? item.cuevas ?? 0) || 0,
         missionShare: normalizeMissionShare(item.MissionShare || item.missionShare || item["Mission Share"] || item.mission_share)
@@ -4581,6 +4581,65 @@
       } catch {
         return null;
       }
+    }
+
+    function parseArrayField(value) {
+      if (Array.isArray(value)) return value;
+      const parsed = parseMaybeJson(value);
+      if (Array.isArray(parsed)) return parsed;
+      if (typeof value === "string") {
+        return value.split(",").map(item => item.trim()).filter(Boolean);
+      }
+      return [];
+    }
+
+    function normalizeIdentity(value) {
+      const raw = text(value).trim();
+      if (!raw) return "";
+      if (raw.includes("@")) return normalizeEmail(raw);
+      return normalizeHandle(raw, "") || raw.toLowerCase();
+    }
+
+    function viewerIdentitySet() {
+      const session = state.session || {};
+      const values = [
+        session.email,
+        session.email?.split("@")[0],
+        session.displayName,
+        session.handle,
+        handleName()
+      ];
+      return new Set(values.map(normalizeIdentity).filter(Boolean));
+    }
+
+    function isPostLikedByViewer(item) {
+      const identities = viewerIdentitySet();
+      if (!identities.size) return false;
+      const likedBy = parseArrayField(item.LikedBy || item.likedBy || item.ZappedBy || item.zappedBy || item["Liked By"] || item["Zapped By"]);
+      return likedBy.some(identity => identities.has(normalizeIdentity(identity)));
+    }
+
+    function normalizeComment(comment) {
+      return {
+        ...comment,
+        id: text(comment?.id || `comment-${Date.now()}`),
+        author: text(comment?.author || "cuevas"),
+        authorEmail: comment?.authorEmail || "",
+        authorRewardPoints: Number(comment?.authorRewardPoints || 0) || 0,
+        content: text(comment?.content || comment?.text || ""),
+        timestamp: Number(comment?.timestamp || Date.now()) || Date.now(),
+        privacy: comment?.privacy || "public"
+      };
+    }
+
+    function dedupeComments(comments) {
+      const seen = new Set();
+      return comments.map(normalizeComment).filter(comment => {
+        const key = comment.id || `${comment.authorEmail}:${comment.timestamp}:${comment.content}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
     }
 
     function normalizeMissionShare(raw) {
@@ -4735,14 +4794,43 @@
       $$(".like-btn").forEach(btn => {
         if (btn.dataset.bound === "true") return;
         btn.dataset.bound = "true";
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
           const id = btn.closest("[data-post-id]").dataset.postId;
           const post = state.posts.find(p => p.id === id);
           if (!post) return;
+          const previous = { isLiked: post.isLiked, likes: post.likes };
           post.isLiked = !post.isLiked;
-          post.likes += post.isLiked ? 1 : -1;
+          post.likes = Math.max(0, post.likes + (post.isLiked ? 1 : -1));
           renderFeed();
           renderProfile();
+          try {
+            const json = await apiJson(`${API_BASE}/postUpdate`, {
+              method: "POST",
+              body: JSON.stringify({
+                action: "toggleLike",
+                id,
+                _id: id,
+                liked: post.isLiked,
+                viewerEmail: state.session?.email || "",
+                userEmail: state.session?.email || "",
+                displayName: displayName(),
+                userHandle: handleName(),
+                aliases: [state.session?.handle, state.session?.displayName, state.session?.email].filter(Boolean)
+              })
+            });
+            if (json.post) {
+              const mapped = mapPost(json.post);
+              state.posts = state.posts.map(item => item.id === id ? { ...item, likes: mapped.likes, isLiked: mapped.isLiked } : item);
+              renderFeed();
+              renderProfile();
+            }
+          } catch (err) {
+            post.isLiked = previous.isLiked;
+            post.likes = previous.likes;
+            renderFeed();
+            renderProfile();
+            console.warn("Zap save failed", err);
+          }
         });
       });
       $$(".comments-btn").forEach(btn => {
@@ -4813,24 +4901,56 @@
         : `<div class="empty">No comments yet.</div>`;
     }
 
-    function addComment() {
+    async function addComment() {
       const value = $("#commentInput").value.trim();
       if (!value || !state.selectedPostId) return;
+      const postId = state.selectedPostId;
       const comment = {
         id: `comment-${Date.now()}`,
         author: displayName(),
         authorEmail: state.session?.email || "",
         content: value,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        privacy: "public"
       };
-      state.comments[state.selectedPostId] = [...(state.comments[state.selectedPostId] || []), comment];
-      saveJson("cuevas.web.comments", state.comments);
-      const post = state.posts.find(p => p.id === state.selectedPostId);
-      if (post) post.commentsList = [...(post.commentsList || []), comment];
+      const post = state.posts.find(p => p.id === postId);
+      const previousComments = post ? [...(post.commentsList || [])] : [];
+      if (post) post.commentsList = dedupeComments([...(post.commentsList || []), comment]);
       $("#commentInput").value = "";
       renderComments();
       renderFeed();
       renderProfile();
+      try {
+        const json = await apiJson(`${API_BASE}/postUpdate`, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "addComment",
+            id: postId,
+            _id: postId,
+            viewerEmail: state.session?.email || "",
+            userEmail: state.session?.email || "",
+            displayName: displayName(),
+            comment
+          })
+        });
+        if (json.post) {
+          const mapped = mapPost(json.post);
+          state.comments[postId] = (state.comments[postId] || []).filter(item => item.id !== comment.id);
+          saveJson("cuevas.web.comments", state.comments);
+          state.posts = state.posts.map(item => item.id === postId ? { ...item, commentsList: mapped.commentsList } : item);
+          renderComments();
+          renderFeed();
+          renderProfile();
+        }
+      } catch (err) {
+        state.comments[postId] = dedupeComments([...(state.comments[postId] || []), comment]);
+        saveJson("cuevas.web.comments", state.comments);
+        if (post) post.commentsList = previousComments.length ? dedupeComments([...previousComments, comment]) : post.commentsList;
+        renderComments();
+        renderFeed();
+        renderProfile();
+        console.warn("Comment save failed", err);
+      }
     }
 
     async function uploadFile(file, destination = "") {
