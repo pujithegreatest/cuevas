@@ -57,6 +57,7 @@ export default function MissionChatModal({
   const insets = useSafeAreaInsets();
   const textColor = isDarkMode ? "#CFEFEC" : "#1F2937";
   const mutedColor = isDarkMode ? "#9CA3AF" : "#5F6B73";
+  const canSend = draft.trim().length > 0 && !isSending;
 
   const loadMessages = useCallback(
     async (quiet = false) => {
@@ -248,6 +249,7 @@ export default function MissionChatModal({
               paddingBottom: Math.max(insets.bottom, 10),
               borderTopWidth: 1,
               borderTopColor: "rgba(6,167,161,0.20)",
+              backgroundColor: isDarkMode ? "transparent" : "rgba(255,255,255,0.96)",
               gap: 8,
             }}
           >
@@ -274,7 +276,7 @@ export default function MissionChatModal({
             />
             <Pressable
               onPress={sendMessage}
-              disabled={!draft.trim() || isSending}
+              disabled={!canSend}
               style={({ pressed }) => ({
                 width: 46,
                 height: 46,
@@ -282,7 +284,9 @@ export default function MissionChatModal({
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: "#06A7A1",
-                opacity: pressed || !draft.trim() || isSending ? 0.55 : 1,
+                borderWidth: isDarkMode ? 0 : 1,
+                borderColor: canSend ? "#057D78" : "rgba(6,167,161,0.45)",
+                opacity: pressed || (isDarkMode && !canSend) ? 0.55 : 1,
               })}
             >
               {isSending ? <ActivityIndicator color="#FFFFFF" /> : <Ionicons name="send" size={19} color="#FFFFFF" />}
