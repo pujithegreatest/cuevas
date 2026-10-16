@@ -1,0 +1,75 @@
+Cuevas Firebase Push Notifications
+Last updated: October 16, 2026
+
+IMPLEMENTED
+Native Firebase Cloud Messaging for Android and iOS.
+Firebase project: ecothot-social-media
+Bundle/package identifier: com.ecothot.cuevas
+Announcement topic: cuevas-announcements
+
+Users opt in through Profile > Settings > Community notifications.
+The app requests system permission and subscribes signed-in, opted-in
+devices to the announcement topic. Foreground announcements display locally;
+Firebase and the operating system display background notification payloads.
+Tapping an announcement opens Cuevas. No custom destination is configured.
+Token refresh and foreground resynchronization maintain the subscription.
+Turning the setting off or logging out deletes the FCM token when online.
+If offline, synchronization is retried when the app returns to the foreground.
+Device notification settings can immediately block OS delivery.
+
+This implements general announcements. It does not automatically send alerts
+for chat messages, comments, zaps, or missions. Do not put private user data
+in topic announcements: topics are not an authorization boundary.
+No Firebase service-account credentials belong in the mobile app.
+The bundled Firebase client configurations are app identifiers, not server keys.
+
+APPLE BROWSER SETUP
+1. Open https://developer.apple.com/account/resources/authkeys/list
+2. Use an existing APNs key authorized for com.ecothot.cuevas or create one
+   with Apple Push Notifications service enabled. Configure it for the
+   intended environment and app/team scope. Record the Key ID and Team ID.
+   Keep the downloaded .p8 private. Do not commit it or paste its contents.
+3. Open https://console.firebase.google.com/project/ecothot-social-media/settings/cloudmessaging
+4. Under iOS app configuration, select Cuevas (com.ecothot.cuevas).
+5. Under APNs authentication key, upload the .p8 and enter its Key ID and
+   Team ID. Ensure the credentials cover both development builds and
+   production/TestFlight as appropriate for the key's environment/scope.
+6. Check the Apple app identifier has Push Notifications enabled. EAS must
+   generate a provisioning profile containing the push entitlement.
+
+ANDROID
+The Android app is registered in Firebase and google-services.json is bundled.
+Android 13+ asks for notification permission through the in-app toggle.
+Delivery requires a supported Android device with Google Play services.
+This uses FCM directly, so an Expo push-service credential is not required.
+
+BUILD AND TEST
+Native Firebase libraries require new iOS and Android builds; Metro reload or
+an OTA JavaScript update cannot add them to existing installed binaries.
+Build from the mobile project using the existing EAS profiles.
+Install the new app, sign in, enable Community notifications, and accept the
+system permission prompt. Check that Settings shows no connection error.
+In Firebase Console open Messaging and create a notification campaign.
+Select a Topic target and enter cuevas-announcements. Topic discovery may
+take time after the first device subscribes. Send only public announcements.
+Test foreground, background, and opening the app from a notification on both
+platforms. Test permission denial, opt-out, logout, and subsequent opt-in.
+If testing a single device before a broadcast, obtain its FCM token in a
+local debugger using getToken(getMessaging()); use Console's test-message
+flow. Never commit or publish a user's device token.
+
+VALIDATION STATUS
+TypeScript and Expo config introspection are checked during implementation.
+Actual delivery requires APNs credentials, new native builds and physical
+device testing. It is not verified by a successful JavaScript typecheck.
+
+DATA
+Firebase receives installation/registration identifiers for message delivery.
+No email address or Cuevas account ID is sent by this implementation.
+Reflect this notification use of Firebase and device identifiers in the
+published privacy policy and store data disclosures before release.
+
+REFERENCES
+https://firebase.google.com/docs/cloud-messaging/ios/get-started
+https://firebase.google.com/docs/cloud-messaging/send/firebase-console
+https://rnfirebase.io/messaging/usage

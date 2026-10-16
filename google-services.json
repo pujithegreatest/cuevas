@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "281776154082",
+    "firebase_url": "https://ecothot-social-media-default-rtdb.firebaseio.com",
+    "project_id": "ecothot-social-media",
+    "storage_bucket": "ecothot-social-media.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:281776154082:android:c1991b081c9655f35805bb",
+        "android_client_info": {
+          "package_name": "com.ecothot.cuevas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAaX90jFj3_v_YziTLmoG7cQhT9KBsfsas"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

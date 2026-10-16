@@ -33,6 +33,7 @@ import CommentsModal from "../components/CommentsModal";
 import UserProfileModal from "../components/UserProfileModal";
 import EditUsernameModal from "../components/EditUsernameModal";
 import BusinessProfileModal from "../components/BusinessProfileModal";
+import NotificationSettings from "../components/NotificationSettings";
 import { LinearGradient } from "expo-linear-gradient";
 import { formatRelativeTime } from "../utils/linkPreview";
 import { POST_PRIVACY_OPTIONS, getPrivacyOption } from "../utils/privacy";
@@ -1292,6 +1293,8 @@ export default function ProfileScreen({ navigation }: Props) {
                 <Ionicons name="chevron-forward" size={20} color="#06A7A1" />
               </View>
             </Pressable>
+
+            <NotificationSettings dark={isDarkMode} />
 
             <View className={`rounded-2xl border p-4 ${statBg} ${statBorder}`}>
               <View className="flex-row items-center justify-between mb-3">

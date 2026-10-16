@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { useAppStore } from "./src/state/appStore";
 import { useEffect } from "react";
+import PushNotificationRegistration from "./src/components/PushNotificationRegistration";
 
 /*
 IMPORTANT NOTICE: DO NOT REMOVE
@@ -43,6 +44,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
+        <PushNotificationRegistration />
         <View className={isDarkMode ? "dark" : ""} style={{ flex: 1 }}>
           <NavigationContainer>
             <RootNavigator />
