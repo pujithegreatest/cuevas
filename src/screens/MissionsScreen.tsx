@@ -753,7 +753,7 @@ export default function MissionsScreen({ navigation }: Props) {
   }, [refreshCheckIns, missions.length]);
 
   const queuedMissions = useMemo(
-    () => missions.filter((mission) => queuedMissionIds.includes(mission.id) && !["archived", "deleted"].includes(String(mission.status || "").toLowerCase())),
+    () => missions.filter((mission) => queuedMissionIds.includes(mission.id) && !["completed", "archived", "deleted"].includes(String(mission.status || "").toLowerCase())),
     [missions, queuedMissionIds]
   );
   const visibleMissions = useMemo(
