@@ -763,10 +763,7 @@ export default function MissionsScreen({ navigation }: Props) {
   const completedMissions = useMemo(
     () => {
       const checkedInIds = new Set(checkedInMissionIds);
-      const completed = missions.filter((mission) => {
-        const status = String(mission.status || "").toLowerCase();
-        return status === "completed" || checkedInIds.has(mission.id);
-      });
+      const completed = missions.filter((mission) => checkedInIds.has(mission.id));
       const knownIds = new Set(completed.map((mission) => mission.id));
       const fallbackCheckedInMissions = missionCheckIns
         .filter((checkIn) => checkIn.missionId && !knownIds.has(checkIn.missionId))

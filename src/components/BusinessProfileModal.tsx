@@ -1220,6 +1220,33 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
                 <Text style={{ color: "#06A7A1", fontWeight: "900" }}>{proofCount} submissions loaded</Text>
               </View>
               {mission.description ? <Text style={{ color: "#9CA3AF", marginTop: 8, lineHeight: 18 }}>{mission.description}</Text> : null}
+              <View style={{ marginTop: 12 }}>
+                <Text style={{ color: "#CFEFEC", fontWeight: "900", marginBottom: 4 }}>Attendee emails</Text>
+                {attendeeList.length ? (
+                  attendeeList.map((item, index) => (
+                    <View
+                      key={`past-${mission.id}-${item.email || item.handle || index}`}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        borderTopWidth: index === 0 ? 0 : 1,
+                        borderTopColor: "rgba(255,255,255,0.08)",
+                        paddingVertical: 7,
+                      }}
+                    >
+                      <Text selectable style={{ color: "#CFEFEC", fontSize: 12, flex: 1, paddingRight: 10 }}>
+                        {item.email || "No email recorded"}
+                      </Text>
+                      <Text style={{ color: item.checkedIn ? "#06A7A1" : "#9CA3AF", fontSize: 11, fontWeight: "900" }}>
+                        {item.checkedIn ? "Checked in" : item.status || "Registered"}
+                      </Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={{ color: "#5F6B73", fontSize: 12 }}>No registered attendees.</Text>
+                )}
+              </View>
             </View>
           );
         })
