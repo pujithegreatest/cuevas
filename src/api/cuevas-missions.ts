@@ -1,4 +1,14 @@
 const BASE_URL = "https://www.ecothot.com/_functions";
+
+export type CompletedProfileMission = { missionId: string; title: string; date: string; points: number };
+
+export async function fetchCompletedProfileMissions(handle: string): Promise<CompletedProfileMission[]> {
+  if (!handle.trim()) throw new Error("Missing profile handle");
+  const response = await fetch(`${BASE_URL}/profileMissions?handle=${encodeURIComponent(handle)}`);
+  const json = await parseApiJson(response, "Failed to load completed missions");
+  if (!response.ok || !json?.success) throw new Error(json?.error || "Failed to load completed missions");
+  return json.missions || [];
+}
 const CUEVAS_CLIENT_KEY = "ecothot-super-secret-9384fjksd";
 
 export type MissionType = "One time" | "Recurring" | "Weekly" | "Monthly";

@@ -16,6 +16,7 @@ import { useAppStore } from "../state/appStore";
 import { useFeedStore } from "../state/feedStore";
 import { useStoryStore } from "../state/storyStore";
 import PostCard from "./PostCard";
+import CompletedMissionsModal from "./CompletedMissionsModal";
 import { formatRelativeTime } from "../utils/linkPreview";
 import { canViewPost, getUserHandles } from "../utils/privacy";
 import { displayUsername, normalizeHandle } from "../utils/handles";
@@ -536,95 +537,7 @@ export default function UserProfileModal({
           contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
         />
 
-        <Modal
-          visible={completedOpen}
-          animationType="slide"
-          presentationStyle="pageSheet"
-          onRequestClose={() => setCompletedOpen(false)}
-        >
-          <View style={{ flex: 1, backgroundColor: bg }}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingHorizontal: 16,
-                paddingTop: insets.top + 10,
-                paddingBottom: 12,
-                borderBottomWidth: 1,
-                borderBottomColor: border,
-              }}
-            >
-              <Pressable onPress={() => setCompletedOpen(false)} hitSlop={10}>
-                <Ionicons name="close" size={26} color={text} />
-              </Pressable>
-              <Text style={{ color: text, fontWeight: "900", fontSize: 16 }}>
-                {username} Missions
-              </Text>
-              <View style={{ width: 26 }} />
-            </View>
-
-            <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: insets.bottom + 28 }}>
-              <View
-                style={{
-                  borderRadius: 24,
-                  padding: 18,
-                  backgroundColor: surface,
-                  borderWidth: 2,
-                  borderColor: isDarkMode ? "rgba(6,167,161,0.50)" : "#057D78",
-                }}
-              >
-                <View style={{ alignItems: "center" }}>
-                  <View
-                    style={{
-                      width: 58,
-                      height: 58,
-                      borderRadius: 20,
-                      backgroundColor: "#06A7A1",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginBottom: 12,
-                    }}
-                  >
-                    <Ionicons name="shield-check" size={27} color="#FFFFFF" />
-                  </View>
-                  <Text style={{ color: text, fontWeight: "900", fontSize: 17, textAlign: "center" }}>
-                    No Completed Missions Yet
-                  </Text>
-                  <Text style={{ color: sub, lineHeight: 20, marginTop: 8, textAlign: "center" }}>
-                    Verified service tasks will appear here after a real mission check-in is recorded.
-                  </Text>
-                  <Pressable
-                    onPress={() => setCompletedOpen(false)}
-                    style={({ pressed }) => ({
-                      marginTop: 24,
-                      marginLeft: -14,
-                      borderRadius: 16,
-                      paddingVertical: 12,
-                      paddingHorizontal: 18,
-                      backgroundColor: "#06A7A1",
-                      borderWidth: 2,
-                      borderColor: isDarkMode ? "#39D8D0" : "#057D78",
-                      opacity: pressed ? 0.78 : 1,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      alignSelf: "center",
-                      minWidth: 188,
-                    })}
-                  >
-                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                      <Ionicons name="arrow-back-outline" size={17} color="#FFFFFF" style={{ marginRight: 8 }} />
-                      <Text numberOfLines={1} style={{ color: "#FFFFFF", fontWeight: "900" }}>
-                        Back to Profile
-                      </Text>
-                    </View>
-                  </Pressable>
-                </View>
-              </View>
-            </ScrollView>
-          </View>
-        </Modal>
+      <CompletedMissionsModal visible={completedOpen} handle={handle || ""} onClose={() => setCompletedOpen(false)} />
       </View>
     </Modal>
   );
