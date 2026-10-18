@@ -249,7 +249,7 @@ export default function MissionChatModal({
               borderTopColor: "rgba(6,167,161,0.20)",
               backgroundColor: isDarkMode ? "transparent" : "rgba(255,255,255,0.96)",
               flexDirection: "row",
-              alignItems: "flex-end",
+              alignItems: "center",
               gap: 10,
             }}
           >

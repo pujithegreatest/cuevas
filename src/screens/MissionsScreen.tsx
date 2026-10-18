@@ -373,7 +373,7 @@ function MissionCard({
               paddingVertical: 12,
               paddingHorizontal: 12,
               alignItems: "center",
-              backgroundColor: isQueued ? (isDarkMode ? "#063C41" : "#10252B") : "#06A7A1",
+              backgroundColor: isQueued ? (isDarkMode ? "#063C41" : "#DDF5F2") : "#06A7A1",
               borderWidth: 2,
               borderColor: isQueued ? (isDarkMode ? "#39D8D0" : "#10252B") : "#057D78",
               shadowColor: "#06A7A1",
@@ -388,11 +388,11 @@ function MissionCard({
               <Ionicons
                 name={isQueued ? "checkmark-circle" : "add"}
                 size={18}
-                color={isQueued || isDarkMode ? "#FFFFFF" : "#10252B"}
+                color={isDarkMode ? "#FFFFFF" : "#10252B"}
               />
               <Text
                 style={{
-                  color: isQueued || isDarkMode ? "#FFFFFF" : "#10252B",
+                  color: isDarkMode ? "#FFFFFF" : "#10252B",
                   fontWeight: "900",
                   marginLeft: 8,
                 }}

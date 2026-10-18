@@ -906,10 +906,12 @@ export default function BusinessProfileModal({ visible, onClose }: Props) {
           opacity: pressed || isSubmitting ? 0.72 : 1,
         })}
       >
-        <Ionicons name={isSubmitting ? "hourglass-outline" : "send"} size={18} color="#FFFFFF" />
-        <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8 }}>
-          {isSubmitting ? "Publishing..." : "Publish Mission"}
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Ionicons name={isSubmitting ? "hourglass-outline" : "send"} size={18} color="#FFFFFF" />
+          <Text style={{ color: "#FFFFFF", fontWeight: "900", marginLeft: 8, flexShrink: 1 }}>
+            {isSubmitting ? "Publishing..." : "Publish Mission"}
+          </Text>
+        </View>
       </Pressable>
     </>
   );
