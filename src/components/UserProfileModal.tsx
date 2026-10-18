@@ -454,7 +454,9 @@ export default function UserProfileModal({
 
                 <Pressable
                   onPress={() => setCompletedOpen(true)}
-                  style={({ pressed }) => ({
+                  accessibilityRole="button"
+                  accessibilityLabel="Open completed missions"
+                  style={{
                     marginTop: 16,
                     minHeight: 56,
                     borderRadius: 18,
@@ -468,15 +470,16 @@ export default function UserProfileModal({
                     shadowRadius: 12,
                     shadowOffset: { width: 0, height: 7 },
                     elevation: 4,
-                    opacity: pressed ? 0.78 : 1,
                     flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: 12,
                     alignItems: "center",
                     justifyContent: "space-between",
-                  })}
+                  }}
                 >
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", flexShrink: 1 }}>
                     <Ionicons name="shield-check" size={18} color="#FFFFFF" />
-                    <Text style={{ color: "white", fontWeight: "900", marginLeft: 8 }}>
+                    <Text style={{ color: "white", fontWeight: "900", marginLeft: 8, flexShrink: 1 }}>
                       Completed Missions
                     </Text>
                   </View>
@@ -486,6 +489,7 @@ export default function UserProfileModal({
                       backgroundColor: "#FFFFFF",
                       paddingHorizontal: 10,
                       paddingVertical: 6,
+                      alignSelf: "center",
                     }}
                   >
                     <Text style={{ color: "#057D78", fontSize: 12, fontWeight: "900" }}>Open</Text>
