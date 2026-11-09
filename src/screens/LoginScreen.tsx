@@ -34,7 +34,7 @@ const extra = Constants.expoConfig?.extra || manifestExtra || {};
 
 const GOOGLE_IOS_CLIENT_ID = extra.googleIosClientId || "863626649134-qti4ohta0m03uhaetm4l8urra7s66d0m.apps.googleusercontent.com";
 const GOOGLE_ANDROID_CLIENT_ID = extra.googleAndroidClientId || "";
-const GOOGLE_WEB_CLIENT_ID = extra.googleWebClientId || "863626649134-pudh60mc0rcu9lpil92a6b6861kqaki5.apps.googleusercontent.com";
+const GOOGLE_WEB_CLIENT_ID = extra.googleWebClientId || "863626649134-vun8tehljbs51ih61ccomheqhhjmtfnf.apps.googleusercontent.com";
 
 const COMMUNITY_TERMS = [
   "Cuevas has no tolerance for objectionable content or abusive users.",
