@@ -392,6 +392,12 @@ function GoogleAuthButton({
   );
 }
 
+function KeyboardDismissContainer({ children }: { children: React.ReactElement }) {
+  // Native keyboard dismissal must not blur browser form fields on click.
+  if (Platform.OS === "web") return children;
+  return <TouchableWithoutFeedback onPress={Keyboard.dismiss}>{children}</TouchableWithoutFeedback>;
+}
+
 export default function LoginScreen({ navigation }: Props) {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [displayName, setDisplayNameInput] = useState("");
@@ -494,7 +500,7 @@ export default function LoginScreen({ navigation }: Props) {
   const fieldBg = isDarkMode ? "rgba(9, 24, 30, 0.92)" : "rgba(255,255,255,0.92)";
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <KeyboardDismissContainer>
       <LinearGradient
         colors={isDarkMode ? ["#061116", "#081920", "#0A0A0A"] : ["#CFEFEC", "#F7FFFF"]}
         style={{ flex: 1 }}
@@ -937,6 +943,6 @@ export default function LoginScreen({ navigation }: Props) {
           </View>
         </Modal>
       </LinearGradient>
-    </TouchableWithoutFeedback>
+    </KeyboardDismissContainer>
   );
 }
