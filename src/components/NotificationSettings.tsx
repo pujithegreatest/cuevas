@@ -27,8 +27,8 @@ export default function NotificationSettings({ dark }: { dark: boolean }) {
   return (
     <View style={{ paddingVertical: 16, paddingHorizontal: 14 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <Text style={{ flex: 1, fontWeight: "700", color: dark ? "#CFEFEC" : "#1F2937" }}>Community notifications</Text>
-        <Switch accessibilityLabel="Community notifications" value={enabled} disabled={busy} onValueChange={toggle} trackColor={{ true: "#057D78" }} />
+        <Text style={{ flex: 1, fontWeight: "700", color: dark ? "#CFEFEC" : "#1F2937" }}>Messages and community notifications</Text>
+        <Switch accessibilityLabel="Messages and community notifications" value={enabled} disabled={busy} onValueChange={toggle} trackColor={{ true: "#057D78" }} />
       </View>
       {error ? (
         <Text style={{ paddingVertical: 8, color: dark ? "#FCA5A5" : "#B91C1C" }}>{error}</Text>

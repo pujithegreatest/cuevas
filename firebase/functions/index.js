@@ -14,6 +14,8 @@ const ffmpegPath = require("ffmpeg-static");
 
 admin.initializeApp();
 
+Object.assign(exports, require("./direct-messages"));
+
 setGlobalOptions({
   region: "us-central1",
   maxInstances: 5,

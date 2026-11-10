@@ -7,6 +7,8 @@ import RootNavigator from "./src/navigation/RootNavigator";
 import { useAppStore } from "./src/state/appStore";
 import { useEffect } from "react";
 import PushNotificationRegistration from "./src/components/PushNotificationRegistration";
+import MessagingModal from "./src/components/MessagingModal";
+import MessagingRegistration from "./src/components/MessagingRegistration";
 
 /*
 IMPORTANT NOTICE: DO NOT REMOVE
@@ -45,11 +47,13 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <PushNotificationRegistration />
+        <MessagingRegistration />
         <View className={isDarkMode ? "dark" : ""} style={{ flex: 1 }}>
           <NavigationContainer>
             <RootNavigator />
             <StatusBar style={isDarkMode ? "light" : "dark"} />
           </NavigationContainer>
+          <MessagingModal />
         </View>
       </SafeAreaProvider>
     </GestureHandlerRootView>

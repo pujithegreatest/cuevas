@@ -4,6 +4,13 @@
     ".write": false,
     "users": {
       ".indexOn": ["email", "wixMemberId"]
+    },
+    "dm": {
+      "chats": {
+        "$conversationId": {
+          "messages": { ".indexOn": ["createdAt"] }
+        }
+      }
     }
   }
 }

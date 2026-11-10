@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
+import { registerMessagingDevice } from "./directMessages";
 
 export const ANNOUNCEMENTS_TOPIC = "cuevas-announcements";
 
@@ -16,6 +17,9 @@ export async function configureNotificationChannel() {
       importance: Notifications.AndroidImportance.HIGH,
       sound: "default",
     });
+    await Notifications.setNotificationChannelAsync("messages", {
+      name: "Private messages", importance: Notifications.AndroidImportance.HIGH, sound: "default",
+    });
   }
 }
 
@@ -31,12 +35,14 @@ export async function syncPushSubscription(enabled: boolean) {
   const api = messagingApi();
   const messaging = api.getMessaging();
   if (!enabled) {
+    await registerMessagingDevice(null).catch(() => {});
     await api.setAutoInitEnabled(messaging, false);
     await api.deleteToken(messaging);
     return;
   }
   const permission = await Notifications.getPermissionsAsync();
   if (!permission.granted && permission.ios?.status !== Notifications.IosAuthorizationStatus.PROVISIONAL) {
+    await registerMessagingDevice(null).catch(() => {});
     await api.setAutoInitEnabled(messaging, false);
     await api.deleteToken(messaging);
     return;
@@ -45,7 +51,8 @@ export async function syncPushSubscription(enabled: boolean) {
   if (Platform.OS === "ios" && !messaging.isDeviceRegisteredForRemoteMessages) {
     await api.registerDeviceForRemoteMessages(messaging);
   }
-  await api.getToken(messaging);
+  const token = await api.getToken(messaging);
+  await registerMessagingDevice(token).catch(() => {});
   await api.setAutoInitEnabled(messaging, true);
   await api.subscribeToTopic(messaging, ANNOUNCEMENTS_TOPIC);
 }
@@ -64,7 +71,7 @@ export function observePushNotifications(onTokenChanged: () => void) {
         sound: "default",
         data: message.data || {},
       },
-      trigger: Platform.OS === "android" ? { channelId: "announcements" } : null,
+      trigger: Platform.OS === "android" ? { channelId: message.data?.type === "dm" ? "messages" : "announcements" } : null,
     });
   });
   return () => { stopToken(); stopMessage(); };

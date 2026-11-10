@@ -35,6 +35,8 @@ import EditUsernameModal from "../components/EditUsernameModal";
 import BusinessProfileModal from "../components/BusinessProfileModal";
 import NotificationSettings from "../components/NotificationSettings";
 import CompletedMissionsModal from "../components/CompletedMissionsModal";
+import MailButton from "../components/MailButton";
+import { useMessagingStore } from "../state/messagingStore";
 import { LinearGradient } from "expo-linear-gradient";
 import { formatRelativeTime } from "../utils/linkPreview";
 import { POST_PRIVACY_OPTIONS, getPrivacyOption } from "../utils/privacy";
@@ -272,6 +274,7 @@ function PulsingAvatar({
 }
 
 export default function ProfileScreen({ navigation }: Props) {
+  const unreadMessages = useMessagingStore((s) => s.unread);
   const insets = useSafeAreaInsets();
   const isDarkMode = useAppStore((s) => s.isDarkMode);
   const userEmail = useAppStore((s) => s.userEmail);
@@ -681,6 +684,7 @@ export default function ProfileScreen({ navigation }: Props) {
           <Text className={`ml-1 text-xs font-bold ${textColor}`}>
             {vibeScore} DNA
           </Text>
+          <MailButton unread={unreadMessages} onPress={() => useMessagingStore.getState().open()} />
         </View>
       </View>
 

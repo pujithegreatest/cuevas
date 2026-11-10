@@ -17,6 +17,8 @@ import { useFeedStore } from "../state/feedStore";
 import { useStoryStore } from "../state/storyStore";
 import PostCard from "./PostCard";
 import CompletedMissionsModal from "./CompletedMissionsModal";
+import MailButton from "./MailButton";
+import { useMessagingStore } from "../state/messagingStore";
 import { formatRelativeTime } from "../utils/linkPreview";
 import { canViewPost, getUserHandles } from "../utils/privacy";
 import { displayUsername, normalizeHandle } from "../utils/handles";
@@ -230,7 +232,7 @@ export default function UserProfileModal({
           <Pressable onPress={onClose} hitSlop={10}>
             <Ionicons name="close" size={26} color={text} />
           </Pressable>
-          <Text style={{ color: text, fontWeight: "800", fontSize: 16 }}>
+          <Text numberOfLines={1} style={{ color: text, fontWeight: "800", fontSize: 16, flex: 1, marginHorizontal: 12 }}>
             {username}
           </Text>
           {isOwnProfile ? (
@@ -240,6 +242,7 @@ export default function UserProfileModal({
               <Ionicons name="ellipsis-horizontal" size={26} color={text} />
             </Pressable>
           )}
+          {!isOwnProfile && <MailButton label={`Message @${cleanHandle}`} onPress={() => { onClose(); setTimeout(() => useMessagingStore.getState().open(cleanHandle), 350); }} />}
         </View>
 
         {menuOpen && !isOwnProfile && (

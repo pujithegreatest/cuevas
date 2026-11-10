@@ -1,5 +1,11 @@
 // Use the client key directly - it's hardcoded since it's needed for API auth
 import { normalizeHandle } from "../utils/handles";
+import { establishMessagingSession } from "../services/directMessages";
+
+async function connectPrivateMessages(credentials: Parameters<typeof establishMessagingSession>[0]) {
+  try { await establishMessagingSession(credentials); }
+  catch { /* Existing app access stays available if the messaging service is unavailable. */ }
+}
 
 const CUEVAS_CLIENT_KEY = "ecothot-super-secret-9384fjksd";
 type AuthMode = "login" | "signup";
@@ -140,6 +146,7 @@ export async function loginToEcothot(
 
     // API returns success flag and either cuevas balance or error message
     if (data.success) {
+      await connectPrivateMessages(requestBody);
       return {
         success: true,
         email: data.email || email,
@@ -222,6 +229,7 @@ export async function signupToCuevas(
       };
     }
 
+    await connectPrivateMessages(requestBody);
     return {
       success: true,
       email: data.email || email,
@@ -328,6 +336,7 @@ export async function loginWithGoogle(
     }
 
     if (data.success) {
+      await connectPrivateMessages(requestBody);
       return {
         success: true,
         email: data.email || email,
@@ -438,6 +447,7 @@ export async function loginWithApple(input: {
       };
     }
 
+    await connectPrivateMessages(requestBody);
     const safeAppleFallbackEmail = input.appleUserId
       ? `apple_${input.appleUserId.replace(/[^a-z0-9]/gi, "").slice(-24) || "user"}@apple.cuevas.local`
       : undefined;
