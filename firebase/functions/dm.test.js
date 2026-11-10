@@ -74,6 +74,24 @@ test("unauthenticated and non-member readers cannot access private messages", as
   assert.equal((await f.call("eve", { action: "messages", conversationId: "thread" })).status, 403);
   assert.equal((await f.call("alice", { action: "messages", conversationId: "thread" })).status, 200);
 });
+test("mission attachments persist, support optional captions, and retain moderation evidence", async () => {
+  const f = fixture(); f.chat();
+  const missionShare = { id: "mission-1", title: "Community cleanup", points: 300, location: "Syracuse", businessHandle: "missionpossible", injected: "discard" };
+  const body = { action: "send", conversationId: "thread", messageId: "mission_message", text: "", missionShare };
+  assert.equal((await f.call("alice", body)).status, 200);
+  assert.equal((await f.call("alice", body)).status, 200);
+  const messages = (await f.call("bob", { action: "messages", conversationId: "thread" })).output.messages;
+  assert.equal(messages.length, 1);
+  assert.equal(messages[0].missionShare.title, missionShare.title);
+  assert.equal(messages[0].missionShare.injected, undefined);
+  assert.equal((await f.call("alice", { ...body, messageId: "caption", text: "Join me?" })).status, 200);
+  assert.equal((await f.call("eve", body)).status, 403);
+  await f.call("bob", { action: "report", conversationId: "thread", messageId: "mission_message", reason: "Spam or scam" });
+  assert.equal(Object.values(f.get("dmReports"))[0].missionShare.id, "mission-1");
+  assert.equal((await f.call("alice", { ...body, messageId: "bad", missionShare: { title: "Missing ID" } })).status, 400);
+  assert.equal((await f.call("alice", { ...body, messageId: "badurl", missionShare: { ...missionShare, eventUrl: "javascript:alert(1)" } })).status, 400);
+  assert.equal((await f.call("alice", { ...body, messageId: "empty", missionShare: null })).status, 400);
+});
 test("wrong password and forged provider tokens never mint messaging sessions", async () => {
   const f = fixture();
   assert.equal((await f.call(null, { action: "authenticate", email: "alice@example.invalid", password: "anything" })).status, 401);
@@ -122,6 +140,8 @@ test("adding participants creates a separate group without leaking direct histor
   assert.notEqual(group.output.conversation.id, id);
   assert.equal((await f.call("eve", { action: "messages", conversationId: id })).status, 403);
   assert.equal((await f.call("eve", { action: "messages", conversationId: group.output.conversation.id })).output.messages.length, 0);
+  assert.equal((await f.call("alice", { action: "send", conversationId: group.output.conversation.id, messageId: "mission_group", text: "Join us", missionShare: { id: "mission-1", title: "Community cleanup" } })).status, 200);
+  assert.equal((await f.call("eve", { action: "messages", conversationId: group.output.conversation.id })).output.messages[0].missionShare.id, "mission-1");
   await f.call("eve", { action: "leave", conversationId: group.output.conversation.id });
   assert.equal((await f.call("eve", { action: "messages", conversationId: group.output.conversation.id })).status, 403);
 });

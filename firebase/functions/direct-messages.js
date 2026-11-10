@@ -3,7 +3,7 @@ const crypto = require("crypto");
 const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const { onValueDeleted } = require("firebase-functions/v2/database");
-const { fail, key, handle, participants, directId, member, messageText, stamp } = require("./dm-core");
+const { fail, key, handle, participants, directId, member, messageText, stamp, missionShare } = require("./dm-core");
 const passwordPepper = defineSecret("CUEVAS_CLIENT_KEY");
 const db = () => admin.database();
 const read = async (path) => (await db().ref(path).get()).val();
@@ -200,12 +200,13 @@ async function dispatch(uid, user, body) {
   }
   if (action === "send") {
     await rateLimit(`send:${uid}`, 30);
-    const text = messageText(body.text);
+    const attachment = missionShare(body.missionShare);
+    const text = attachment && (body.text === undefined || body.text === "") ? "" : messageText(body.text);
     const messageId = key(body.messageId);
     for (const recipient of Object.keys(chat.members)) {
       if (recipient !== uid && chat.members[recipient] && await blocked(uid, recipient)) fail("Messaging is blocked for this conversation.", 403);
     }
-    const message = { text, sender: uid, createdAt: Date.now() };
+    const message = { text, sender: uid, createdAt: Date.now(), ...(attachment ? { missionShare: attachment } : {}) };
     const saved = await db().ref(`dm/chats/${id}/messages/${messageId}`).transaction((current) => current ? undefined : message);
     if (!saved.committed) return { message: { id: messageId, ...saved.snapshot.val() } };
     const updates = { [`dm/chats/${id}/meta/updatedAt`]: message.createdAt, [`dm/chats/${id}/meta/lastSender`]: uid };
@@ -221,7 +222,7 @@ async function dispatch(uid, user, body) {
     if (!message) fail("Message not found.", 404);
     const reasons = ["Harassment", "Hate or threats", "Sexual content", "Child safety or exploitation", "Spam or scam", "Other"];
     if (!reasons.includes(body.reason)) fail("Choose a report reason.");
-    await db().ref("dmReports").push({ conversationId: id, messageId, reporter: uid, sender: message.sender, text: message.text, reason: body.reason, createdAt: Date.now(), status: "pending" });
+    await db().ref("dmReports").push({ conversationId: id, messageId, reporter: uid, sender: message.sender, text: message.text, ...(message.missionShare ? { missionShare: message.missionShare } : {}), reason: body.reason, createdAt: Date.now(), status: "pending" });
     return {};
   }
   if (action === "leave") {

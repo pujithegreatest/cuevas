@@ -2,6 +2,7 @@ import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
 import { useAppStore } from "../state/appStore";
+import { MissionShare } from "../types/feed";
 
 const ENDPOINT = "https://us-central1-ecothot-social-media.cloudfunctions.net/directMessages";
 const API_KEY = "AIzaSyAaX90jFj3_v_YziTLmoG7cQhT9KBsfsas";
@@ -9,7 +10,7 @@ const SESSION_KEY = "cuevas.dm.session.v1";
 type Session = { uid: string; email: string; idToken: string; refreshToken: string; expiresAt: number };
 export type Person = { uid: string; handle: string; name: string };
 export type Conversation = { id: string; type: "direct" | "group"; title: string; members: Record<string, boolean>; people: Record<string, Person>; updatedAt: number; unread?: boolean };
-export type DirectMessage = { id: string; sender: string; text: string; createdAt: number };
+export type DirectMessage = { id: string; sender: string; text: string; createdAt: number; missionShare?: MissionShare };
 let session: Session | null = null;
 let refreshing: Promise<Session> | null = null;
 let generation = 0;

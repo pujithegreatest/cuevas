@@ -25,6 +25,8 @@ import CreatePostModal from "../components/CreatePostModal";
 import MissionChatModal from "../components/MissionChatModal";
 import { useAppStore } from "../state/appStore";
 import { MissionShare } from "../types/feed";
+import { toMissionShare } from "../utils/missionShare";
+import { useMessagingStore } from "../state/messagingStore";
 import { MainTabParamList } from "../types/navigation";
 import { encodeUploadUri, uploadMediaFile } from "../utils/uploadMedia";
 
@@ -70,30 +72,6 @@ function formatPeopleNeeded(value: CuevasMission["peopleNeeded"]) {
   const count = Number(value);
   if (Number.isFinite(count) && count > 0) return `${count} ppl`;
   return value || "Open crew";
-}
-
-function toMissionShare(mission: CuevasMission): MissionShare {
-  return {
-    id: mission.id,
-    title: mission.title,
-    description: mission.description,
-    points: mission.points,
-    durationHours: mission.durationHours,
-    location: mission.location,
-    eventDate: mission.eventDate,
-    eventDateISO: mission.eventDateISO,
-    type: mission.type,
-    difficulty: mission.difficulty,
-    peopleNeeded: mission.peopleNeeded,
-    gearProvided: mission.gearProvided,
-    materialsNote: mission.materialsNote,
-    eventUrl: mission.eventUrl,
-    businessName: mission.businessName,
-    businessHandle: mission.businessHandle,
-    businessVerified: mission.businessVerified,
-    goingCount: mission.goingCount,
-    status: mission.status,
-  };
 }
 
 async function getWritableCuevasCalendarId() {
@@ -362,6 +340,10 @@ function MissionCard({
         </Pressable>
       ) : null}
 
+      <Pressable accessibilityRole="button" accessibilityLabel={`Send ${mission.title} in message`} onPress={() => useMessagingStore.getState().shareMission(toMissionShare(mission))} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 12, gap: 8 }}>
+        <Ionicons name="mail-outline" size={20} color={isDarkMode ? "#55DCD0" : "#057D78"} />
+        <Text style={{ color: isDarkMode ? "#55DCD0" : "#057D78", fontWeight: "800" }}>Send in message</Text>
+      </Pressable>
       {!isCompleted && onToggle ? (
         <>
           <Pressable
