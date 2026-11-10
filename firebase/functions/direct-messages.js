@@ -63,9 +63,15 @@ async function authenticate(body) {
   } else {
     if (!email || typeof body.password !== "string" || !body.password) fail("Sign in again to enable private messaging.", 401);
     account = await accountByEmail(email);
-    const expected = crypto.createHash("sha256").update(`${email}:${body.password}:${passwordPepper.value()}`).digest("hex");
-    const actual = account.user.passwordHash;
-    if (typeof actual !== "string" || actual.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(actual), Buffer.from(expected))) fail("Incorrect email or password. Use your original sign-in method.", 401);
+    const response = await fetch("https://www.ecothot.com/_functions/verifyMessagingPassword", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password: body.password, clientKey: passwordPepper.value() }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (response.status === 401 || response.status === 403) fail("Incorrect email or password.", 401);
+    if (!response.ok) fail("Password verification is temporarily unavailable. Please try again.", 503);
+    const proof = await response.json();
+    if (proof.success !== true || proof.verified !== true || proof.email !== email || proof.uid !== account.uid) fail("Account could not be verified.", 401);
   }
   key(account.uid);
   const token = await admin.auth().createCustomToken(account.uid, { dmAccount: stamp(account.user) });

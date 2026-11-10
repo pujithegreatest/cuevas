@@ -4,7 +4,7 @@ const vm = require("node:vm");
 const fs = require("node:fs");
 const core = require("./dm-core");
 
-function fixture() {
+function fixture(options = {}) {
   const data = { users: { alice: { email: "alice@example.invalid", handle: "alice", createdAt: 1 }, bob: { email: "bob@example.invalid", handle: "bob", createdAt: 2 }, eve: { email: "eve@example.invalid", handle: "eve", createdAt: 3 } } };
   let serial = 0;
   const get = (path) => path.split("/").filter(Boolean).reduce((object, key) => object?.[key], data) ?? null;
@@ -39,7 +39,15 @@ function fixture() {
   }), messaging: () => ({ sendEachForMulticast: async (payload) => { notifications.push(payload); return { responses: payload.tokens.map(() => ({ success: true })) }; } }) };
   vm.runInNewContext(fs.readFileSync(require.resolve("./direct-messages"), "utf8"), {
     exports, console, Buffer, URLSearchParams, AbortSignal,
-    fetch: async () => ({ ok: true, json: async () => ({ aud: "attacker-client", expires_in: 3000, email_verified: true, email: "alice@example.invalid" }) }),
+    fetch: async (url, request) => {
+      if (url.endsWith("/verifyMessagingPassword")) {
+        const body = JSON.parse(request.body);
+        const expected = require("crypto").createHash("sha256").update(`${body.email}:${body.password}:test-pepper`).digest("hex");
+        const valid = data.users.alice.passwordHash ? data.users.alice.passwordHash === expected : options.wixPasswordValid === true;
+        return { ok: valid, status: valid ? 200 : 403, json: async () => ({ success: valid, verified: valid, email: body.email, uid: options.proofUid || "alice" }) };
+      }
+      return { ok: true, json: async () => ({ aud: "attacker-client", expires_in: 3000, email_verified: true, email: "alice@example.invalid" }) };
+    },
     require: (name) => name === "firebase-admin" ? admin : name === "firebase-functions/v2/https" ? { onRequest: (_, handler) => handler } : name === "firebase-functions/v2/database" ? { onValueDeleted: (_, handler) => handler } : name === "firebase-functions/params" ? { defineSecret: () => ({ value: () => "test-pepper" }) } : name === "./dm-core" ? core : require(name),
   });
   async function call(uid, body) {
@@ -85,6 +93,17 @@ test("sender identity comes from verified session; retries do not duplicate send
   assert.deepEqual(Array.from(f.notifications[0].tokens), ["bob-token"]);
   assert.equal(f.notifications[0].notification.body, "You have a new message.");
   assert.ok(!JSON.stringify(f.notifications).includes("Private hello"));
+});
+test("Wix-managed password accounts can establish messaging without changing providers", async () => {
+  const f = fixture({ wixPasswordValid: true });
+  const result = await f.call(null, { action: "authenticate", email: "alice@example.invalid", password: "existing-wix-password" });
+  assert.equal(result.status, 200);
+  assert.equal(result.output.token, "verified-alice");
+  assert.equal(f.get("users/alice/passwordHash"), null);
+});
+test("password verification cannot authorize a different Firebase account", async () => {
+  const f = fixture({ wixPasswordValid: true, proofUid: "eve" });
+  assert.equal((await f.call(null, { action: "authenticate", email: "alice@example.invalid", password: "existing-wix-password" })).status, 401);
 });
 test("blocked recipients cannot receive new messages or new conversations", async () => {
   const f = fixture(); f.chat();
