@@ -13,6 +13,7 @@ export type DirectMessage = { id: string; sender: string; text: string; createdA
 let session: Session | null = null;
 let refreshing: Promise<Session> | null = null;
 let generation = 0;
+let signInError: string | null = null;
 
 async function stored(value?: string | null) {
   if (Platform.OS === "web") {
@@ -32,20 +33,27 @@ async function request(url: string, body: unknown, token?: string) {
   try {
     const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(body), signal: controller.signal });
     const data = await response.json();
-    if (!response.ok) throw new Error(typeof data.error === "string" ? data.error : "Messaging authorization failed. Please sign in again.");
+    if (!response.ok) throw new Error(typeof data.error === "string" ? data.error : data.error?.message || "Messaging authorization failed. Please sign in again.");
     return data;
   } finally { clearTimeout(timeout); }
 }
 export async function establishMessagingSession(credentials: { email?: string | null; password?: string; googleToken?: string; appleIdentityToken?: string | null; appleUserId?: string }) {
   const current = ++generation;
-  const proof = await request(ENDPOINT, { ...credentials, action: "authenticate" });
-  const auth = await request(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${API_KEY}`, { token: proof.token, returnSecureToken: true });
-  if (current !== generation) return;
-  session = { uid: proof.uid, email: proof.email.toLowerCase(), idToken: auth.idToken, refreshToken: auth.refreshToken, expiresAt: Date.now() + Number(auth.expiresIn) * 1000 };
-  await stored(JSON.stringify(session));
+  signInError = null;
+  try {
+    const proof = await request(ENDPOINT, { ...credentials, action: "authenticate" });
+    const auth = await request(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${API_KEY}`, { token: proof.token, returnSecureToken: true });
+    if (current !== generation) return;
+    session = { uid: proof.uid, email: proof.email.toLowerCase(), idToken: auth.idToken, refreshToken: auth.refreshToken, expiresAt: Date.now() + Number(auth.expiresIn) * 1000 };
+    await stored(JSON.stringify(session));
+  } catch (error) {
+    if (current === generation) signInError = error instanceof Error ? error.message : "Messaging sign-in failed.";
+    throw error;
+  }
 }
 export async function clearMessagingSession() {
   generation++;
+  signInError = null;
   const previous = session;
   session = null;
   await stored(null);
@@ -59,7 +67,7 @@ async function authorizedSession(): Promise<Session> {
     if (value) { try { session = JSON.parse(value); } catch { await stored(null); } }
   }
   const account = useAppStore.getState();
-  if (!session || !account.isAuthenticated || session.email !== account.userEmail?.toLowerCase()) throw new Error("Sign in again to enable private messaging on this device.");
+  if (!session || !account.isAuthenticated || session.email !== account.userEmail?.toLowerCase()) throw new Error(signInError || "Sign in again to enable private messaging on this device.");
   if (session.expiresAt > Date.now() + 60000) return session;
   if (!refreshing) {
     const previous = session;
