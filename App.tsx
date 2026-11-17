@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import PushNotificationRegistration from "./src/components/PushNotificationRegistration";
 import MessagingModal from "./src/components/MessagingModal";
 import MessagingRegistration from "./src/components/MessagingRegistration";
+import AnnouncementLightbox from "./src/components/AnnouncementLightbox";
 
 /*
 IMPORTANT NOTICE: DO NOT REMOVE
@@ -54,6 +55,7 @@ export default function App() {
             <StatusBar style={isDarkMode ? "light" : "dark"} />
           </NavigationContainer>
           <MessagingModal />
+          <AnnouncementLightbox />
         </View>
       </SafeAreaProvider>
     </GestureHandlerRootView>
