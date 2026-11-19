@@ -210,7 +210,7 @@ function ScanlineOverlay({ width, height }: { width: number; height: number }) {
 const VIDEO_TINTS: Record<StoryFilter, string | null> = {
   none: null,
   heatwave: "rgba(13,0,140,0.26)",
-  hologram: "rgba(0,200,255,0.25)",
+  hologram: "rgba(0,230,208,0.35)",
   vaporwave: "rgba(255,0,200,0.18)",
   infrared: "rgba(200,0,80,0.28)",
   matrix: "rgba(0,200,0,0.22)",
