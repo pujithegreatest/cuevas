@@ -45,6 +45,8 @@ export default function CommentsModal({
   onClose,
 }: CommentsModalProps) {
   const [commentText, setCommentText] = useState("");
+  const [replyTo, setReplyTo] = useState<{ postId: string | null; id: string; author: string } | null>(null);
+  const activeReply = replyTo?.postId === postId ? replyTo : null;
   const [commentPrivacy, setCommentPrivacy] =
     useState<CommentPrivacyLevel>("public");
   const [privacyFlash, setPrivacyFlash] = useState<string | null>(null);
@@ -196,9 +198,11 @@ export default function CommentsModal({
       authorRewardPoints: rewardsBalance,
       content: commentText.trim(),
       privacy: commentPrivacy,
+      replyToId: activeReply?.id,
     });
 
     setCommentText("");
+    setReplyTo(null);
   };
 
   const isVideoUri = (uri?: string) =>
@@ -376,6 +380,12 @@ export default function CommentsModal({
             <Text style={{ color: colors.text, fontSize: 15, marginTop: 5, lineHeight: 20 }}>
               {item.content}
             </Text>
+            {(!item.privacy || item.privacy === "public") && (
+              <Pressable accessibilityRole="button" accessibilityLabel={`Reply to ${item.author}`}
+                onPress={() => setReplyTo({ postId, id: item.id, author: item.author })} hitSlop={8}>
+                <Text style={{ color: colors.accent, fontSize: 12, paddingTop: 6 }}>Reply</Text>
+              </Pressable>
+            )}
           </View>
         </View>
       </View>
@@ -518,7 +528,8 @@ export default function CommentsModal({
             <TextInput
               value={commentText}
               onChangeText={setCommentText}
-              placeholder={currentPrivacy.value === "poster" ? "Private note to poster..." : "Add a comment..."}
+              placeholder={currentPrivacy.value === "poster" ? "Private note to poster..." :
+                activeReply ? `Reply to ${activeReply.author}...` : "Add a comment..."}
               placeholderTextColor={isDarkMode ? "#6B7280" : "#94A3B8"}
               style={{
                 flex: 1,

@@ -18,6 +18,7 @@ export interface Comment {
   content: string;
   timestamp: number;
   privacy?: CommentPrivacyLevel;
+  replyToId?: string;
 }
 
 export interface PostMusic {

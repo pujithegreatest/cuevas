@@ -11,7 +11,7 @@ type NotificationState = {
 
 export const useNotificationStore = create<NotificationState>()(persist(
   (set) => ({
-    enabled: false,
+    enabled: true,
     hydrated: false,
     error: null,
     setEnabled: (enabled) => set({ enabled, error: null }),

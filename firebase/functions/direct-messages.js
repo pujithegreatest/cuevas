@@ -4,6 +4,7 @@ const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
 const { onValueDeleted } = require("firebase-functions/v2/database");
 const { fail, key, handle, participants, directId, member, messageText, stamp, missionShare } = require("./dm-core");
+const { categories, values, preferences, mentions, sendPush } = require("./push-preferences");
 const passwordPepper = defineSecret("CUEVAS_CLIENT_KEY");
 const db = () => admin.database();
 const read = async (path) => (await db().ref(path).get()).val();
@@ -83,29 +84,26 @@ function publicUser(uid, user) {
 async function blocked(a, b) {
   return Boolean(await read(`dm/blocks/${a}/${b}`) || await read(`dm/blocks/${b}/${a}`));
 }
-async function notify(chatId, chat, sender) {
+async function notify(chatId, chat, sender, text) {
   const recipients = Object.keys(chat.members).filter((uid) => uid !== sender && chat.members[uid]);
   for (const uid of recipients) {
     if (await blocked(sender, uid)) continue;
-    const tokens = await read(`dmDevices/${uid}`) || {};
-    const entries = Object.entries(tokens).filter(([, device]) => device.token && Date.now() - device.updatedAt < 60 * 86400000).slice(0, 10);
-    if (!entries.length) continue;
-    const result = await admin.messaging().sendEachForMulticast({
-      tokens: entries.map(([, device]) => device.token),
-      notification: { title: "Cuevas", body: "You have a new message." },
-      data: { type: "dm", conversationId: chatId },
-      android: { notification: { channelId: "messages" } },
-      apns: { payload: { aps: { sound: "default" } } },
-    });
-    const updates = {};
-    result.responses.forEach((response, i) => {
-      if (["messaging/registration-token-not-registered", "messaging/invalid-registration-token"].includes(response.error?.code)) updates[entries[i][0]] = null;
-    });
-    if (Object.keys(updates).length) await db().ref(`dmDevices/${uid}`).update(updates);
+    const choice = preferences(await read(`notificationPreferences/${uid}`)).dm;
+    if (choice === "off") continue;
+    if (choice === "limited" && chat.type === "group" && !mentions(text, chat.people?.[uid]?.handle)) continue;
+    await sendPush(admin, uid, "dm", "You have a new message.", { conversationId: chatId });
   }
 }
 async function dispatch(uid, user, body) {
   const action = body.action;
+  if (action === "verifyNotificationActor") return { verified: true, email: user.email };
+  if (action === "getNotificationPreferences" || action === "setNotificationPreference") {
+    if (action === "setNotificationPreference") {
+      if (!categories.includes(body.category) || !values.includes(body.value)) fail("Invalid notification preference.");
+      await db().ref(`notificationPreferences/${uid}/${body.category}`).set(body.value);
+    }
+    return { preferences: preferences(await read(`notificationPreferences/${uid}`)) };
+  }
   if (action === "blocked") {
     const ids = Object.keys(await read(`dm/blocks/${uid}`) || {});
     const people = [];
@@ -213,7 +211,7 @@ async function dispatch(uid, user, body) {
     for (const recipient of Object.keys(chat.members)) if (chat.members[recipient]) updates[`dm/inbox/${recipient}/${id}/updatedAt`] = message.createdAt;
     updates[`dm/inbox/${uid}/${id}/lastReadAt`] = message.createdAt;
     await db().ref().update(updates);
-    try { await notify(id, chat, uid); } catch (error) { console.error("DM notification delivery failed", error.code || "unknown"); }
+    try { await notify(id, chat, uid, text); } catch (error) { console.error("DM notification delivery failed", error.code || "unknown"); }
     return { message: { id: messageId, ...message } };
   }
   if (action === "report") {
@@ -261,6 +259,8 @@ exports.deleteMessagingAccount = onValueDeleted({ ref: "/users/{uid}", region: "
   const uid = event.params.uid;
   const inbox = { ...await read(`dm/inbox/${uid}`), ...await read(`dm/userChats/${uid}`) };
   const updates = { [`dm/inbox/${uid}`]: null, [`dm/userChats/${uid}`]: null, [`dm/blocks/${uid}`]: null, [`dmDevices/${uid}`]: null };
+  updates[`notificationPreferences/${uid}`] = null;
+  updates[`zapDigest/${uid}`] = null;
   for (const id of Object.keys(inbox)) {
     updates[`dm/chats/${id}/meta/members/${uid}`] = null;
     updates[`dm/chats/${id}/meta/people/${uid}`] = null;

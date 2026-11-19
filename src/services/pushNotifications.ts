@@ -20,6 +20,14 @@ export async function configureNotificationChannel() {
     await Notifications.setNotificationChannelAsync("messages", {
       name: "Private messages", importance: Notifications.AndroidImportance.HIGH, sound: "default",
     });
+    for (const [id, name] of [
+      ["recurringMissions", "Recurring missions"], ["missionEvents", "Mission events"],
+      ["missionChat", "Mission chat"], ["zaps", "Zaps"], ["comments", "Comments"],
+    ]) {
+      await Notifications.setNotificationChannelAsync(id, {
+        name, importance: Notifications.AndroidImportance.HIGH, sound: "default",
+      });
+    }
   }
 }
 
@@ -40,7 +48,10 @@ export async function syncPushSubscription(enabled: boolean) {
     await api.deleteToken(messaging);
     return;
   }
-  const permission = await Notifications.getPermissionsAsync();
+  const currentPermission = await Notifications.getPermissionsAsync();
+  const permission = currentPermission.status === "undetermined"
+    ? { granted: await requestPushPermission(), ios: currentPermission.ios }
+    : currentPermission;
   if (!permission.granted && permission.ios?.status !== Notifications.IosAuthorizationStatus.PROVISIONAL) {
     await registerMessagingDevice(null).catch(() => {});
     await api.setAutoInitEnabled(messaging, false);
@@ -52,7 +63,7 @@ export async function syncPushSubscription(enabled: boolean) {
     await api.registerDeviceForRemoteMessages(messaging);
   }
   const token = await api.getToken(messaging);
-  await registerMessagingDevice(token).catch(() => {});
+  await registerMessagingDevice(token);
   await api.setAutoInitEnabled(messaging, true);
   await api.subscribeToTopic(messaging, ANNOUNCEMENTS_TOPIC);
 }
@@ -71,7 +82,8 @@ export function observePushNotifications(onTokenChanged: () => void) {
         sound: "default",
         data: message.data || {},
       },
-      trigger: Platform.OS === "android" ? { channelId: message.data?.type === "dm" ? "messages" : "announcements" } : null,
+      trigger: Platform.OS === "android" ? { channelId: typeof message.data?.channelId === "string"
+        ? message.data.channelId : message.data?.type === "dm" ? "messages" : "announcements" } : null,
     });
   });
   return () => { stopToken(); stopMessage(); };

@@ -15,6 +15,7 @@ const ffmpegPath = require("ffmpeg-static");
 admin.initializeApp();
 
 Object.assign(exports, require("./direct-messages"));
+Object.assign(exports, require("./community-push"));
 
 setGlobalOptions({
   region: "us-central1",

@@ -90,6 +90,13 @@ export async function dmRequest<T = Record<string, never>>(action: string, data:
   return result;
 }
 export async function messagingIdentity() { return (await authorizedSession()).uid; }
+export async function notificationActorToken(email?: string | null) {
+  if (!email) return undefined;
+  try {
+    const session = await authorizedSession();
+    return session.email === email.trim().toLowerCase() ? session.idToken : undefined;
+  } catch { return undefined; }
+}
 export function newMessageId() { return Crypto.randomUUID(); }
 async function deviceId() {
   const name = "cuevas.dm.device.v1";

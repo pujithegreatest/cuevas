@@ -5,6 +5,7 @@ import { Post, Comment, LinkPreview, CommentPrivacyLevel, PrivacyLevel, PostAudi
 import { completeLinkPreview, detectLinkPreview, extractUrlsFromText } from "../utils/linkPreview";
 import * as FileSystem from 'expo-file-system/legacy';
 import { normalizeHandle as normalizePublicHandle } from "../utils/handles";
+import { notificationActorToken } from "../services/directMessages";
 
 const POSTS_API = "https://www.ecothot.com/_functions/posts";
 const POST_UPDATE_API = "https://www.ecothot.com/_functions/postUpdate";
@@ -703,11 +704,13 @@ export const useFeedStore = create<FeedState>()(
 
         if (!previousPost) return;
 
-        fetch(POST_UPDATE_API, {
+        (nextLiked ? notificationActorToken(viewer?.userEmail) : Promise.resolve(undefined))
+          .then(pushActorToken => fetch(POST_UPDATE_API, {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify({
             action: "toggleLike",
+            pushActorToken,
             id: postId,
             _id: postId,
             liked: nextLiked,
@@ -717,7 +720,7 @@ export const useFeedStore = create<FeedState>()(
             userHandle: viewer?.userHandle || "",
             aliases: viewer?.handleAliases || [],
           }),
-        })
+        }))
           .then(async (res) => {
             const text = await res.text();
             let json: any = null;
@@ -776,11 +779,12 @@ export const useFeedStore = create<FeedState>()(
 
         if (!previousPost) return;
 
-        fetch(POST_UPDATE_API, {
+        notificationActorToken(newComment.authorEmail).then(pushActorToken => fetch(POST_UPDATE_API, {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify({
             action: "addComment",
+            pushActorToken,
             id: postId,
             _id: postId,
             comment: newComment,
@@ -789,7 +793,7 @@ export const useFeedStore = create<FeedState>()(
             userEmail: newComment.authorEmail || "",
             displayName: newComment.author,
           }),
-        })
+        }))
           .then(async (res) => {
             const text = await res.text();
             let json: any = null;

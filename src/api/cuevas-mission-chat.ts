@@ -1,3 +1,5 @@
+import { notificationActorToken } from "../services/directMessages";
+
 const BASE_URL = "https://www.ecothot.com/_functions";
 const CUEVAS_CLIENT_KEY = "ecothot-super-secret-9384fjksd";
 const CHAT_ENDPOINTS = ["missionChatMessages", "missionchatmessages"];
@@ -75,11 +77,12 @@ export async function sendMissionChatMessage(input: {
   authorRole: MissionChatRole;
   businessHandle?: string | null;
 }): Promise<MissionChatMessage> {
+  const pushActorToken = await notificationActorToken(input.userEmail);
   for (const endpoint of CHAT_ENDPOINTS) {
     const response = await fetch(`${BASE_URL}/${endpoint}`, {
       method: "POST",
       headers: { Accept: "application/json", "Content-Type": "application/json" },
-      body: JSON.stringify({ ...input, clientKey: CUEVAS_CLIENT_KEY }),
+      body: JSON.stringify({ ...input, clientKey: CUEVAS_CLIENT_KEY, pushActorToken }),
     });
     const { json, text } = await readApiJson(response);
     if (response.status === 404 && !json) continue;

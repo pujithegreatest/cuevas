@@ -68,6 +68,27 @@ test("direct IDs are stable and participant / message validation rejects invalid
   assert.throws(() => core.messageText(" "));
   assert.throws(() => core.messageText("x".repeat(4001)));
 });
+
+test("notification choices default on, persist per account, and mute DMs at dispatch", async () => {
+  const f = fixture();
+  f.chat();
+  f.put("dmDevices/bob/phone", { token: "test-token", updatedAt: Date.now() });
+  const defaults = await f.call("bob", { action: "getNotificationPreferences" });
+  assert.equal(Object.keys(defaults.output.preferences).length, 6);
+  assert.ok(Object.values(defaults.output.preferences).every(value => value === "all"));
+  assert.equal((await f.call("bob", { action: "setNotificationPreference", category: "bogus", value: "off" })).status, 400);
+  await f.call("bob", { action: "setNotificationPreference", category: "dm", value: "off", uid: "alice" });
+  assert.equal(f.get("notificationPreferences/alice"), null);
+  await f.call("alice", { action: "send", conversationId: "thread", messageId: "msg_1", text: "Hi Bob" });
+  assert.equal(f.notifications.length, 0);
+  await f.call("bob", { action: "setNotificationPreference", category: "dm", value: "limited" });
+  const meta = f.get("dm/chats/thread/meta");
+  f.put("dm/chats/thread/meta", { ...meta, type: "group" });
+  await f.call("alice", { action: "send", conversationId: "thread", messageId: "msg_2", text: "Hi all" });
+  await f.call("alice", { action: "send", conversationId: "thread", messageId: "msg_3", text: "Hi @bob!" });
+  assert.equal(f.notifications.length, 1);
+  assert.equal(f.notifications[0].data.conversationId, "thread");
+});
 test("unauthenticated and non-member readers cannot access private messages", async () => {
   const f = fixture(); f.chat();
   assert.equal((await f.call(null, { action: "messages", conversationId: "thread" })).status, 401);

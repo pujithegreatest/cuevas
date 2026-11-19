@@ -5,6 +5,7 @@
     "users": {
       ".indexOn": ["email", "wixMemberId"]
     },
+    "communityMissions": { ".indexOn": ["startMs", "seriesKey"] },
     "dm": {
       "chats": {
         "$conversationId": {
