@@ -10,7 +10,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from "react-native-reanimated";
 import { DrawStroke } from "../types/story";
 
-interface DrawingCanvasProps {
+export interface DrawingCanvasProps {
   width: number;
   height: number;
   enabled: boolean;

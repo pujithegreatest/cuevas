@@ -656,6 +656,8 @@ export default function StoryCameraModal({
         >
           <Pressable
             onPress={handleClose}
+            accessibilityRole="button"
+            accessibilityLabel="Close story camera"
             hitSlop={10}
             style={{
               width: 40,

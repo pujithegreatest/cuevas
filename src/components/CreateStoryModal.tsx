@@ -1403,6 +1403,9 @@ export default function CreateStoryModal({
                         setSelectedId(null);
                         setSelectedStickerId(null);
                       }}
+                      accessibilityRole="button"
+                      accessibilityLabel="Draw on story"
+                      aria-pressed={drawMode}
                       style={{
                         width: 40,
                         height: 40,
@@ -1857,7 +1860,11 @@ export default function CreateStoryModal({
                     <Pressable
                       key={f.id}
                       onPress={() => applyStaticFilter(f.id)}
+                      accessibilityRole="button"
+                      accessibilityLabel={f.label}
+                      aria-pressed={!hasLockedLiveFilter && filter === f.id}
                       className="items-center"
+                      style={{ width: 64 }}
                     >
                       <View
                         style={{
@@ -1917,7 +1924,11 @@ export default function CreateStoryModal({
                     <Pressable
                       key={f.id}
                       onPress={() => applyStaticFilter(f.id)}
+                      accessibilityRole="button"
+                      accessibilityLabel={f.label}
+                      aria-pressed={!hasLockedLiveFilter && filter === f.id}
                       className="items-center"
+                      style={{ width: 64 }}
                     >
                       <View
                         style={{

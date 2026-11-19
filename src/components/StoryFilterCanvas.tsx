@@ -13,12 +13,7 @@ import Svg, {
   Stop,
   Text as SvgText,
 } from "react-native-svg";
-import {
-  Canvas,
-  Image as SkiaImage,
-  ColorMatrix,
-  useImage,
-} from "@shopify/react-native-skia";
+import StoryFilteredImage from "./StoryFilteredImage";
 import { StoryFilter } from "../types/story";
 
 interface StoryFilterCanvasProps {
@@ -184,9 +179,13 @@ const MATRICES: Record<StoryFilter, number[] | null> = {
   ],
 };
 
-function ScanlineOverlay({ width, height }: { width: number; height: number }) {
+function ScanlineOverlay({ height, step = 3, opacity = 0.18 }: {
+  width: number;
+  height: number;
+  step?: number;
+  opacity?: number;
+}) {
   const lines: React.ReactElement[] = [];
-  const step = 3;
   for (let y = 0; y < height; y += step) {
     lines.push(
       <View
@@ -197,7 +196,8 @@ function ScanlineOverlay({ width, height }: { width: number; height: number }) {
           left: 0,
           right: 0,
           height: 1,
-          backgroundColor: "rgba(0,0,0,0.18)",
+          backgroundColor: "#000",
+          opacity,
         }}
       />
     );
@@ -1336,7 +1336,7 @@ export function FilterEffects({
             colors={["rgba(0,255,240,0.15)", "rgba(0,100,255,0.1)"]}
             style={[StyleSheet.absoluteFill]}
           />
-          <ScanlineOverlay width={width} height={height} />
+          {height >= 96 && <ScanlineOverlay width={width} height={height} step={5} opacity={0.12} />}
         </>
       );
     case "vaporwave":
@@ -1399,7 +1399,15 @@ export function FilterEffects({
               backgroundColor: "rgba(0,220,255,0.15)",
             }}
           />
-          <ScanlineOverlay width={width} height={height} />
+          {height >= 96 && (
+            <>
+              <ScanlineOverlay width={width} height={height} step={4} opacity={0.1} />
+              <View style={{ position: "absolute", top: height * 0.28, left: 0,
+                width: width * 0.24, height: 2, backgroundColor: "rgba(0,230,255,0.55)" }} />
+              <View style={{ position: "absolute", top: height * 0.68, right: 0,
+                width: width * 0.32, height: 3, backgroundColor: "rgba(255,0,112,0.42)" }} />
+            </>
+          )}
         </>
       );
     case "neon":
@@ -1714,7 +1722,6 @@ export default function StoryFilterCanvas({
   heatwaveAnimated = mediaType === "video" && videoShouldPlay,
   effectMode = "static",
 }: StoryFilterCanvasProps) {
-  const skImage = useImage(mediaType === "image" ? uri : null);
   const matrix = MATRICES[filter];
   const videoTint = VIDEO_TINTS[filter];
   const videoRef = useRef<Video | null>(null);
@@ -1803,37 +1810,7 @@ export default function StoryFilterCanvas({
 
   return (
     <View style={{ width, height, overflow: "hidden", backgroundColor: "#000" }}>
-      {skImage && matrix ? (
-        <Canvas style={{ width, height }}>
-          <SkiaImage
-            image={skImage}
-            x={0}
-            y={0}
-            width={width}
-            height={height}
-            fit={contentFit}
-          >
-            <ColorMatrix matrix={matrix} />
-          </SkiaImage>
-        </Canvas>
-      ) : skImage ? (
-        <Canvas style={{ width, height }}>
-          <SkiaImage
-            image={skImage}
-            x={0}
-            y={0}
-            width={width}
-            height={height}
-            fit={contentFit}
-          />
-        </Canvas>
-      ) : (
-        <Image
-          source={{ uri }}
-          style={{ width, height }}
-          contentFit={contentFit}
-        />
-      )}
+      <StoryFilteredImage uri={uri} width={width} height={height} contentFit={contentFit} matrix={matrix} />
 
       {effectMode === "live" ? (
         <LiveFilterHud
