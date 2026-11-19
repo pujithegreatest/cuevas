@@ -12,6 +12,7 @@ import { Image } from "expo-image";
 import { sharePngUriToInstagramStory } from "../utils/instagramStories";
 import { addRewardsCardToWallet } from "../utils/walletAdd";
 import { QRCodeDisplay } from "../components/QRCodeDisplay";
+import { RewardsMediaGallery } from "../components/RewardsMediaGallery";
 import { fetchCuevasLeaderboard } from "../api/cuevas-leaderboard";
 import type { CuevasLeaderboardEntry } from "../api/cuevas-leaderboard";
 import { deriveHandle } from "../utils/handles";
@@ -206,6 +207,8 @@ export default function RewardsBalanceScreen({ navigation }: Props) {
             CUEVAS
           </Text>
         </View>
+
+        <RewardsMediaGallery dark={isDarkMode} />
 
         {/* Account QR Code */}
         {userEmail ? (
